@@ -55,9 +55,9 @@ async function rateLimitMiddleware(request: Request) {
 			userRequests.lastResetTime = currentTime;
 			await updateUserRequestData(userIP, userRequests);
 		} else {
-			// Check if the user has exceeded the rate limit (5 requests per day)
-			if (count >= 5) {
-				return new Response('Rate limit exceeded, come back tomorrow!', { status: 429 });
+			// Check if the user has exceeded the rate limit (10 requests per day)
+			if (count >= 10) {
+				return new Response('Rate limit exceeded, get in touch with extra credit: nihat@duck.com', { status: 429 });
 			}
 
 			// Increment the request count for the user
@@ -169,7 +169,7 @@ export async function POST({ request }: { request: any }) {
 	}
 	const { searched } = await request.json();
 	const payload = {
-		model: 'gpt-3.5-turbo',
+		model: 'gpt-4-0613',
 		messages: [{ role: 'user', content: searched }],
 		temperature: 0.7,
 		max_tokens: 2048,
