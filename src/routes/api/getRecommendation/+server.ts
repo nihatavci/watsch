@@ -55,8 +55,8 @@ async function rateLimitMiddleware(request: Request) {
 			userRequests.lastResetTime = currentTime;
 			await updateUserRequestData(userIP, userRequests);
 		} else {
-			// Check if the user has exceeded the rate limit (10 requests per day)
-			if (count >= 10) {
+			// Check if the user has exceeded the rate limit (100 requests per day)
+			if (count >= 100) {
 				return new Response('Rate limit exceeded, get in touch with extra credit: nihat@duck.com', { status: 429 });
 			}
 
