@@ -169,7 +169,7 @@ export async function POST({ request }: { request: any }) {
 	}
 	const { searched } = await request.json();
 	const payload = {
-		model: 'gpt-4-0613',
+		model: 'gpt-3.5-turbo',
 		messages: [{ role: 'user', content: searched }],
 		temperature: 0.7,
 		max_tokens: 2048,
