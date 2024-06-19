@@ -168,9 +168,9 @@ export async function POST({ request }: { request: any }) {
 		return rateLimitResult;
 	}
 	const { searched } = await request.json();
-	const payload = {
+	const payload: OpenAIStreamPayload = {
 		model: 'gpt-3.5-turbo',
-		messages: [{ role: 'user', content: searched }],
+		messages: [{ role: "user", content: searched }],
 		temperature: 0.7,
 		max_tokens: 2048,
 		top_p: 1.0,
@@ -182,3 +182,5 @@ export async function POST({ request }: { request: any }) {
 	const stream = await OpenAIStream(payload);
 	return new Response(stream);
 }
+
+// please create me authenti

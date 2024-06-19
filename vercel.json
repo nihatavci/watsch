@@ -1,12 +1,31 @@
 {
 	"redirects": [
-		{
-			"source": "/deploy",
-			"destination": "https://vercel.com/templates/svelte/watch-this"
-		},
-		{
-			"source": "/github",
-			"destination": "https://github.com/StephDietz/watch-this"
-		}
+	  {
+		"source": "/deploy",
+		"destination": "https://vercel.com/templates/svelte/watch-this"
+	  },
+	  {
+		"source": "/github",
+		"destination": "https://github.com/StephDietz/watch-this"
+	  }
+	],
+	"headers": [
+	  {
+		"source": "/(.*)",
+		"headers": [
+		  {
+			"key": "Access-Control-Allow-Origin",
+			"value": "*"
+		  },
+		  {
+			"key": "Access-Control-Allow-Methods",
+			"value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+		  },
+		  {
+			"key": "Access-Control-Allow-Headers",
+			"value": "X-Requested-With, content-type, Authorization"
+		  }
+		]
+	  }
 	]
-}
+  }
