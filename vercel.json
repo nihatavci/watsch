@@ -1,31 +1,63 @@
 {
-	"redirects": [
+	"headers": [
 	  {
-		"source": "/deploy",
-		"destination": "https://vercel.com/templates/svelte/watch-this"
+		"source": "/(.*).html",
+		"headers": [
+		  {
+			"key": "Cache-Control",
+			"value": "public, max-age=0, must-revalidate"
+		  }
+		]
 	  },
 	  {
-		"source": "/github",
-		"destination": "https://github.com/StephDietz/watch-this"
-	  }
-	],
-	"headers": [
+		"source": "/sw.js",
+		"headers": [
+		  {
+			"key": "Cache-Control",
+			"value": "public, max-age=0, must-revalidate"
+		  }
+		]
+	  },
+	  {
+		"source": "/manifest.webmanifest",
+		"headers": [
+		  {
+			"key": "Content-Type",
+			"value": "application/manifest+json"
+		  }
+		]
+	  },
+	  {
+		"source": "/assets/(.*)",
+		"headers": [
+		  {
+			"key": "Cache-Control",
+			"value": "max-age=31536000, immutable"
+		  }
+		]
+	  },
 	  {
 		"source": "/(.*)",
 		"headers": [
 		  {
-			"key": "Access-Control-Allow-Origin",
-			"value": "*"
+			"key": "X-Content-Type-Options",
+			"value": "nosniff"
 		  },
 		  {
-			"key": "Access-Control-Allow-Methods",
-			"value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+			"key": "X-Frame-Options",
+			"value": "DENY"
 		  },
 		  {
-			"key": "Access-Control-Allow-Headers",
-			"value": "X-Requested-With, content-type, Authorization"
+			"key": "X-XSS-Protection",
+			"value": "1; mode=block"
 		  }
 		]
+	  }
+	],
+	"rewrites": [
+	  {
+		"source": "/(.*)",
+		"destination": "/index.html"
 	  }
 	]
   }
