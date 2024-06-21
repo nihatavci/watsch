@@ -4,7 +4,8 @@ self.addEventListener('install', (event) => {
     caches.open('static-cache-v1').then((cache) => {
       return cache.addAll([
         // Pre-cache your application shell and static assets
-        '/favicon.png',
+        '/icon1.png',
+        '/icon2.png',
       ]);
     })
   );

@@ -46,7 +46,7 @@
   
   <div class="min-h-screen w-full">
 	<slot />
-	<button on:click={installApp} style="display: {promptEvent ? 'block' : 'none'};">
+	<button id="installButton" on:click={installApp} style="display: {promptEvent ? 'block' : 'none'};">
 	  Install App
 	</button>
   </div>
