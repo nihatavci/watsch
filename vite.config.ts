@@ -14,12 +14,12 @@ export default {
         theme_color: '#000000',
         icons: [
           {
-            src: '/icon1.png',
+            src: '/static/icon1.png',  // Ensure the path is correct as per your folder structure
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/icon2.png',
+            src: '/static/icon2.png',  // Ensure the path is correct as per your folder structure
             sizes: '512x512',
             type: 'image/png',
           },
@@ -43,4 +43,10 @@ export default {
       },
     }),
   ],
+  server: {
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..']
+    }
+  }
 };
