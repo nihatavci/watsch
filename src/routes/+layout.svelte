@@ -4,7 +4,10 @@
 	import { dev } from '$app/environment';
 	import { inject } from '@vercel/analytics';
 	import { onMount } from 'svelte';
-	import { installPrompt, setupInstallPrompt } from '../stores/installPrompt';
+	import { writable } from 'svelte/store';
+  
+	// Create a writable store for managing the install prompt state
+	export const installPrompt = writable<BeforeInstallPromptEvent | null>(null);
   
 	let promptEvent: BeforeInstallPromptEvent | null = null;
 	installPrompt.subscribe((value) => {
@@ -12,7 +15,10 @@
 	});
   
 	onMount(() => {
-	  setupInstallPrompt();
+	  window.addEventListener('beforeinstallprompt', (e) => {
+		e.preventDefault(); // Prevent the mini-infobar from appearing on mobile
+		installPrompt.set(e);
+	  });
   
 	  if ('serviceWorker' in navigator) {
 		window.addEventListener('load', () => {
@@ -37,7 +43,7 @@
 		  } else {
 			console.log('User dismissed the A2HS prompt');
 		  }
-		  installPrompt.set(null);
+		  installPrompt.set(null); // Reset the prompt event after handling
 		});
 	  }
 	}
@@ -48,7 +54,7 @@
   <div class="min-h-screen w-full">
 	<slot />
 	{#if promptEvent}
-	  <button id="installButton" on:click={installApp}>
+	  <button id="installButton" on:click={installApp} class="p-2 bg-blue-500 text-white rounded">
 		Install App
 	  </button>
 	{/if}
