@@ -1,3 +1,4 @@
+<!-- src/routes/+layout.svelte -->
 <script lang="ts">
 	import '../app.css';
 	import { dev } from '$app/environment';
@@ -46,8 +47,10 @@
   
   <div class="min-h-screen w-full">
 	<slot />
-	<button id="installButton" on:click={installApp} style="display: {promptEvent ? 'block' : 'none'};">
-	  Install App
-	</button>
+	{#if promptEvent}
+	  <button id="installButton" on:click={installApp}>
+		Install App
+	  </button>
+	{/if}
   </div>
   
