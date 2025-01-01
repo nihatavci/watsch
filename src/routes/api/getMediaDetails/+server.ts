@@ -1,11 +1,60 @@
-import { OMDB_API_KEY } from '$env/static/private';
 import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
-export async function POST({ request }: { request: any }) {
-	const { title } = await request.json();
-	const url = `http://www.omdbapi.com/?apikey=${OMDB_API_KEY}&t=${title}`;
+export const POST: RequestHandler = async ({ request }) => {
+	try {
+		const { title } = await request.json();
+		
+		if (!title) {
+			return json({ error: 'Title is required' }, { status: 400 });
+		}
 
-	const res = await fetch(url);
-	const details = await res.json();
-	return json(details);
-}
+		const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+		
+		if (!OMDB_API_KEY) {
+			console.error('OMDB API key is not configured');
+			return json({ error: 'API configuration error' }, { status: 500 });
+		}
+
+		// Add retry logic
+		const maxRetries = 3;
+		let lastError;
+
+		for (let i = 0; i < maxRetries; i++) {
+			try {
+				const response = await fetch(
+					`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${OMDB_API_KEY}`
+				);
+
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+
+				const data = await response.json();
+				
+				// Check for API-specific errors
+				if (data.Error === 'Invalid API key!') {
+					console.error('OMDB API key validation failed');
+					return json({ error: 'API authentication failed' }, { status: 401 });
+				}
+
+				if (data.Error) {
+					return json({ error: data.Error }, { status: 404 });
+				}
+
+				return json(data);
+			} catch (error) {
+				lastError = error;
+				// Wait before retrying
+				await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+			}
+		}
+
+		console.error('Failed after retries:', lastError);
+		return json({ error: 'Service temporarily unavailable' }, { status: 503 });
+
+	} catch (error) {
+		console.error('API Error:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};

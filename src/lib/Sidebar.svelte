@@ -1,122 +1,71 @@
 <script lang="ts">
-    import { fade, slide } from 'svelte/transition';
-    import { library } from '../stores/library';
-    import { sidebarNotification } from '../stores/notifications';
-    
-    export let isOpen: boolean = false;
-    
-    function removeFromSaved(id: string) {
-        library.removeFromSaved(id);
-    }
-    
-    function clearHistory() {
-        library.clearHistory();
-    }
+	import { fade, fly } from 'svelte/transition';
+	import { library } from '../stores/library';
+
+	export let isOpen = false;
 </script>
 
-<div
-    class={`fixed right-0 top-0 h-full w-80 glassmorphism border-l border-white/[0.05] transform transition-transform duration-300 ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-    }`}
-    style="z-index: 1000;"
->
-    <div class="p-6 h-full flex flex-col">
-        {#if $sidebarNotification.show}
-            <div 
-                class="absolute top-4 left-4 right-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm"
-                transition:fade
-            >
-                {$sidebarNotification.message}
-            </div>
-        {/if}
-        
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-white">
-                Your Library
-            </h2>
-            <button
-                on:click={() => (isOpen = false)}
-                class="p-2 hover:bg-white/[0.05] rounded-lg transition-colors"
-            >
-                <svg class="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
+{#if isOpen}
+	<button
+		type="button"
+		class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+		on:click={() => (isOpen = false)}
+		on:keydown={(e) => e.key === 'Escape' && (isOpen = false)}
+		transition:fade={{ duration: 200 }}
+	/>
 
-        <!-- Saved to Watch -->
-        <div class="mb-6">
-            <h3 class="text-sm uppercase text-white/50 mb-3">Saved to Watch</h3>
-            <div class="space-y-3">
-                {#if $library.savedItems.length === 0}
-                    <p class="text-sm text-white/30">No saved items yet</p>
-                {:else}
-                    {#each $library.savedItems as item (item.id)}
-                        <div
-                            class="flex items-center p-3 bg-white/[0.02] rounded-lg border border-white/[0.05]"
-                            transition:slide
-                        >
-                            <img src={item.poster} alt={item.title} class="w-12 h-16 object-cover rounded" />
-                            <div class="ml-3 flex-1">
-                                <h4 class="text-sm font-medium text-white/90">{item.title}</h4>
-                                <p class="text-xs text-white/50">{item.year}</p>
-                                <div class="flex gap-1 mt-1">
-                                    {#each item.platforms as platform}
-                                        <span class="text-xs px-1.5 py-0.5 bg-white/[0.05] rounded">
-                                            {platform}
-                                        </span>
-                                    {/each}
-                                </div>
-                            </div>
-                            <button
-                                on:click={() => removeFromSaved(item.id)}
-                                class="p-1.5 hover:bg-white/[0.05] rounded-lg transition-colors"
-                            >
-                                <svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-        </div>
+	<div
+		class="fixed right-0 top-0 h-full w-80 bg-black/80 backdrop-blur-sm border-l border-white/10 z-50 p-6 overflow-y-auto"
+		transition:fly={{ x: "100%", duration: 300 }}
+	>
+		<div class="flex justify-between items-center mb-8">
+			<h2 class="text-xl font-bold text-white">Library</h2>
+			<button
+				on:click={() => (isOpen = false)}
+				class="text-white/50 hover:text-white/80 transition-colors"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		</div>
 
-        <!-- Search History 
-        <div class="flex-1">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm uppercase text-white/50">Search History</h3>
-                {#if $library.searchHistory.length > 0}
-                    <button
-                        on:click={clearHistory}
-                        class="text-xs text-white/30 hover:text-white/50 transition-colors"
-                    >
-                        Clear All
-                    </button>
-                {/if}
-            </div>
-            <div class="space-y-2">
-                {#if $library.searchHistory.length === 0}
-                    <p class="text-sm text-white/30">No search history</p>
-                {:else}
-                    {#each $library.searchHistory as search (search.id)}
-                        <div
-                            class="p-3 bg-white/[0.02] rounded-lg border border-white/[0.05]"
-                            transition:slide
-                        >
-                            <p class="text-sm text-white/70">{search.query}</p>
-                            <p class="text-xs text-white/30 mt-1">
-                                {new Date(search.timestamp).toLocaleDateString()}
-                            </p>
-                        </div>
-                    {/each}
-                {/if}
-            </div>
-        </div>-->
-    </div>
-</div>
-
-<style>
-    /* Add any additional styles here */
-</style> 
+		<div class="space-y-6">
+			{#if $library.savedItems.length > 0}
+				<div class="space-y-4">
+					<h3 class="text-sm font-medium text-white/70">Saved Items</h3>
+					{#each $library.savedItems as item}
+						<div class="flex items-start space-x-4 bg-white/5 rounded-lg p-4 group">
+							<div class="w-16 h-24 flex-none bg-cover bg-center rounded" style="background-image: url({item.poster})"></div>
+							<div class="flex-1 min-w-0">
+								<p class="text-sm font-medium text-white truncate">{item.title}</p>
+								<p class="text-xs text-white/50">{item.year}</p>
+								{#if item.platforms.length > 0}
+									<div class="mt-2 flex flex-wrap gap-1">
+										{#each item.platforms as platform}
+											<span class="px-2 py-0.5 rounded text-[10px] bg-white/10 text-white/70">
+												{platform}
+											</span>
+										{/each}
+									</div>
+								{/if}
+							</div>
+							<button
+								class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
+								on:click={() => library.removeFromSaved(item.title)}
+							>
+								<svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						</div>
+					{/each}
+				</div>
+			{:else}
+				<div class="text-white/50 text-center py-8">
+					Your saved movies will appear here
+				</div>
+			{/if}
+		</div>
+	</div>
+{/if} 

@@ -117,7 +117,7 @@
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4">
+<div class="max-w-4xl mx-auto px-4 mt-24">
 	{#if !showForm && recommendations.length === 0}
 		<div in:fade class="relative z-10 flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
 			<Home on:click={() => showForm = true} />

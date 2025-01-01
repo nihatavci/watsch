@@ -1,6 +1,6 @@
 <div class="min-h-[calc(100vh-5rem)] w-full flex flex-col justify-center px-4">
 	<div
-		class="relative z-10 text-center md:text-left font-bold text-slate-200 text-4xl md:text-5xl mb-8 md:mb-16 w-full"
+		class="relative z-10 text-left md:text-left font-bold text-slate-200 text-4xl md:text-5xl mb-8 md:mb-16 w-full"
 	>
 		Find your perfect movie  <br class="hidden md:block" /> <span class="text-[#E50914]">in seconds</span>, not minutes
 		<br class="hidden md:block" />
