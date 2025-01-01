@@ -7,22 +7,26 @@
 	function toggleSidebar() {
 		dispatch('toggleSidebar');
 	}
+
+	function handleLogoClick() {
+		window.location.href = '/';
+	}
 </script>
 
 <div
-	class="max-w-4xl mx-auto w-full flex md:flex-row flex-col items-center md:justify-between py-8 mb-12 border-b border-white/20"
+	class="max-w-4xl mx-auto w-full flex md:flex-row flex-col items-center md:justify-between py-8 mb-12 border-b border-[#E50914]/20"
 >
-	<button on:click class="flex items-center mb-4 md:mb-0 text-white/70">
+	<button on:click={handleLogoClick} class="flex items-center mb-4 md:mb-0 text-[#FFFFFF] hover:text-[#E50914] hover-transition">
 		<TvIcon />
-		<div class="text-2xl md:text-xl font-bold ml-2">wat<span style="color: #EF4444;">sch</span></div>
+		<div class="text-2xl md:text-xl font-bold ml-2">wat<span class="text-[#E50914]">sch</span></div>
 	</button>
 
 	<button
 		on:click={toggleSidebar}
-		class="p-2 hover:bg-white/[0.05] rounded-lg transition-colors flex items-center space-x-2"
+		class="px-4 py-2 bg-[#221F1F] hover:bg-[#E50914] rounded-lg hover-transition flex items-center space-x-2 border border-[#E50914]/20"
 	>
-		<span class="text-sm text-white/70">Library</span>
-		<svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<span class="text-sm text-[#FFFFFF]">Library</span>
+		<svg class="w-5 h-5 text-[#FFFFFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"

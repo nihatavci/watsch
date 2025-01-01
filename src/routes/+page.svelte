@@ -3,7 +3,8 @@
 	import Home from '$lib/Home.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
 	import { library } from '../stores/library';
-	import { fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	let cinemaType = '';
 	let selectedCategories: string[] = [];
@@ -13,6 +14,16 @@
 	let selectedPlatforms: string[] = [];
 	let error: string | null = null;
 	let showForm = false;
+
+	function resetApp() {
+		recommendations = [];
+		error = null;
+		cinemaType = '';
+		selectedCategories = [];
+		specificDescriptors = '';
+		selectedPlatforms = [];
+		showForm = false;
+	}
 
 	async function getRecommendations() {
 		loading = true;
@@ -100,26 +111,26 @@
 
 	function dismissRecommendation(index: number) {
 		recommendations = recommendations.filter((_, i) => i !== index);
-	}
-
-	function resetForm() {
-		recommendations = [];
-		error = null;
-		cinemaType = '';
-		selectedCategories = [];
-		specificDescriptors = '';
-		selectedPlatforms = [];
-		showForm = false;
+		if (recommendations.length === 0) {
+			resetApp();
+		}
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4">
+<div class="max-w-4xl mx-auto px-4 page-transition">
 	{#if !showForm && recommendations.length === 0}
-		<div in:fade class="flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
+		<div 
+			in:fly={{ y: 20, duration: 500, easing: quintOut }} 
+			out:fade={{ duration: 200 }}
+			class="flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center"
+		>
 			<Home on:click={() => showForm = true} />
 		</div>
 	{:else if recommendations.length === 0}
-		<div in:fade>
+		<div 
+			in:fly={{ y: 20, duration: 500, easing: quintOut }} 
+			out:fade={{ duration: 200 }}
+		>
 			<Form
 				bind:cinemaType
 				bind:selectedCategories
@@ -129,7 +140,10 @@
 				on:click={getRecommendations}
 			/>
 			{#if error}
-				<div class="mt-4 p-4 rounded-xl bg-red-500/10 text-red-400">
+				<div 
+					in:fly={{ y: 10, duration: 300 }}
+					class="mt-4 p-4 rounded-xl bg-[#B20710]/10 text-[#E50914] glassmorphism"
+				>
 					{error}
 				</div>
 			{/if}
@@ -137,15 +151,20 @@
 	{:else}
 		<div class="space-y-6">
 			{#each recommendations as recommendation, index (index)}
-				<RecommendationCard
-					{recommendation}
-					{selectedPlatforms}
-					onDismiss={() => dismissRecommendation(index)}
-				/>
+				<div 
+					in:fly={{ y: 20, duration: 500, delay: index * 100, easing: quintOut }}
+					out:fade={{ duration: 200 }}
+				>
+					<RecommendationCard
+						{recommendation}
+						{selectedPlatforms}
+						onDismiss={() => dismissRecommendation(index)}
+					/>
+				</div>
 			{/each}
 			<button
-				on:click={resetForm}
-				class="w-full py-4 px-6 rounded-xl bg-neutral-800/50 text-white/70 hover:bg-neutral-700/50 transition-colors"
+				on:click={resetApp}
+				class="w-full py-4 px-6 rounded-xl bg-[#221F1F] text-white hover:bg-[#E50914]/20 hover-transition glassmorphism"
 			>
 				Start Over
 			</button>

@@ -32,7 +32,7 @@
         
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+            <h2 class="text-xl font-bold text-white">
                 Your Library
             </h2>
             <button

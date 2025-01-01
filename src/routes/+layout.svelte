@@ -13,12 +13,19 @@
 		isSidebarOpen = !isSidebarOpen;
 	}
 
+	let resetApp: () => void;
+
+	function handleResetApp() {
+		if (resetApp) resetApp();
+	}
+
 	inject({ mode: dev ? 'development' : 'production' });
 </script>
 
-<div class="min-h-screen w-full">
-	<Header on:toggleSidebar={handleToggleSidebar} />
-	<slot />
+<div class="min-h-screen w-full bg-[#000000]">
+	<div class="fixed inset-0 bg-gradient-to-br from-[#221F1F] to-black/90 -z-10" />
+	<Header on:toggleSidebar={handleToggleSidebar} on:resetApp={handleResetApp} />
+	<slot {resetApp} />
 	<Sidebar bind:isOpen={isSidebarOpen} />
 </div>
   

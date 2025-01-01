@@ -105,7 +105,7 @@
 						</div>
 						<button
 							on:click={() => handleSave(data)}
-							class="px-4 py-2 rounded-lg bg-gradient-to-r from-pink-600/80 to-purple-600/80 text-white text-sm transition-all duration-300 hover:from-pink-500/80 hover:to-purple-500/80 relative overflow-hidden"
+							class="px-4 py-2 rounded-lg bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF] text-sm transition-all duration-300 hover:bg-[#E50914] relative overflow-hidden"
 							disabled={isAdded}
 						>
 							{#if isAdded}
