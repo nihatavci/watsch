@@ -1,202 +1,154 @@
-<script>
-	import * as animateScroll from 'svelte-scrollto';
-	import { fade } from 'svelte/transition';
+<script lang="ts">
 	import Form from '$lib/Form.svelte';
 	import Home from '$lib/Home.svelte';
-	import Footer from '$lib/Footer.svelte';
-	import Header from '$lib/Header.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
-	import { onMount } from 'svelte';
-	import LoadingCard from '$lib/LoadingCard.svelte';
+	import { library } from '../stores/library';
+	import { fade } from 'svelte/transition';
+
+	let cinemaType = '';
+	let selectedCategories: string[] = [];
+	let specificDescriptors = '';
 	let loading = false;
-	let error = '';
-	let endStream = false;
-	let makeRecommendation = false;
+	let recommendations: Array<{ title: string; description: string }> = [];
+	let selectedPlatforms: string[] = [];
+	let error: string | null = null;
+	let showForm = false;
 
-	/**
-	 * @type {string}
-	 */
-	let searchResponse = '';
-	/**
-	 * @type {Array<string | {title: string, description: string}>}
-	 */
-	let recommendations = [];
+	async function getRecommendations() {
+		loading = true;
+		error = null;
+		recommendations = [];
 
-	/**
-	 * @param {string} target
-	 */
+		try {
+			// Construct the search criteria
+			let searchCriteria = `Give me a list of 5 ${cinemaType} recommendations`;
+			if (selectedCategories.length > 0) {
+				searchCriteria += ` that fit these categories: ${selectedCategories.join(', ')}`;
+			}
+			if (selectedPlatforms.length > 0) {
+				searchCriteria += ` available on ${selectedPlatforms.join(' or ')}`;
+			}
+			if (specificDescriptors) {
+				searchCriteria += `. Additional preferences: ${specificDescriptors}`;
+			}
+			searchCriteria += `. Please return this response as a numbered list with the ${cinemaType}'s title, followed by a colon, and then a brief description.`;
 
-	$: {
-		if (searchResponse) {
-			let lastLength = recommendations.length;
-			let x = searchResponse?.split('\n');
-			recommendations = x.map((d, i) => {
-				if ((x.length - 1 > i || endStream) && d !== '') {
-					// @ts-ignore
-					const [, title, description] = d.match(/\d\.\s*(.*?):\s*(.*)/);
-					return { title, description };
-				} else {
-					return d;
+			const response = await fetch('/api/getRecommendation', {
+				method: 'POST',
+				body: JSON.stringify({
+					searched: searchCriteria
+				}),
+				headers: {
+					'content-type': 'application/json'
 				}
 			});
-			if (recommendations.length > lastLength) {
-				animateScroll.scrollToBottom({ duration: 1500 });
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				let errorMessage: string;
+				
+				try {
+					const errorData = JSON.parse(errorText);
+					errorMessage = errorData.error?.message || 'Server returned an error';
+				} catch {
+					errorMessage = errorText || `Server returned status ${response.status}`;
+				}
+				
+				throw new Error(errorMessage);
 			}
+
+			// Handle streaming response
+			const reader = response.body?.getReader();
+			if (!reader) {
+				throw new Error('Failed to get response stream');
+			}
+
+			let accumulatedResponse = '';
+			const decoder = new TextDecoder();
+
+			while (true) {
+				const { done, value } = await reader.read();
+				if (done) break;
+				
+				accumulatedResponse += decoder.decode(value, { stream: true });
+			}
+
+			// Process the accumulated response
+			const lines = accumulatedResponse.split('\n').filter(line => line.trim());
+			const processedRecommendations = lines.map(line => {
+				const match = line.match(/\d+\.\s*(.*?):\s*(.*)/);
+				if (!match) return null;
+				const [, title, description] = match;
+				return { title, description };
+			}).filter((rec): rec is { title: string; description: string } => rec !== null);
+
+			if (processedRecommendations.length === 0) {
+				throw new Error('No valid recommendations found in response');
+			}
+
+			// Add search to history
+			library.addToHistory(searchCriteria);
+
+			recommendations = processedRecommendations;
+		} catch (err) {
+			console.error('Error getting recommendations:', err);
+			error = err instanceof Error ? err.message : 'Failed to get recommendations';
+		} finally {
+			loading = false;
 		}
 	}
 
-	/**
-	 * @type {string}
-	 */
-	let cinemaType = 'tv show';
-	/**
-	 * @type {Array<string>}
-	 */
-	let selectedCategories = [];
-	let specificDescriptors = '';
-
-	async function search() {
-		if (loading) return;
-		recommendations = [];
-		searchResponse = '';
-		endStream = false;
-		loading = true;
-
-		let fullSearchCriteria = `Give me a list of 5 ${cinemaType} recommendations ${
-			selectedCategories ? `that fit all of the following categories: ${selectedCategories}` : ''
-		}. ${
-			specificDescriptors
-				? `Make sure it fits the following description as well: ${specificDescriptors}.`
-				: ''
-		} ${
-			selectedCategories || specificDescriptors
-				? `If you do not have 5 recommendations that fit these criteria perfectly, do your best to suggest other ${cinemaType}'s that I might like.`
-				: ''
-		} Please return this response as a numbered list with the ${cinemaType}'s title, followed by a colon, and then a brief description of the ${cinemaType}. There should be a line of whitespace between each item in the list.`;
-		const response = await fetch('/api/getRecommendation', {
-			method: 'POST',
-			body: JSON.stringify({ searched: fullSearchCriteria }),
-			headers: {
-				'content-type': 'application/json'
-			}
-		});
-
-		if (response.ok) {
-			try {
-				const data = response.body;
-				if (!data) {
-					return;
-				}
-
-				const reader = data.getReader();
-				const decoder = new TextDecoder();
-
-				while (true) {
-					const { value, done } = await reader.read();
-					const chunkValue = decoder.decode(value);
-
-					searchResponse += chunkValue;
-
-					if (done) {
-						endStream = true;
-						break;
-					}
-				}
-			} catch (err) {
-				error = 'Looks like OpenAI timed out :(';
-			}
-		} else {
-			error = await response.text();
-		}
-		loading = false;
+	function dismissRecommendation(index: number) {
+		recommendations = recommendations.filter((_, i) => i !== index);
 	}
-	function clearForm() {
+
+	function resetForm() {
 		recommendations = [];
-		searchResponse = '';
-		endStream = false;
-		cinemaType = 'tv show';
+		error = null;
+		cinemaType = '';
 		selectedCategories = [];
 		specificDescriptors = '';
+		selectedPlatforms = [];
+		showForm = false;
 	}
 </script>
 
-<div>
-	<div class="h-screen w-full bg-cover fixed" style="background-image: url(/background.png)">
-		<div
-			class={`${
-				makeRecommendation ? 'backdrop-blur-md' : ''
-			}  flex flex-col items-center justify-center min-h-screen w-full h-full bg-gradient-to-br from-slate-900/80 to-black/90`}
-		/>
-	</div>
-
-	<div class="absolute inset-0 px-6 flex flex-col h-screen overflor-auto">
-		<Header
-			on:click={() => {
-				makeRecommendation = false;
-			}}
-		/>
-
-		{#if !makeRecommendation}
-			<div
-				in:fade|global
-				class="flex-grow max-w-4xl mx-auto w-full md:pt-20  flex flex-col items-center justify-center"
-			>
-				<Home
-					on:click={() => {
-						makeRecommendation = true;
-					}}
+<div class="max-w-4xl mx-auto px-4">
+	{#if !showForm && recommendations.length === 0}
+		<div in:fade class="flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
+			<Home on:click={() => showForm = true} />
+		</div>
+	{:else if recommendations.length === 0}
+		<div in:fade>
+			<Form
+				bind:cinemaType
+				bind:selectedCategories
+				bind:specificDescriptors
+				bind:loading
+				bind:selectedPlatforms
+				on:click={getRecommendations}
+			/>
+			{#if error}
+				<div class="mt-4 p-4 rounded-xl bg-red-500/10 text-red-400">
+					{error}
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<div class="space-y-6">
+			{#each recommendations as recommendation, index (index)}
+				<RecommendationCard
+					{recommendation}
+					{selectedPlatforms}
+					onDismiss={() => dismissRecommendation(index)}
 				/>
-			</div>
-		{:else}
-			<div in:fade|global class="w-full max-w-4xl mx-auto">
-				<div class="w-full mb-8">
-					<Form
-						bind:cinemaType
-						bind:selectedCategories
-						bind:loading
-						bind:specificDescriptors
-						on:click={search}
-					/>
-					{#if recommendations.length > 0 && endStream}
-						<button
-							on:click={clearForm}
-							class="bg-white/20 hover:bg-white/30 mt-4 w-full h-10 text-white font-bold p-3 rounded-full flex items-center justify-center"
-						>
-							Clear Search
-						</button>
-					{/if}
-				</div>
-				<div class="md:pb-20 max-w-4xl mx-auto w-full">
-					{#if loading && !searchResponse && !recommendations}
-						<div class="fontsemibold text-lg text-center mt-8 mb-4">
-							Please be patient as I think. Good things are coming 😎.
-						</div>
-					{/if}
-					{#if error}
-						<div class="fontsemibold text-lg text-center mt-8 text-red-500">
-							Woops! {error}
-						</div>
-					{/if}
-					{#if recommendations}
-						{#each recommendations as recommendation, i (i)}
-							<div>
-								{#if recommendation !== ''}
-									<div class="mb-8">
-										{#if typeof recommendation !== 'string' && recommendation.title}
-											<RecommendationCard {recommendation} />
-										{:else}
-											<div in:fade|global>
-												<LoadingCard incomingStream={recommendation} />
-											</div>
-										{/if}
-									</div>
-								{/if}
-							</div>
-						{/each}
-					{/if}
-				</div>
-			</div>
-		{/if}
-		<Footer />
-	</div>
+			{/each}
+			<button
+				on:click={resetForm}
+				class="w-full py-4 px-6 rounded-xl bg-neutral-800/50 text-white/70 hover:bg-neutral-700/50 transition-colors"
+			>
+				Start Over
+			</button>
+		</div>
+	{/if}
 </div>
