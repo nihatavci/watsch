@@ -117,20 +117,13 @@
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4 page-transition">
+<div class="max-w-4xl mx-auto px-4">
 	{#if !showForm && recommendations.length === 0}
-		<div 
-			in:fly={{ y: 20, duration: 500, easing: quintOut }} 
-			out:fade={{ duration: 200 }}
-			class="flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center"
-		>
+		<div in:fade class="relative z-10 flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
 			<Home on:click={() => showForm = true} />
 		</div>
 	{:else if recommendations.length === 0}
-		<div 
-			in:fly={{ y: 20, duration: 500, easing: quintOut }} 
-			out:fade={{ duration: 200 }}
-		>
+		<div in:fade>
 			<Form
 				bind:cinemaType
 				bind:selectedCategories
@@ -140,10 +133,7 @@
 				on:click={getRecommendations}
 			/>
 			{#if error}
-				<div 
-					in:fly={{ y: 10, duration: 300 }}
-					class="mt-4 p-4 rounded-xl bg-[#B20710]/10 text-[#E50914] glassmorphism"
-				>
+				<div class="mt-4 p-4 rounded-xl bg-red-500/10 text-red-400">
 					{error}
 				</div>
 			{/if}

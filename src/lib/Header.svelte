@@ -1,38 +1,35 @@
 <script lang="ts">
-	import TvIcon from './TvIcon.svelte';
 	import { createEventDispatcher } from 'svelte';
-
 	const dispatch = createEventDispatcher();
-
-	function toggleSidebar() {
-		dispatch('toggleSidebar');
-	}
-
-	function handleLogoClick() {
-		window.location.href = '/';
-	}
 </script>
 
-<div
-	class="max-w-4xl mx-auto w-full flex md:flex-row flex-col items-center md:justify-between py-8 mb-12 border-b border-[#E50914]/20"
->
-	<button on:click={handleLogoClick} class="flex items-center mb-4 md:mb-0 text-[#FFFFFF] hover:text-[#E50914] hover-transition">
-		<TvIcon />
-		<div class="text-2xl md:text-xl font-bold ml-2">wat<span class="text-[#E50914]">sch</span></div>
-	</button>
+<header class="fixed top-0 left-0 right-0 z-50 bg-[#141414]/80 backdrop-blur-md border-b border-white/5">
+	<div class="max-w-7xl mx-auto px-4 py-4">
+		<nav class="flex justify-between items-center">
+			<!-- Logo -->
+			<a href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+				<span class="text-2xl font-bold text-white">wat<span class="text-[#E50914]">sch</span></span>
+			</a>
 
-	<button
-		on:click={toggleSidebar}
-		class="px-4 py-2 bg-[#221F1F] hover:bg-[#E50914] rounded-lg hover-transition flex items-center space-x-2 border border-[#E50914]/20"
-	>
-		<span class="text-sm text-[#FFFFFF]">Library</span>
-		<svg class="w-5 h-5 text-[#FFFFFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M4 6h16M4 12h16m-7 6h7"
-			/>
-		</svg>
-	</button>
-</div>
+			<!-- Library Button -->
+			<button
+				on:click={() => dispatch('toggleSidebar')}
+				class="px-4 py-2 rounded-lg bg-[#E50914]/10 backdrop-blur-sm border border-[#E50914]/20 
+					   hover:bg-[#E50914]/20 transition-all duration-300 text-white/90 hover:text-white"
+			>
+				Library
+				<span class="ml-2">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+					</svg>
+				</span>
+			</button>
+		</nav>
+	</div>
+</header>
+
+<style>
+	header {
+		box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+	}
+</style>

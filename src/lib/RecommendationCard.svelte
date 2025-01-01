@@ -49,7 +49,7 @@
 	}
 </script>
 
-<div>
+<div class="pt-20">
 	{#await promise}
 		<LoadingCard incomingStream={false} />
 	{:then data}

@@ -23,11 +23,11 @@
 	const totalSteps = 4;
 
 	const streamingPlatforms: Platform[] = [
-		{ id: 'netflix', name: 'Netflix', logo: '/images/platforms/netflix-logo.png' },
-		{ id: 'prime', name: 'Prime Video', logo: '/images/platforms/prime-logo.png' },
-		{ id: 'hulu', name: 'Hulu', logo: '/images/platforms/hulu-logo.png' },
-		{ id: 'disney', name: 'Disney+', logo: '/images/platforms/disney-logo.png' },
-		{ id: 'hbo', name: 'HBO Max', logo: '/images/platforms/hbo-logo.png' }
+		{ id: 'netflix', name: 'Netflix', logo: '/platforms/netflix.svg' },
+		{ id: 'prime', name: 'Prime Video', logo: '/platforms/prime.svg' },
+		{ id: 'hulu', name: 'Hulu', logo: '/platforms/hulu.svg' },
+		{ id: 'disney', name: 'Disney+', logo: '/platforms/disney.svg' },
+		{ id: 'hbo', name: 'HBO Max', logo: '/platforms/hbo.svg' }
 	];
 
 	const cinemaTypes = [
@@ -118,7 +118,7 @@
 	></div>
 </div>
 
-<div class="max-w-3xl mx-auto pt-6 pb-20 md:pt-10 md:pb-6 text-[#FFFFFF]">
+<div class="max-w-3xl mx-auto pt-24 pb-20 md:pt-28 md:pb-6 text-[#FFFFFF]">
 	<!-- Step Progress -->
 	<div class="flex justify-between mb-12 px-4">
 		{#each Array(totalSteps) as _, i}
