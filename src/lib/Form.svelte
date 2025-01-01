@@ -98,24 +98,67 @@
 
 <div class="max-w-3xl mx-auto pt-6 pb-20 md:pt-10 md:pb-6 text-slate-200">
 	<!-- Desktop Steps Progress -->
-	<div class="hidden md:flex justify-between mb-8">
+	<div class="hidden md:flex justify-between mb-8 px-4">
 		{#each Array(totalSteps) as _, i}
-			<div class="flex items-center">
-				<div class={`w-8 h-8 rounded-full flex items-center justify-center ${
-					currentStep > i ? 'bg-gradient-to-r from-pink-600 to-purple-600' :
-					currentStep === i + 1 ? 'bg-gradient-to-r from-pink-600/50 to-purple-600/50' :
-					'bg-white/[0.02]'
-				}`}>
+			<div class="flex items-center relative group">
+				<!-- Step Circle -->
+				<div 
+					class={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+						currentStep > i 
+							? 'bg-gradient-to-r from-pink-600 to-purple-600 shadow-lg shadow-pink-600/20' 
+							: currentStep === i + 1 
+								? 'bg-gradient-to-r from-pink-600/50 to-purple-600/50' 
+								: 'bg-white/[0.02] border border-white/[0.1]'
+					}`}
+				>
 					{#if currentStep > i}
 						<svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 						</svg>
 					{:else}
-						<span class="text-white/70">{i + 1}</span>
+						<!-- Step Icons -->
+						{#if i === 0}
+							<svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+							</svg>
+						{:else if i === 1}
+							<svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+							</svg>
+						{:else if i === 2}
+							<svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+							</svg>
+						{:else}
+							<svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+							</svg>
+						{/if}
 					{/if}
 				</div>
+
+				<!-- Step Label -->
+				<div class="ml-2 text-xs text-white/50">
+					{#if i === 0}
+						Type
+					{:else if i === 1}
+						Platforms
+					{:else if i === 2}
+						Genres
+					{:else}
+						Preferences
+					{/if}
+				</div>
+
+				<!-- Connecting Line -->
 				{#if i < totalSteps - 1}
-					<div class={`w-full h-0.5 mx-2 ${currentStep > i ? 'bg-gradient-to-r from-pink-600 to-purple-600' : 'bg-white/[0.02]'}`} />
+					<div 
+						class={`w-24 h-0.5 mx-2 transition-all duration-300 ${
+							currentStep > i 
+								? 'bg-gradient-to-r from-purple-600 to-pink-600' 
+								: 'bg-white/[0.05]'
+						}`} 
+					/>
 				{/if}
 			</div>
 		{/each}
@@ -216,15 +259,15 @@
 						type="text"
 						bind:value={searchTerm}
 						placeholder="Search genres..."
-						class="w-full mb-3 px-4 py-2 bg-white/[0.02] border border-white/[0.05] rounded-lg focus:border-pink-500 focus:outline-none"
+						class="interactive-element w-full mb-3 px-4 py-2 bg-white/[0.02] border border-white/[0.05] rounded-lg focus:border-pink-500 focus:outline-none text-slate-200"
 					/>
 					<div class="flex flex-wrap gap-2">
 						{#each filteredCategories as category}
 							<label
 								class={`${
-									selectedCategories.includes(category) 
-										? 'bg-gradient-to-r from-pink-600/30 to-purple-600/30 border-pink-500/50'
-										: 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30'
+										selectedCategories.includes(category) 
+											? 'bg-gradient-to-r from-pink-600/30 to-purple-600/30 border-pink-500/50'
+											: 'bg-white/[0.02] border-white/[0.05] hover:border-pink-500/30'
 								} glassmorphism transition-all duration-300 cursor-pointer px-4 py-2 rounded-lg border-2`}
 							>
 								<input
@@ -248,16 +291,16 @@
 				<h2 class="mb-4 font-bold text-xl bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">Any specific preferences?</h2>
 				<textarea
 					bind:value={specificDescriptors}
-					class="w-full h-32 px-4 py-3 bg-white/[0.02] border border-white/[0.05] rounded-lg focus:border-pink-500 focus:outline-none resize-none"
+					class="interactive-element w-full h-32 px-4 py-3 bg-white/[0.02] border border-white/[0.05] rounded-lg focus:border-pink-500 focus:outline-none resize-none text-slate-200"
 					placeholder="Tell us more about what you're looking for... (e.g., 'Released after 2010, with strong female lead')"
 				/>
 
 				<!-- Submit Button -->
-				<div class="mt-6">
+				<div class="mt-6 relative z-10">
 					<button
 						type="button"
 						on:click={handleSubmit}
-						class={`${
+						class={`interactive-element ${
 							loading
 								? 'bg-neutral-700 cursor-not-allowed'
 								: 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 cursor-pointer'
@@ -381,5 +424,20 @@
 			linear-gradient(#fff 0 0);
 		-webkit-mask-composite: xor;
 		mask-composite: exclude;
+	}
+
+	:global(.interactive-element) {
+		position: relative;
+		z-index: 10;
+		pointer-events: auto;
+	}
+
+	.gradient-border {
+		position: relative;
+		z-index: 1;
+	}
+
+	button {
+		pointer-events: auto !important;
 	}
 </style>

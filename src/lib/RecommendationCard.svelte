@@ -3,6 +3,7 @@
 	import LoadingCard from './LoadingCard.svelte';
 	import { library } from '../stores/library';
 	import type { SavedItem } from '../stores/library';
+	import { showNotification } from '../stores/notifications';
 
 	export let recommendation: { title: string; description: string };
 	export let selectedPlatforms: string[] = [];
@@ -22,14 +23,15 @@
 
 	let promise = getRecommendationInfo();
 
+	let isAdded = false;
+
 	function handleSave(data: any) {
-		// Validate required fields
 		if (!data?.Title || !data?.Year || !data?.Poster) {
 			console.error('Missing required fields in media data');
-			// You might want to show an error message to the user here
 			return;
 		}
 
+		isAdded = true;
 		const savedItem: SavedItem = {
 			id: Date.now().toString(),
 			title: data.Title,
@@ -37,9 +39,13 @@
 			poster: data.Poster,
 			platforms: selectedPlatforms
 		};
+		
 		library.addToSaved(savedItem);
-		// Show success message or feedback
-		onDismiss();
+		showNotification(`Added "${data.Title}" to your watch list`);
+		
+		setTimeout(() => {
+			onDismiss();
+		}, 1000);
 	}
 </script>
 
@@ -99,9 +105,19 @@
 						</div>
 						<button
 							on:click={() => handleSave(data)}
-							class="px-4 py-2 rounded-lg bg-gradient-to-r from-pink-600/80 to-purple-600/80 text-white text-sm transition-all duration-300 hover:from-pink-500/80 hover:to-purple-500/80"
+							class="px-4 py-2 rounded-lg bg-gradient-to-r from-pink-600/80 to-purple-600/80 text-white text-sm transition-all duration-300 hover:from-pink-500/80 hover:to-purple-500/80 relative overflow-hidden"
+							disabled={isAdded}
 						>
-							Save to Watch
+							{#if isAdded}
+								<div class="flex items-center justify-center" in:fade>
+									<svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+									</svg>
+									Added
+								</div>
+							{:else}
+								Save to Watch
+							{/if}
 						</button>
 					</div>
 				</div>

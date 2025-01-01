@@ -1,6 +1,7 @@
 <script lang="ts">
     import { fade, slide } from 'svelte/transition';
     import { library } from '../stores/library';
+    import { sidebarNotification } from '../stores/notifications';
     
     export let isOpen: boolean = false;
     
@@ -20,6 +21,15 @@
     style="z-index: 1000;"
 >
     <div class="p-6 h-full flex flex-col">
+        {#if $sidebarNotification.show}
+            <div 
+                class="absolute top-4 left-4 right-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 text-sm"
+                transition:fade
+            >
+                {$sidebarNotification.message}
+            </div>
+        {/if}
+        
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
@@ -73,7 +83,7 @@
             </div>
         </div>
 
-        <!-- Search History -->
+        <!-- Search History 
         <div class="flex-1">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-sm uppercase text-white/50">Search History</h3>
@@ -103,7 +113,7 @@
                     {/each}
                 {/if}
             </div>
-        </div>
+        </div>-->
     </div>
 </div>
 
