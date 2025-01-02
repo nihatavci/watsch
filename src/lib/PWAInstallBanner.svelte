@@ -6,6 +6,7 @@
     let deferredPrompt: any;
     let showBanner = false;
     let isMobileDevice = false;
+    let isInstallable = false;
 
     function checkIfMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -17,60 +18,76 @@
             (window.navigator as any).standalone ||
             document.referrer.includes('android-app://');
 
-        // Only show on mobile devices and when not already installed
-        return !isStandalone && isMobileDevice;
+        // Check if previously dismissed
+        const isDismissed = localStorage.getItem('pwa-banner-dismissed') === 'true';
+
+        // Only show on mobile devices, when not installed, and not dismissed
+        return !isStandalone && isMobileDevice && !isDismissed;
     }
 
     onMount(() => {
         isMobileDevice = checkIfMobile();
+        console.log('Is mobile device:', isMobileDevice);
 
         // Only proceed with PWA logic if on mobile
         if (isMobileDevice) {
             // Listen for the beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
+                console.log('beforeinstallprompt fired');
                 // Prevent Chrome 67 and earlier from automatically showing the prompt
                 e.preventDefault();
                 // Stash the event so it can be triggered later
                 deferredPrompt = e;
+                isInstallable = true;
                 // Show the banner if installable
                 showBanner = checkIfInstallable();
             });
 
             // Hide the banner if the app is installed
             window.addEventListener('appinstalled', () => {
+                console.log('App was installed');
                 showBanner = false;
+                isInstallable = false;
+                deferredPrompt = null;
             });
 
             // Check initial installable state
+            isInstallable = true;
             showBanner = checkIfInstallable();
-
-            // For testing in development
-            if (import.meta.env.DEV && !deferredPrompt && checkIfInstallable()) {
-                console.log('Development mode: Showing test banner');
-                showBanner = true;
-            }
         }
     });
 
     async function installApp() {
         if (!deferredPrompt) {
             console.log('No installation prompt available');
+            // For iOS devices, show instructions
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                alert('To install the app on iOS:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"');
+                return;
+            }
             return;
         }
 
-        // Show the install prompt
-        deferredPrompt.prompt();
-
         try {
+            // Show the install prompt
+            console.log('Showing install prompt');
+            const result = await deferredPrompt.prompt();
+            console.log('Install prompt shown');
+
             // Wait for the user to respond to the prompt
             const { outcome } = await deferredPrompt.userChoice;
             console.log(`Installation ${outcome}`);
 
             // Clear the deferredPrompt variable
             deferredPrompt = null;
+            isInstallable = false;
 
             // Hide the banner regardless of outcome
             showBanner = false;
+
+            if (outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            }
         } catch (error) {
             console.error('Installation error:', error);
         }
@@ -78,7 +95,7 @@
 
     function dismissBanner() {
         showBanner = false;
-        // Store in localStorage to prevent showing again in this session
+        // Store in localStorage to prevent showing again
         localStorage.setItem('pwa-banner-dismissed', 'true');
     }
 </script>
