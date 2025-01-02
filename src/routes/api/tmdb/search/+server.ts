@@ -1,24 +1,25 @@
-import { json } from '@sveltejs/kit';
 import { TMDB_API_KEY } from '$env/static/private';
-import type { RequestEvent } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
 
-export async function POST({ request }: RequestEvent) {
+export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { title, type } = await request.json();
 		
-		const searchType = type === 'tv' ? 'tv' : 'movie';
-		const url = `https://api.themoviedb.org/3/search/${searchType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}`;
-		
-		const response = await fetch(url);
+		const response = await fetch(
+			`https://api.themoviedb.org/3/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=en-US&page=1&include_adult=false`
+		);
+
 		const data = await response.json();
-		
+
 		if (!response.ok) {
-			throw new Error(data.status_message || 'Failed to search TMDB');
+			console.error('TMDB API Error:', data);
+			return json({ results: [] });
 		}
-		
+
 		return json(data);
 	} catch (error) {
-		console.error('TMDB search error:', error);
-		return json({ error: error instanceof Error ? error.message : 'Failed to search media' }, { status: 500 });
+		console.error('Search error:', error);
+		return json({ results: [] });
 	}
-} 
+}; 

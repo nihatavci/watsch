@@ -118,7 +118,7 @@
 	></div>
 </div>
 
-<div class="max-w-3xl mx-auto pt-10 pb-10 md:pt-20 md:pb-6 text-[#FFFFFF]">
+<div class="max-w-3xl mx-auto pt-20 pb-10 md:pt-24 md:pb-6 text-[#FFFFFF]">
 	<!-- Step Progress -->
 	<div class="flex justify-between mb-12 px-4">
 		{#each Array(totalSteps) as _, i}

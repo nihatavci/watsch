@@ -117,7 +117,7 @@
 	}
 </script>
 
-<div class="max-w-4xl mx-auto px-4 mt-24">
+<div class="max-w-3xl mx-auto pt-12 pb-10 md:pt-16 md:pb-6 text-[#FFFFFF]">
 	{#if !showForm && recommendations.length === 0}
 		<div in:fade class="relative z-10 flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
 			<Home on:click={() => showForm = true} />
@@ -139,25 +139,17 @@
 			{/if}
 		</div>
 	{:else}
-		<div class="space-y-6">
-			{#each recommendations as recommendation, index (index)}
-				<div 
-					in:fly={{ y: 20, duration: 500, delay: index * 100, easing: quintOut }}
-					out:fade={{ duration: 200 }}
-				>
+		<div class="max-w-4xl mx-auto px-8 mt-24">
+			<div class="space-y-6">
+				{#each recommendations as recommendation, index}
 					<RecommendationCard
 						{recommendation}
 						{selectedPlatforms}
+						{index}
 						onDismiss={() => dismissRecommendation(index)}
 					/>
-				</div>
-			{/each}
-			<button
-				on:click={resetApp}
-				class="w-full py-4 px-6 rounded-xl bg-[#221F1F] text-white hover:bg-[#E50914]/20 hover-transition glassmorphism"
-			>
-				Start Over
-			</button>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>
