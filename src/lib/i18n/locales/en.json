@@ -1,0 +1,76 @@
+{
+    "common": {
+        "app_name": "Watsch",
+        "welcome": "Welcome to Watsch",
+        "get_recommendations": "Get Recommendations",
+        "loading": "Loading...",
+        "error": "Something went wrong"
+    },
+    "home": {
+        "title": "Find Your Perfect Watch",
+        "subtitle": "Discover movies and shows tailored just for you",
+        "cta": "Start Exploring"
+    },
+    "recommendations": {
+        "no_results": "No recommendations found",
+        "try_again": "Try adjusting your preferences",
+        "error": {
+            "stream": "Failed to get response stream",
+            "partial": "Recommendation fetch encountered an issue, but proceeding with available results",
+            "details": "Failed to load recommendation details"
+        },
+        "minutes": "min",
+        "original_language": "Original",
+        "read_more": "Read more",
+        "cast": "Cast",
+        "add_to_watchlist": "Add to Watch List",
+        "remove_from_watchlist": "Remove from Watch List",
+        "added_to_watchlist_short": "Added to Watch List",
+        "added_to_watchlist": "Added \"{title}\" to your watch list",
+        "removed_from_watchlist": "Removed \"{title}\" from your watch list",
+        "no_details": "No details available for this recommendation"
+    },
+    "navigation": {
+        "home": "Home",
+        "library": "",
+        "profile": "Profile",
+        "settings": "Settings"
+    },
+    "library": {
+        "saved_items": "Saved Items",
+        "empty_message": "Your saved movies will appear here",
+        "remove_item": "Remove from library"
+    },
+    "form": {
+        "steps": {
+            "1": "Type",
+            "2": "Platforms",
+            "3": "Genres",
+            "4": "Preferences"
+        },
+        "questions": {
+            "type": "What are you in the mood for?",
+            "platforms": "Where do you watch?",
+            "genres": "What genres interest you?",
+            "preferences": "Any specific preferences?"
+        },
+        "cinema_types": {
+            "movie": "Movie",
+            "tv_show": "TV Show",
+            "no_preference": "No Preference"
+        },
+        "labels": {
+            "popular_genres": "Popular Genres",
+            "specialized_genres": "More Genres"
+        },
+        "placeholders": {
+            "search_genres": "Search genres...",
+            "preferences": "Tell us more about what you're looking for... (e.g., 'Released after 2010, with strong female lead')"
+        },
+        "buttons": {
+            "previous": "Previous",
+            "next": "Next",
+            "get_recommendations": "Get Recommendations"
+        }
+    }
+} 

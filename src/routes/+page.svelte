@@ -5,6 +5,7 @@
 	import { library } from '../stores/library';
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { i18nStore } from '$lib/i18n';
 
 	let cinemaType = '';
 	let selectedCategories: string[] = [];
@@ -60,9 +61,9 @@
 				
 				try {
 					const errorData = JSON.parse(errorText);
-					errorMessage = errorData.error?.message || 'Server returned an error';
+					errorMessage = errorData.error?.message || $i18nStore.t('common.error');
 				} catch {
-					errorMessage = errorText || `Server returned status ${response.status}`;
+					errorMessage = errorText || $i18nStore.t('common.error');
 				}
 				
 				throw new Error(errorMessage);
@@ -71,7 +72,7 @@
 			// Handle streaming response
 			const reader = response.body?.getReader();
 			if (!reader) {
-				throw new Error('Failed to get response stream');
+				throw new Error($i18nStore.t('recommendations.error.stream'));
 			}
 
 			let accumulatedResponse = '';
@@ -100,7 +101,7 @@
 		} catch (err) {
 			console.error('Error getting recommendations:', err);
 			// Instead of setting an error, just log it and continue with any successfully processed recommendations
-			console.warn('Recommendation fetch encountered an issue, but proceeding with available results');
+			console.warn($i18nStore.t('recommendations.error.partial'));
 		} finally {
 			loading = false;
 		}
@@ -114,7 +115,7 @@
 	}
 </script>
 
-<div class="max-w-3xl mx-auto pt-12 pb-10 md:pt-16 md:pb-6 text-[#FFFFFF]">
+<div class="max-w-3xl mx-auto pt-10 pb-10 md:pt-16 md:pb-6 text-[#FFFFFF]">
 	{#if !showForm && recommendations.length === 0}
 		<div in:fade class="relative z-10 flex-grow max-w-4xl mx-auto w-full md:pt-20 flex flex-col items-center justify-center">
 			<Home on:click={() => showForm = true} />
@@ -136,7 +137,7 @@
 			{/if}
 		</div>
 	{:else}
-		<div class="max-w-4xl mx-auto px-8 mt-24">
+		<div class="max-w-4xl mx-auto px-8 mt-12">
 			<div class="space-y-6">
 				{#each recommendations as recommendation, index}
 					<RecommendationCard

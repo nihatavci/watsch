@@ -5,6 +5,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import Button from './ui/button.svelte';
 	import Badge from './ui/badge.svelte';
+	import { i18nStore } from './i18n';
 
 	const dispatch = createEventDispatcher();
 
@@ -36,7 +37,7 @@
 	const cinemaTypes = [
 		{ 
 			value: 'movie', 
-			title: 'Movie',
+			title: $i18nStore.t('form.cinema_types.movie'),
 			icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 				<path d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 			</svg>`,
@@ -45,7 +46,7 @@
 		},
 		{ 
 			value: 'tv show', 
-			title: 'TV Show',
+			title: $i18nStore.t('form.cinema_types.tv_show'),
 			icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 				<path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 				<path d="M16 3l-4 4-4-4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -55,7 +56,7 @@
 		},
 		{ 
 			value: 'tv show or movie', 
-			title: 'No Preference',
+			title: $i18nStore.t('form.cinema_types.no_preference'),
 			icon: `<svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
 				<path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 				<path d="M9 10h.01M15 10h.01M9.5 15a3.5 3.5 0 007 0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -159,15 +160,7 @@
 					{/if}
 				</div>
 				<span class="mt-2 text-xs font-medium text-[#FFFFFF]/70">
-					{#if i === 0}
-						Type
-					{:else if i === 1}
-						Platforms
-					{:else if i === 2}
-						Genres
-					{:else}
-						Preferences
-					{/if}
+					{$i18nStore.t(`form.steps.${i + 1}`)}
 				</span>
 			</div>
 		{/each}
@@ -188,7 +181,7 @@
 							out:fly={{ y: -50, duration: 300, easing: quintOut }}
 						>
 							{#if i === 0}
-								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">What are you in the mood for?</h2>
+								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">{$i18nStore.t('form.questions.type')}</h2>
 								<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 									{#each cinemaTypes as type (type.value)}
 										<button
@@ -216,7 +209,7 @@
 									{/each}
 								</div>
 							{:else if i === 1}
-								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">Where do you watch?</h2>
+								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">{$i18nStore.t('form.questions.platforms')}</h2>
 								<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
 									{#each streamingPlatforms as platform (platform.id)}
 										<button
@@ -242,19 +235,19 @@
 									{/each}
 								</div>
 							{:else if i === 2}
-								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">What genres interest you?</h2>
+								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">{$i18nStore.t('form.questions.genres')}</h2>
 								
 								<!-- Popular Categories -->
 								<div class="mb-8">
-									<h3 class="text-sm font-medium text-[#FFFFFF]/70 mb-4">Popular Genres</h3>
+									<h3 class="text-sm font-medium text-[#FFFFFF]/70 mb-4">{$i18nStore.t('form.labels.popular_genres')}</h3>
 									<div class="flex flex-wrap gap-2">
 										{#each popularCategories as category}
 											<button
 												on:click={() => handleGenreClick(category)}
-												class={`px-4 py-2 rounded-lg border-2 transition-all duration-300 ${
+												class={`px-4 py-2 rounded-full transition-all duration-300 ${
 													selectedCategories.includes(category)
-														? 'bg-[#E50914]/20 border-[#E50914] text-[#FFFFFF]'
-														: 'bg-[#221F1F] border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:bg-[#E50914]/10 hover:text-[#FFFFFF]'
+														? 'bg-[#E50914] text-white'
+														: 'bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:text-white'
 												}`}
 											>
 												{category}
@@ -265,21 +258,21 @@
 
 								<!-- Specialized Categories -->
 								<div>
-									<h3 class="text-sm font-medium text-[#FFFFFF]/70 mb-4">More Genres</h3>
+									<h3 class="text-sm font-medium text-[#FFFFFF]/70 mb-4">{$i18nStore.t('form.labels.specialized_genres')}</h3>
 									<input
 										type="text"
 										bind:value={searchTerm}
-										placeholder="Search genres..."
-										class="w-full mb-4 px-4 py-3 bg-[#221F1F] border-2 border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/40 focus:border-[#E50914] focus:outline-none transition-colors duration-300"
+										placeholder={$i18nStore.t('form.placeholders.search_genres')}
+										class="w-full px-4 py-2 mb-4 bg-[#221F1F] border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914]"
 									/>
 									<div class="flex flex-wrap gap-2">
 										{#each filteredCategories as category}
 											<button
 												on:click={() => handleGenreClick(category)}
-												class={`px-4 py-2 rounded-lg border-2 transition-all duration-300 ${
+												class={`px-4 py-2 rounded-full transition-all duration-300 ${
 													selectedCategories.includes(category)
-														? 'bg-[#E50914]/20 border-[#E50914] text-[#FFFFFF]'
-														: 'bg-[#221F1F] border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:bg-[#E50914]/10 hover:text-[#FFFFFF]'
+														? 'bg-[#E50914] text-white'
+														: 'bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:text-white'
 												}`}
 											>
 												{category}
@@ -287,13 +280,31 @@
 										{/each}
 									</div>
 								</div>
-							{:else}
-								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">Any specific preferences?</h2>
-								<textarea
-									bind:value={specificDescriptors}
-									class="w-full h-32 px-4 py-3 bg-[#221F1F] border-2 border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/40 focus:border-[#E50914] focus:outline-none resize-none transition-colors duration-300"
-									placeholder="Tell us more about what you're looking for... (e.g., 'Released after 2010, with strong female lead')"
-								/>
+							{:else if i === 3}
+								<h2 class="mb-4 font-bold text-xl text-[#FFFFFF]">{$i18nStore.t('form.questions.preferences')}</h2>
+								<div class="space-y-6">
+									<div>
+										<textarea
+											bind:value={specificDescriptors}
+											placeholder={$i18nStore.t('form.placeholders.preferences')}
+											class="w-full h-32 px-4 py-3 bg-[#221F1F] border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914] resize-none"
+										></textarea>
+									</div>
+									<div class="flex justify-end">
+										<button
+											on:click={handleSubmit}
+											class="px-6 py-3 bg-[#E50914] text-white rounded-full font-medium hover:bg-[#B20710] transition-colors duration-300 flex items-center space-x-2"
+											disabled={loading}
+										>
+											{#if loading}
+												<LoadingIndicator />
+												<span>{$i18nStore.t('common.loading')}</span>
+											{:else}
+												<span>{$i18nStore.t('form.buttons.get_recommendations')}</span>
+											{/if}
+										</button>
+									</div>
+								</div>
 							{/if}
 						</div>
 					</div>
@@ -301,53 +312,30 @@
 			{/each}
 		</div>
 
-		<!-- Navigation -->
-		<div class="fixed bottom-0 left-0 right-0 w-full z-[9999] bg-gradient-to-t from-black/80 via-black/50 to-transparent">
-			<div class="max-w-3xl mx-auto px-4 pb-6 pt-4">
-				<div class="flex justify-between items-center gap-4">
+		<!-- Navigation Buttons -->
+		<div class="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm py-4 z-50">
+			<div class="max-w-3xl mx-auto px-4 flex justify-between">
+				{#if currentStep > 1}
 					<button
 						on:click={prevStep}
-						class="flex-1 px-4 sm:px-6 py-3 rounded-lg bg-[#221F1F] text-[#FFFFFF] border-2 border-[#E50914]/20 
-							   hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300 
-							   backdrop-blur-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-						disabled={currentStep === 1}
+						class="px-6 py-2 rounded-full bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/90 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300"
 					>
-						Previous
+						{$i18nStore.t('form.buttons.previous')}
 					</button>
-					{#if currentStep === totalSteps}
-						<button
-							on:click={handleSubmit}
-							class="flex-1 px-4 sm:px-6 py-3 rounded-lg bg-[#E50914] text-[#FFFFFF] 
-								   hover:bg-[#B20710] transition-all duration-300 
-								   disabled:opacity-50 disabled:cursor-not-allowed 
-								   backdrop-blur-sm whitespace-nowrap"
-							disabled={loading}
-						>
-							{#if loading}
-								<div class="flex items-center justify-center space-x-2">
-									<LoadingIndicator />
-									<span>Finding...</span>
-								</div>
-							{:else}
-								Get Recommendations
-							{/if}
-						</button>
-					{:else}
-						<button
-							on:click={nextStep}
-							class="flex-1 px-4 sm:px-6 py-3 rounded-lg bg-[#E50914] text-[#FFFFFF] 
-								   hover:bg-[#B20710] transition-all duration-300 
-								   backdrop-blur-sm whitespace-nowrap"
-						>
-							Next
-						</button>
-					{/if}
-				</div>
+				{:else}
+					<div></div>
+				{/if}
+
+				{#if currentStep < totalSteps}
+					<button
+						on:click={nextStep}
+						class="px-6 py-2 rounded-full bg-[#E50914] text-white font-medium hover:bg-[#B20710] transition-colors duration-300"
+					>
+						{$i18nStore.t('form.buttons.next')}
+					</button>
+				{/if}
 			</div>
 		</div>
-
-		<!-- Spacer to prevent content from being hidden -->
-		<div class="h-24"></div>
 	</div>
 </div>
 

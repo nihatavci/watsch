@@ -8,6 +8,8 @@
 	import CardContent from './ui/card-content.svelte';
 	import Button from './ui/button.svelte';
 	import Badge from './ui/badge.svelte';
+	import { i18nStore } from './i18n';
+	import GenreTag from './GenreTag.svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -27,6 +29,12 @@
 		ReleaseDate: string;
 		Insights: string[];
 		Language: string | null;
+		LocalizedData: {
+			Title: string;
+			Plot: string;
+			Actors: string;
+			Genre: string;
+		};
 	}
 
 	const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
@@ -35,14 +43,43 @@
 	let showFullDescription = false;
 	let loadingFailed = false;
 
+	async function translateWithChatGPT(text: string, targetLanguage: string): Promise<string> {
+		try {
+			const response = await fetch('/api/translate', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					text,
+					targetLanguage,
+					context: 'movie_description'
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error('Translation failed');
+			}
+
+			const data = await response.json();
+			return data.translatedText;
+		} catch (error) {
+			console.error('Translation error:', error);
+			return text; // Fallback to original text
+		}
+	}
+
 	async function getRecommendationInfo(): Promise<MovieDetails> {
 		try {
+			const currentLang = $i18nStore.language;
+
 			// First search for the movie/show
 			const searchResponse = await fetch(`/api/tmdb/search`, {
 				method: 'POST',
 				body: JSON.stringify({ 
 					title: recommendation.title,
-					type: recommendation.type || 'movie'
+					type: recommendation.type || 'movie',
+					language: currentLang
 				}),
 				headers: {
 					'content-type': 'application/json'
@@ -58,54 +95,96 @@
 
 			// Get the first result's details
 			const firstResult = searchData.results[0];
-			const detailsResponse = await fetch(`/api/tmdb/details`, {
+
+			// Get details in original language (English)
+			const originalResponse = await fetch(`/api/tmdb/details`, {
 				method: 'POST',
 				body: JSON.stringify({ 
 					id: firstResult.id,
-					type: recommendation.type || 'movie'
+					type: recommendation.type || 'movie',
+					language: 'en'
 				}),
 				headers: {
 					'content-type': 'application/json'
 				}
 			});
 
-			const detailsData = await detailsResponse.json();
+			const originalData = await originalResponse.json();
 
-			if (!detailsResponse.ok) {
+			// Get details in local language
+			const localResponse = await fetch(`/api/tmdb/details`, {
+				method: 'POST',
+				body: JSON.stringify({ 
+					id: firstResult.id,
+					type: recommendation.type || 'movie',
+					language: currentLang
+				}),
+				headers: {
+					'content-type': 'application/json'
+				}
+			});
+
+			const localData = await localResponse.json();
+
+			if (!originalResponse.ok || !localResponse.ok) {
 				loadingFailed = true;
 				throw new Error('Failed to fetch details');
 			}
 
-			// Get AI-generated insights
+			// If local language data is not available or incomplete, use ChatGPT to translate
+			if (currentLang !== 'en' && (!localData.overview || !localData.title)) {
+				const translatedTitle = !localData.title ? 
+					await translateWithChatGPT(originalData.title || originalData.name, currentLang) :
+					localData.title || localData.name;
+
+				const translatedOverview = !localData.overview ?
+					await translateWithChatGPT(originalData.overview, currentLang) :
+					localData.overview;
+
+				localData.title = translatedTitle;
+				localData.overview = translatedOverview;
+			}
+
+			// Get AI-generated insights in the current language
 			const insightsResponse = await fetch('/api/analyze-movie', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					title: detailsData.title || detailsData.name,
-					overview: detailsData.overview,
-					genres: detailsData.genres?.map((g: { name: string }) => g.name) || [],
-					rating: detailsData.adult ? 'R' : 'PG-13'
+					title: localData.title || localData.name,
+					overview: localData.overview,
+					genres: localData.genres?.map((g: { name: string }) => g.name) || [],
+					rating: localData.adult ? 'R' : 'PG-13',
+					language: currentLang
 				})
 			});
 
 			const insights = await insightsResponse.json();
 
-			return {
-				Title: detailsData.title || detailsData.name,
-				Year: new Date(detailsData.release_date || detailsData.first_air_date).getFullYear().toString(),
-				Poster: detailsData.poster_path ? `${TMDB_IMAGE_BASE_URL}${detailsData.poster_path}` : null,
-				Plot: detailsData.overview,
-				Rated: detailsData.adult ? 'R' : 'PG-13',
-				Actors: detailsData.credits?.cast?.slice(0, 4).map((actor: { name: string }) => actor.name).join(', ') || '',
-				Genre: detailsData.genres?.map((genre: { name: string }) => genre.name).join(', ') || '',
-				Rating: detailsData.vote_average ? Math.round(detailsData.vote_average * 10) : null,
-				Runtime: detailsData.runtime ? `${detailsData.runtime} min` : null,
-				ReleaseDate: detailsData.release_date || detailsData.first_air_date,
+			// Construct the movie details with both original and localized data
+			const details: MovieDetails = {
+				Title: originalData.title || originalData.name,
+				Year: new Date(originalData.release_date || originalData.first_air_date).getFullYear().toString(),
+				Poster: originalData.poster_path ? `${TMDB_IMAGE_BASE_URL}${originalData.poster_path}` : null,
+				Plot: localData.overview || originalData.overview,
+				Rated: originalData.adult ? 'R' : 'PG-13',
+				Actors: localData.credits?.cast?.slice(0, 4).map((actor: { name: string }) => actor.name).join(', ') || '',
+				Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || '',
+				Rating: originalData.vote_average ? Math.round(originalData.vote_average * 10) : null,
+				Runtime: originalData.runtime ? `${originalData.runtime} ${$i18nStore.t('recommendations.minutes')}` : null,
+				ReleaseDate: originalData.release_date || originalData.first_air_date,
 				Insights: insights.insights || [],
-				Language: detailsData.original_language?.toUpperCase() || null
+				Language: originalData.original_language?.toUpperCase() || null,
+				LocalizedData: {
+					Title: localData.title || localData.name,
+					Plot: localData.overview || originalData.overview,
+					Actors: localData.credits?.cast?.slice(0, 4).map((actor: { name: string }) => actor.name).join(', ') || '',
+					Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || ''
+				}
 			};
+
+			return details;
 		} catch (error) {
 			console.error('Error fetching movie details:', error);
 			loadingFailed = true;
@@ -114,6 +193,11 @@
 	}
 
 	let promise = getRecommendationInfo();
+
+	// Refresh data when language changes
+	$: if ($i18nStore.language) {
+		promise = getRecommendationInfo();
+	}
 
 	function handleSave(data: MovieDetails) {
 		if (!data?.Title || !data?.Year || !data?.Poster) {
@@ -132,7 +216,7 @@
 		};
 		
 		library.addToSaved(savedItem);
-		showNotification(`Added "${data.Title}" to your watch list`);
+		showNotification($i18nStore.t('recommendations.added_to_watchlist', { title: data.Title }));
 		isAdded = true;
 
 		setTimeout(() => {
@@ -142,7 +226,7 @@
 
 	function handleRemove(data: MovieDetails) {
 		library.removeFromSaved(data.Title);
-		showNotification(`Removed "${data.Title}" from your watch list`);
+		showNotification($i18nStore.t('recommendations.removed_from_watchlist', { title: data.Title }));
 		isAdded = false;
 		showRemoveButton = false;
 	}
@@ -171,12 +255,12 @@
 							<div class="flex items-start justify-between mb-2">
 								<div>
 									<h2 class="text-xl font-bold text-white mb-1">
-										{data.Title}
+										{data.LocalizedData.Title}
 										<span class="text-white/60 text-lg ml-2">{data.Year}</span>
 									</h2>
 									<div class="flex items-center gap-2 text-sm text-white/60">
 										{#if data.Runtime}<span>{data.Runtime}</span>{/if}
-										{#if data.Language}<span>{data.Language}</span>{/if}
+										{#if data.Language}<span>{$i18nStore.t('recommendations.original_language')}: {data.Language}</span>{/if}
 										{#if data.Rated}
 											<Badge variant="destructive">
 												{data.Rated}
@@ -194,22 +278,22 @@
 							<!-- Plot -->
 							<div class="mb-3">
 								<p class="text-sm text-white/70 {showFullDescription ? '' : 'line-clamp-2'}">
-									{data.Plot}
+									{data.LocalizedData.Plot}
 								</p>
 								{#if !showFullDescription}
 									<button 
 										on:click={() => showFullDescription = true}
 										class="text-xs text-[#E50914] hover:text-[#B20710] transition-colors duration-300"
 									>
-										Read more
+										{$i18nStore.t('recommendations.read_more')}
 									</button>
 								{/if}
 							</div>
 
 							<!-- Cast -->
-							{#if data.Actors}
+							{#if data.LocalizedData.Actors}
 								<div class="text-xs text-white/50 mb-2">
-									Cast: {data.Actors}
+									{$i18nStore.t('recommendations.cast')}: {data.LocalizedData.Actors}
 								</div>
 							{/if}
 
@@ -222,9 +306,7 @@
 								{/each}
 								{#if data.Genre}
 									{#each data.Genre.split(', ') as genre}
-										<Badge variant="secondary">
-											{genre}
-										</Badge>
+										<GenreTag {genre} variant="secondary" />
 									{/each}
 								{/if}
 							</div>
@@ -249,48 +331,27 @@
 										: "w-full h-12 bg-[#E50914] hover:bg-[#B20710] text-white rounded-xl"}
 									on:click={() => isAdded ? (showRemoveButton ? handleRemove(data) : null) : handleSave(data)}
 								>
-									<div class="flex items-center justify-center w-full">
-										{#if isAdded}
-											{#if showRemoveButton}
-												<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-												</svg>
-												Remove from List
-											{:else}
-												<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-												</svg>
-												Added to Watch
-											{/if}
-										{:else}
-											<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-											</svg>
-											Add to Watch
-										{/if}
-									</div>
+									{#if isAdded}
+										{showRemoveButton 
+											? $i18nStore.t('recommendations.remove_from_watchlist')
+											: $i18nStore.t('recommendations.added_to_watchlist_short')}
+									{:else}
+										{$i18nStore.t('recommendations.add_to_watchlist')}
+									{/if}
 								</Button>
 							</div>
 						</div>
 					</div>
 				</CardContent>
 			</Card>
+		{:else}
+			<div class="p-4 text-center text-white/50">
+				{$i18nStore.t('recommendations.no_details')}
+			</div>
 		{/if}
 	{:catch error}
-		<div class="p-4 text-center text-white/60">
-			<div class="mb-2">
-				<svg class="w-12 h-12 mx-auto text-[#E50914]/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg>
-				No details available for this recommendation
-			</div>
-			<Button 
-				variant="ghost" 
-				on:click={onDismiss}
-				class="mx-auto"
-			>
-				Dismiss
-			</Button>
+		<div class="p-4 text-center text-red-400">
+			{$i18nStore.t('recommendations.error.details')}
 		</div>
 	{/await}
 </div>
