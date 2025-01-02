@@ -120,9 +120,9 @@
 	}
 </script>
 
-<div class="fixed top-0 left-0 w-full h-1 bg-[#221F1F] z-50">
+<div class="fixed top-0 left-0 w-full h-1 z-50 glass-card">
 	<div 
-		class="h-full bg-[#E50914]"
+		class="h-full bg-[#E50914]/80 backdrop-blur-sm"
 		style="width: {progress}%"
 		transition:slide
 	></div>
@@ -130,17 +130,17 @@
 
 <div class="max-w-3xl mx-auto pt-20 pb-32 md:pt-24 text-[#FFFFFF]">
 	<!-- Step Progress -->
-	<div class="flex justify-between mb-8 px-4">
+	<div class="flex justify-between mb-8 px-10 py-6 glass-card rounded-xl">
 		{#each Array(totalSteps) as _, i}
 			<div class="flex flex-col items-center">
 				<div class="relative">
 					<div 
-						class={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+						class={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 backdrop-blur-sm ${
 							currentStep > i 
-								? 'bg-[#E50914]' 
+								? 'bg-[#E50914]/80' 
 								: currentStep === i + 1 
-									? 'bg-[#B20710]' 
-									: 'bg-[#221F1F] border border-[#E50914]/20'
+									? 'bg-[#B20710]/80' 
+									: 'bg-[#221F1F]/20 border border-[#E50914]/20'
 						}`}
 					>
 						{#if currentStep > i}
@@ -154,8 +154,8 @@
 					{#if i < totalSteps - 1}
 						<div 
 							class={`absolute top-1/2 left-full w-[calc(100%-2.5rem)] h-0.5 -translate-y-1/2 transition-all duration-300 ${
-								currentStep > i ? 'bg-[#E50914]' : 'bg-[#221F1F]'
-							}`} 
+								currentStep > i ? 'bg-[#E50914]/80' : 'bg-[#221F1F]/20'
+							} backdrop-blur-sm`} 
 						/>
 					{/if}
 				</div>
@@ -166,7 +166,7 @@
 		{/each}
 	</div>
 
-	<div class="relative">
+	<div class="relative mb-24 glass-card rounded-xl p-6 backdrop-blur-sm">
 		<!-- Step Content -->
 		<div class="relative mb-24">
 			{#each Array(totalSteps) as _, i}
@@ -176,7 +176,7 @@
 						out:fade={{ duration: 300 }}
 						class="relative"
 					>
-						<div class="bg-[#221F1F] border border-[#E50914]/20 rounded-xl p-6" 
+						<div class="bg-transparent border border-[#E50914]/20 rounded-xl p-6" 
 							in:fly={{ y: 50, duration: 300, easing: quintOut }} 
 							out:fly={{ y: -50, duration: 300, easing: quintOut }}
 						>
@@ -191,8 +191,8 @@
 											}}
 											class={`group p-6 rounded-xl border-2 transition-all duration-300 ${
 												cinemaType === type.value 
-													? 'bg-[#E50914]/20 border-[#E50914]' 
-													: 'bg-[#221F1F] border-[#E50914]/20 hover:border-[#E50914] hover:bg-[#E50914]/10'
+													? 'bg-transparent border-[#E50914]' 
+													: 'bg-transparent border-[#E50914]/20 hover:border-[#E50914] hover:bg-[#E50914]/10'
 											}`}
 										>
 											<div class="flex flex-col items-center text-center space-y-4">
@@ -223,8 +223,8 @@
 											}}
 											class={`group p-6 rounded-xl border-2 transition-all duration-300 ${
 												selectedPlatforms.includes(platform.id)
-													? 'bg-[#E50914]/20 border-[#E50914]' 
-													: 'bg-[#221F1F] border-[#E50914]/20 hover:border-[#E50914] hover:bg-[#E50914]/10'
+													? 'bg-transparent border-[#E50914]' 
+													: 'bg-transparent border-[#E50914]/20 hover:border-[#E50914] hover:bg-[#E50914]/10'
 											}`}
 										>
 											<div class="flex flex-col items-center text-center space-y-4">
@@ -246,8 +246,8 @@
 												on:click={() => handleGenreClick(category)}
 												class={`px-4 py-2 rounded-full transition-all duration-300 ${
 													selectedCategories.includes(category)
-														? 'bg-[#E50914] text-white'
-														: 'bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:text-white'
+														? 'bg-[#E50914]/10 border-2 border-[#E50914] text-[#FFFFFF] focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2'
+														: 'bg-transparent border border-[#E50914]/40 text-[#FFFFFF]/90 hover:border-[#E50914] hover:text-[#E50914] focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2'
 												}`}
 											>
 												{category}
@@ -263,7 +263,7 @@
 										type="text"
 										bind:value={searchTerm}
 										placeholder={$i18nStore.t('form.placeholders.search_genres')}
-										class="w-full px-4 py-2 mb-4 bg-[#221F1F] border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914]"
+										class="w-full px-4 py-2 mb-4 bg-transparent border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914]"
 									/>
 									<div class="flex flex-wrap gap-2">
 										{#each filteredCategories as category}
@@ -271,8 +271,8 @@
 												on:click={() => handleGenreClick(category)}
 												class={`px-4 py-2 rounded-full transition-all duration-300 ${
 													selectedCategories.includes(category)
-														? 'bg-[#E50914] text-white'
-														: 'bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/70 hover:border-[#E50914] hover:text-white'
+														? 'bg-[#E50914]/10 border-2 border-[#E50914] text-[#FFFFFF] focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2'
+														: 'bg-transparent border border-[#E50914]/40 text-[#FFFFFF]/90 hover:border-[#E50914] hover:text-[#E50914] focus:ring-2 focus:ring-[#E50914] focus:ring-offset-2'
 												}`}
 											>
 												{category}
@@ -287,7 +287,7 @@
 										<textarea
 											bind:value={specificDescriptors}
 											placeholder={$i18nStore.t('form.placeholders.preferences')}
-											class="w-full h-32 px-4 py-3 bg-[#221F1F] border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914] resize-none"
+											class="w-full h-32 px-4 py-3 bg-transparent border border-[#E50914]/20 rounded-lg text-[#FFFFFF] placeholder-[#FFFFFF]/50 focus:outline-none focus:border-[#E50914] resize-none"
 										></textarea>
 									</div>
 									<div class="flex justify-end">
@@ -313,12 +313,12 @@
 		</div>
 
 		<!-- Navigation Buttons -->
-		<div class="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm py-4 z-50">
+		<div class="fixed bottom-0 left-0 right-0 rounded-xl bg-black/20 backdrop-blur-sm py-4 z-50">
 			<div class="max-w-3xl mx-auto px-4 flex justify-between">
 				{#if currentStep > 1}
 					<button
 						on:click={prevStep}
-						class="px-6 py-2 rounded-lg bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/90 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300"
+						class="glass-button px-6 py-2 rounded-lg text-[#FFFFFF]/90 hover:text-white transition-all duration-300"
 					>
 						{$i18nStore.t('form.buttons.previous')}
 					</button>
@@ -329,7 +329,7 @@
 				{#if currentStep < totalSteps}
 					<button
 						on:click={nextStep}
-						class="px-6 py-2 rounded-lg bg-[#E50914] text-white font-medium hover:bg-[#B20710] transition-colors duration-300"
+						class="glass-button px-6 py-2 rounded-lg text-white font-medium hover:bg-[#B20710]/20 transition-colors duration-300"
 					>
 						{$i18nStore.t('form.buttons.next')}
 					</button>

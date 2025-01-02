@@ -315,9 +315,12 @@
 							{#if data.Insights?.length > 0}
 								<div class="flex flex-wrap gap-1.5 mb-3">
 									{#each data.Insights as insight}
-										<Badge variant="outline">
+										<div class="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/20 border border-red-900/30 rounded-full text-xs text-red-400">
+											<svg class="w-3.5 h-3.5 text-[#E50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+											</svg>
 											{insight}
-										</Badge>
+										</div>
 									{/each}
 								</div>
 							{/if}

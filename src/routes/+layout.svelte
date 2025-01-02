@@ -5,6 +5,7 @@
 	import { i18nStore } from '$lib/i18n';
 	import Header from '$lib/Header.svelte';
 	import Sidebar from '$lib/Sidebar.svelte';
+	import FluidBackground from '$lib/FluidBackground.svelte';
 
 	let isSidebarOpen = false;
 
@@ -13,7 +14,18 @@
 	}
 </script>
 
-<div class="min-h-screen w-full bg-[#141414] relative">
+<style>
+	:global(html), :global(body) {
+		overflow: visible !important;
+	}
+
+	:global(body) {
+		background: transparent !important;
+	}
+</style>
+
+<FluidBackground />
+<div class="min-h-screen w-full relative">
 	<!-- Main content -->
 	<main class="relative pt-16">
 		<slot />
