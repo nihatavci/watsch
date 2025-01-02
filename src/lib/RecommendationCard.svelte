@@ -4,18 +4,37 @@
 	import { library } from '../stores/library';
 	import type { SavedItem, Recommendation } from './types';
 	import { showNotification } from '../stores/notifications';
+	import Card from './ui/card.svelte';
+	import CardContent from './ui/card-content.svelte';
+	import Button from './ui/button.svelte';
+	import Badge from './ui/badge.svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
 	export let onDismiss: () => void;
 	export let index: number;
 
+	interface MovieDetails {
+		Title: string;
+		Year: string;
+		Poster: string | null;
+		Plot: string;
+		Rated: string;
+		Actors: string;
+		Genre: string;
+		Rating: number | null;
+		Runtime: string | null;
+		ReleaseDate: string;
+		Insights: string[];
+		Language: string | null;
+	}
+
 	const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 	let isAdded = false;
 	let showRemoveButton = false;
 	let showFullDescription = false;
 
-	async function getRecommendationInfo() {
+	async function getRecommendationInfo(): Promise<MovieDetails> {
 		try {
 			// First search for the movie/show
 			const searchResponse = await fetch(`/api/tmdb/search`, {
@@ -100,7 +119,7 @@
 
 	let promise = getRecommendationInfo();
 
-	function handleSave(data: any) {
+	function handleSave(data: MovieDetails) {
 		if (!data?.Title || !data?.Year || !data?.Poster) {
 			console.error('Missing required fields in media data:', data);
 			return;
@@ -125,7 +144,7 @@
 		}, 2000);
 	}
 
-	function handleRemove(data: any) {
+	function handleRemove(data: MovieDetails) {
 		library.removeFromSaved(data.Title);
 		showNotification(`Removed "${data.Title}" from your watch list`);
 		isAdded = false;
@@ -137,136 +156,129 @@
 	{#await promise}
 		<LoadingCard />
 	{:then data}
-		{#if data?.Title}
-			<div in:fade|global class="relative flex bg-neutral-800/70 shadow-md rounded-xl backdrop-blur-gradient overflow-hidden">
-				
-				<!-- Poster -->
-				{#if data.Poster}
-					<div class="w-1/4 relative">
-						<img 
-							src={data.Poster} 
-							alt={data.Title}
-							class="w-full h-full object-cover"
-						/>
-						<div class="absolute inset-0 bg-gradient-to-r from-transparent to-neutral-800/50" />
-					</div>
-				{/if}
+		{#if data?.Title && data?.Poster}
+			<Card>
+				<CardContent class="p-0">
+					<div class="relative flex bg-neutral-800/70 shadow-md rounded-xl backdrop-blur-gradient overflow-hidden">
+						<div class="w-1/4 relative">
+							<img 
+								src={data.Poster} 
+								alt={data.Title}
+								class="w-full h-full object-cover"
+							/>
+							<div class="absolute inset-0 bg-gradient-to-r from-transparent to-neutral-800/50" />
+						</div>
 
-				<!-- Content -->
-				<div class="flex-1 p-4 flex flex-col min-h-[200px]">
-					<!-- Header -->
-					<div class="flex items-start justify-between mb-2">
-						<div>
-							<h2 class="text-xl font-bold text-white mb-1">
-								{data.Title}
-								<span class="text-white/60 text-lg ml-2">{data.Year}</span>
-							</h2>
-							<div class="flex items-center gap-2 text-sm text-white/60">
-								{#if data.Runtime}<span>{data.Runtime}</span>{/if}
-								{#if data.Language}<span>{data.Language}</span>{/if}
-								{#if data.Rated}
-									<span class="px-1.5 py-0.5 rounded text-xs bg-red-500/20 text-red-500">
-										{data.Rated}
-									</span>
+						<!-- Content -->
+						<div class="flex-1 p-4 flex flex-col min-h-[200px]">
+							<!-- Header -->
+							<div class="flex items-start justify-between mb-2">
+								<div>
+									<h2 class="text-xl font-bold text-white mb-1">
+										{data.Title}
+										<span class="text-white/60 text-lg ml-2">{data.Year}</span>
+									</h2>
+									<div class="flex items-center gap-2 text-sm text-white/60">
+										{#if data.Runtime}<span>{data.Runtime}</span>{/if}
+										{#if data.Language}<span>{data.Language}</span>{/if}
+										{#if data.Rated}
+											<Badge variant="destructive">
+												{data.Rated}
+											</Badge>
+										{/if}
+									</div>
+								</div>
+								{#if data.Rating}
+									<Badge variant="default">
+										{data.Rating}%
+									</Badge>
 								{/if}
 							</div>
-						</div>
-						{#if data.Rating}
-							<div class="flex items-center bg-[#E50914] px-2 py-1 rounded">
-								<span class="text-sm font-bold text-white">{data.Rating}%</span>
-							</div>
-						{/if}
-					</div>
 
-					<!-- Plot -->
-					<div class="mb-3">
-						<p class="text-sm text-white/70 {showFullDescription ? '' : 'line-clamp-2'}">
-							{data.Plot}
-						</p>
-						{#if !showFullDescription}
-							<button 
-								on:click={() => showFullDescription = true}
-								class="text-xs text-[#E50914] hover:text-[#B20710] transition-colors duration-300"
-							>
-								Read more
-							</button>
-						{/if}
-					</div>
-
-					<!-- Cast -->
-					{#if data.Actors}
-						<div class="text-xs text-white/50 mb-2">
-							Cast: {data.Actors}
-						</div>
-					{/if}
-
-					<!-- Tags -->
-					<div class="flex flex-wrap gap-1.5 mb-3">
-						{#each selectedPlatforms as platform}
-							<span class="px-2 py-0.5 rounded-full text-xs bg-white/[0.05] text-white/70">
-								{platform}
-							</span>
-						{/each}
-						{#if data.Genre}
-							{#each data.Genre.split(', ') as genre}
-								<span class="px-2 py-0.5 rounded-full text-xs bg-white/[0.05] text-white/70">
-									{genre}
-								</span>
-							{/each}
-						{/if}
-					</div>
-
-					<!-- AI Insights -->
-					{#if data.Insights?.length > 0}
-						<div class="flex flex-wrap gap-1.5 mb-3">
-							{#each data.Insights as insight}
-								<span class="px-2 py-0.5 rounded-full text-xs bg-[#E50914]/10 text-[#E50914]">
-									{insight}
-								</span>
-							{/each}
-						</div>
-					{/if}
-
-					<!-- Action Button -->
-					<div class="mt-auto">
-						<button
-							on:click={() => isAdded ? (showRemoveButton ? handleRemove(data) : null) : handleSave(data)}
-							class="w-full px-3 py-1.5 rounded-lg bg-[#221F1F] border border-[#E50914]/20 text-white text-sm 
-								transition-all duration-300 hover:bg-[#E50914] flex items-center justify-center gap-1.5"
-						>
-							{#if isAdded}
-								{#if showRemoveButton}
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-									</svg>
-									<span>Remove from List</span>
-								{:else}
-									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-									</svg>
-									<span>Added</span>
+							<!-- Plot -->
+							<div class="mb-3">
+								<p class="text-sm text-white/70 {showFullDescription ? '' : 'line-clamp-2'}">
+									{data.Plot}
+								</p>
+								{#if !showFullDescription}
+									<button 
+										on:click={() => showFullDescription = true}
+										class="text-xs text-[#E50914] hover:text-[#B20710] transition-colors duration-300"
+									>
+										Read more
+									</button>
 								{/if}
-							{:else}
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-								</svg>
-								<span>Save to Watch</span>
+							</div>
+
+							<!-- Cast -->
+							{#if data.Actors}
+								<div class="text-xs text-white/50 mb-2">
+									Cast: {data.Actors}
+								</div>
 							{/if}
-						</button>
+
+							<!-- Tags -->
+							<div class="flex flex-wrap gap-1.5 mb-3">
+								{#each selectedPlatforms as platform}
+									<Badge variant="secondary">
+										{platform}
+									</Badge>
+								{/each}
+								{#if data.Genre}
+									{#each data.Genre.split(', ') as genre}
+										<Badge variant="secondary">
+											{genre}
+										</Badge>
+									{/each}
+								{/if}
+							</div>
+
+							<!-- AI Insights -->
+							{#if data.Insights?.length > 0}
+								<div class="flex flex-wrap gap-1.5 mb-3">
+									{#each data.Insights as insight}
+										<Badge variant="outline">
+											{insight}
+										</Badge>
+									{/each}
+								</div>
+							{/if}
+
+							<!-- Action Button -->
+							<div class="mt-auto">
+								<Button
+									variant={isAdded ? "ghost" : "default"}
+									class={isAdded 
+										? "w-full h-12 bg-neutral-800/50 hover:bg-neutral-700/50 text-white rounded-xl" 
+										: "w-full h-12 bg-[#E50914] hover:bg-[#B20710] text-white rounded-xl"}
+									on:click={() => isAdded ? (showRemoveButton ? handleRemove(data) : null) : handleSave(data)}
+								>
+									<div class="flex items-center justify-center w-full">
+										{#if isAdded}
+											{#if showRemoveButton}
+												<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+												</svg>
+												Remove from List
+											{:else}
+												<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+												</svg>
+												Added to Watch
+											{/if}
+										{:else}
+											<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+											</svg>
+											Add to Watch
+										{/if}
+									</div>
+								</Button>
+							</div>
+						</div>
 					</div>
-				</div>
-			</div>
-		{:else}
-			<div in:fade|global class="relative bg-neutral-800/70 shadow-md p-4 rounded-xl backdrop-blur-gradient">
-				<div class="flex flex-col">
-					<div class="font-bold text-slate-200 text-xl mb-2">
-						{recommendation.title}
-					</div>
-					<div class="text-sm text-slate-200/90">
-						{recommendation.description}
-					</div>
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 		{/if}
 	{:catch error}
 		<div class="p-4 rounded-xl bg-red-500/10 text-red-400">

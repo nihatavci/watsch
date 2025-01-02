@@ -14,12 +14,16 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (!response.ok) {
 			console.error('TMDB API Error:', data);
-			return json({ results: [] });
+			throw new Error(data.status_message || 'Failed to fetch from TMDB');
 		}
 
 		return json(data);
 	} catch (error) {
 		console.error('Search error:', error);
-		return json({ results: [] });
+		return new Response(JSON.stringify({ 
+			error: error instanceof Error ? error.message : 'Internal server error' 
+		}), {
+			status: 500
+		});
 	}
 }; 
