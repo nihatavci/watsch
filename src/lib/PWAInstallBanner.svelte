@@ -5,53 +5,87 @@
 
     let deferredPrompt: any;
     let showBanner = false;
+    let isMobileDevice = false;
+
+    function checkIfMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    function checkIfInstallable() {
+        // Check if running in standalone mode (already installed)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+            (window.navigator as any).standalone ||
+            document.referrer.includes('android-app://');
+
+        // Only show on mobile devices and when not already installed
+        return !isStandalone && isMobileDevice;
+    }
 
     onMount(() => {
-        // Listen for the beforeinstallprompt event
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show the banner
-            showBanner = true;
-        });
+        isMobileDevice = checkIfMobile();
 
-        // Hide the banner if the app is already installed
-        window.addEventListener('appinstalled', () => {
-            showBanner = false;
-        });
+        // Only proceed with PWA logic if on mobile
+        if (isMobileDevice) {
+            // Listen for the beforeinstallprompt event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent Chrome 67 and earlier from automatically showing the prompt
+                e.preventDefault();
+                // Stash the event so it can be triggered later
+                deferredPrompt = e;
+                // Show the banner if installable
+                showBanner = checkIfInstallable();
+            });
 
-        // Check if the app is already installed
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            showBanner = false;
+            // Hide the banner if the app is installed
+            window.addEventListener('appinstalled', () => {
+                showBanner = false;
+            });
+
+            // Check initial installable state
+            showBanner = checkIfInstallable();
+
+            // For testing in development
+            if (import.meta.env.DEV && !deferredPrompt && checkIfInstallable()) {
+                console.log('Development mode: Showing test banner');
+                showBanner = true;
+            }
         }
     });
 
     async function installApp() {
-        if (!deferredPrompt) return;
+        if (!deferredPrompt) {
+            console.log('No installation prompt available');
+            return;
+        }
 
         // Show the install prompt
         deferredPrompt.prompt();
 
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
+        try {
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`Installation ${outcome}`);
 
-        // Clear the deferredPrompt variable
-        deferredPrompt = null;
+            // Clear the deferredPrompt variable
+            deferredPrompt = null;
 
-        // Hide the banner regardless of outcome
-        showBanner = false;
+            // Hide the banner regardless of outcome
+            showBanner = false;
+        } catch (error) {
+            console.error('Installation error:', error);
+        }
     }
 
     function dismissBanner() {
         showBanner = false;
+        // Store in localStorage to prevent showing again in this session
+        localStorage.setItem('pwa-banner-dismissed', 'true');
     }
 </script>
 
 {#if showBanner}
     <div 
-        class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md"
+        class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50"
         transition:fade={{ duration: 200 }}
     >
         <div class="bg-[#1A1A1A]/95 backdrop-blur-sm border border-[#E50914]/20 rounded-xl p-4 shadow-lg">
@@ -64,20 +98,20 @@
                     </div>
                 </div>
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-white mb-1">Install Watsch App</h3>
-                    <p class="text-sm text-white/70 mb-3">Add to your home screen for quick access</p>
+                    <h3 class="text-lg font-semibold text-white mb-1">{$i18nStore.t('pwa.install_title', 'Install Watsch App')}</h3>
+                    <p class="text-sm text-white/70 mb-3">{$i18nStore.t('pwa.install_description', 'Add to your home screen for quick access')}</p>
                     <div class="flex flex-wrap gap-2">
                         <button
                             class="px-4 py-2 bg-[#E50914] hover:bg-[#B20710] text-white rounded-lg transition-colors text-sm font-medium"
                             on:click={installApp}
                         >
-                            Install Now
+                            {$i18nStore.t('pwa.install_now', 'Install Now')}
                         </button>
                         <button
                             class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white/90 rounded-lg transition-colors text-sm"
                             on:click={dismissBanner}
                         >
-                            Maybe Later
+                            {$i18nStore.t('pwa.maybe_later', 'Maybe Later')}
                         </button>
                     </div>
                 </div>
@@ -95,13 +129,13 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    Faster Access
+                    {$i18nStore.t('pwa.faster_access', 'Faster Access')}
                 </div>
                 <div class="flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    Get Notifications
+                    {$i18nStore.t('pwa.get_notifications', 'Get Notifications')}
                 </div>
             </div>
         </div>

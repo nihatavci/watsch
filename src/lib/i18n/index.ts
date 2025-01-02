@@ -5,9 +5,10 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import enTranslations from './locales/en.json';
 import esTranslations from './locales/es.json';
 import frTranslations from './locales/fr.json';
+import deTranslations from './locales/de.json';
 
 // Supported languages
-export const supportedLanguages = ['en', 'es', 'fr'];
+export const supportedLanguages = ['en', 'es', 'fr', 'de'];
 
 // Default language
 export const defaultLanguage = 'en';
@@ -44,7 +45,8 @@ i18n
     resources: {
       en: { translation: enTranslations },
       es: { translation: esTranslations },
-      fr: { translation: frTranslations }
+      fr: { translation: frTranslations },
+      de: { translation: deTranslations }
     },
     lng: initialLanguage,
     fallbackLng: defaultLanguage,

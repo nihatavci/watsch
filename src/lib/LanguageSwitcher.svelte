@@ -1,10 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { i18nStore, changeLanguage, supportedLanguages, detectLanguage, defaultLanguage } from './i18n';
+    import { i18nStore, changeLanguage, supportedLanguages, detectLanguage } from './i18n';
     import { fade } from 'svelte/transition';
 
     type Language = 'en' | 'es' | 'fr' | 'de';
-    let currentLanguage = defaultLanguage as Language;
     let mounted = false;
     let isOpen = false;
 
@@ -22,20 +21,21 @@
         'de': '🇩🇪'
     };
 
+    // Subscribe to language changes
+    $: currentLanguage = $i18nStore.language as Language;
+
     function handleLanguageChange(lang: Language) {
         if (!mounted) return;
-        currentLanguage = lang;
         changeLanguage(lang);
         isOpen = false;
     }
 
     onMount(() => {
         mounted = true;
-        // Set initial language from detection
+        // Set initial language from detection if not already set
         const detectedLang = detectLanguage();
-        if (isValidLanguage(detectedLang)) {
-            currentLanguage = detectedLang;
-            changeLanguage(currentLanguage);
+        if (isValidLanguage(detectedLang) && !currentLanguage) {
+            changeLanguage(detectedLang);
         }
     });
 
@@ -63,10 +63,10 @@
 <div class="language-switcher relative">
     <button
         on:click|stopPropagation={toggleDropdown}
-        class="px-3 py-1.5 rounded-lg bg-[#E50914]/10 backdrop-blur-sm border border-[#E50914]/20 hover:bg-[#E50914]/20 transition-all duration-300 text-white/90 hover:text-white flex items-center gap-2"
+        class="h-[38px] px-4 rounded-lg bg-[#E50914]/10 backdrop-blur-sm border border-[#E50914]/20 hover:bg-[#E50914]/20 transition-all duration-300 text-white/90 hover:text-white flex items-center gap-2"
     >
         <span class="text-base">{languageFlags[currentLanguage]}</span>
-        <span>{languageNames[currentLanguage]}</span>
+        <span class="text-sm">{languageNames[currentLanguage]}</span>
         <svg
             class={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             fill="none"
@@ -79,7 +79,7 @@
 
     {#if isOpen}
         <div
-            class="absolute top-full right-0 mt-2 py-2 bg-[#1A1A1A] rounded-lg shadow-lg border border-[#E50914]/20"
+            class="absolute top-full right-0 mt-2 py-2 bg-[#1A1A1A]/95 backdrop-blur-sm rounded-lg shadow-lg border border-[#E50914]/20"
             transition:fade={{ duration: 150 }}
         >
             {#each validLanguages as lang}
@@ -89,7 +89,7 @@
                     on:click={() => handleLanguageChange(lang)}
                 >
                     <span class="text-base">{languageFlags[lang]}</span>
-                    {languageNames[lang]}
+                    <span class="text-sm">{languageNames[lang]}</span>
                 </button>
             {/each}
         </div>
