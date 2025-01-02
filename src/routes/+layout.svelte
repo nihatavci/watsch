@@ -5,7 +5,6 @@
 	import { i18nStore } from '$lib/i18n';
 	import Header from '$lib/Header.svelte';
 	import Sidebar from '$lib/Sidebar.svelte';
-	import PWABanner from '$lib/PWABanner.svelte';
 
 	let isSidebarOpen = false;
 
@@ -34,8 +33,6 @@
 	<div class="fixed bottom-0 inset-x-0 z-50">
 		<PWAInstallBanner />
 	</div>
-
-	<PWABanner />
 </div>
 
 <svelte:head>
