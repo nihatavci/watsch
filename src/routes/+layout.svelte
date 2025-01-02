@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import Header from '$lib/Header.svelte';
 	import Sidebar from '$lib/Sidebar.svelte';
+	import PWAInstallBanner from '$lib/PWAInstallBanner.svelte';
 
 	let isSidebarOpen = false;
 
@@ -131,6 +132,8 @@
 	<div class="relative" style="z-index: 1;">
 		<slot {resetApp} />
 	</div>
+
+	<PWAInstallBanner />
 </main>
 
 <style>
@@ -141,4 +144,12 @@
 		box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 	}
 </style>
+
+<svelte:head>
+	<link rel="manifest" href="/manifest.json" />
+	<meta name="theme-color" content="#E50914" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+</svelte:head>
   

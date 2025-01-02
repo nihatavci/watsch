@@ -1,5 +1,5 @@
 <script lang="ts">
-	export let loading = true;
+	export const loading = true;
 	export const incomingStream = false;
 </script>
 
