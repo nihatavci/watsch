@@ -6,6 +6,7 @@
 
 	const dispatch = createEventDispatcher();
 	let showPulse = false;
+	let previousLibraryCount = $library.savedItems.length;
 
 	function handleLogoClick() {
 		dispatch('resetApp');
@@ -15,12 +16,15 @@
 		dispatch('toggleSidebar');
 	}
 
-	// Subscribe to library changes
-	$: if ($library.savedItems.length > 0) {
-		showPulse = true;
-		setTimeout(() => {
-			showPulse = false;
-		}, 2000);
+	// Watch for library changes
+	$: {
+		if ($library.savedItems.length > previousLibraryCount) {
+			showPulse = true;
+			setTimeout(() => {
+				showPulse = false;
+			}, 2000);
+		}
+		previousLibraryCount = $library.savedItems.length;
 	}
 </script>
 

@@ -32,7 +32,7 @@
     },
     "navigation": {
         "home": "Home",
-        "library": "",
+        "library": "Library",
         "profile": "Profile",
         "settings": "Settings"
     },
