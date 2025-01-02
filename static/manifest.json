@@ -1,20 +1,36 @@
 {
     "name": "Watsch - Movie & TV Recommendations",
     "short_name": "Watsch",
-    "description": "Get personalized movie and TV show recommendations",
+    "description": "Get personalized movie and TV show recommendations on mobile",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#221F1F",
     "theme_color": "#E50914",
+    "orientation": "portrait",
+    "categories": ["entertainment", "movies", "tv"],
     "icons": [
         {
             "src": "/icons/icon-192x192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "maskable any"
         },
         {
             "src": "/icons/icon-512x512.png", 
             "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/mobile-home.png",
+            "sizes": "750x1334",
+            "type": "image/png"
+        },
+        {
+            "src": "/screenshots/mobile-recommendations.png", 
+            "sizes": "750x1334",
             "type": "image/png"
         }
     ]

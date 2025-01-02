@@ -33,6 +33,7 @@
 	let isAdded = false;
 	let showRemoveButton = false;
 	let showFullDescription = false;
+	let loadingFailed = false;
 
 	async function getRecommendationInfo(): Promise<MovieDetails> {
 		try {
@@ -50,15 +51,8 @@
 
 			const searchData = await searchResponse.json();
 
-			if (!searchResponse.ok) {
-				throw new Error(searchData.error || 'Failed to search media');
-			}
-
-			if (searchData.error) {
-				throw new Error(searchData.error);
-			}
-
-			if (!searchData.results || searchData.results.length === 0) {
+			if (!searchResponse.ok || !searchData.results || searchData.results.length === 0) {
+				loadingFailed = true;
 				throw new Error('No results found');
 			}
 
@@ -78,7 +72,8 @@
 			const detailsData = await detailsResponse.json();
 
 			if (!detailsResponse.ok) {
-				throw new Error(detailsData.error || 'Failed to fetch details');
+				loadingFailed = true;
+				throw new Error('Failed to fetch details');
 			}
 
 			// Get AI-generated insights
@@ -113,7 +108,8 @@
 			};
 		} catch (error) {
 			console.error('Error fetching movie details:', error);
-			throw new Error(error instanceof Error ? error.message : 'Failed to fetch movie details');
+			loadingFailed = true;
+			throw error;
 		}
 	}
 
@@ -281,13 +277,20 @@
 			</Card>
 		{/if}
 	{:catch error}
-		<div class="p-4 rounded-xl bg-red-500/10 text-red-400">
-			<div class="font-medium mb-1">Error loading recommendation details</div>
-			<div class="text-sm opacity-90">
-				{error.message === 'API authentication failed' 
-					? 'Service temporarily unavailable. Please try again later.' 
-					: error.message}
+		<div class="p-4 text-center text-white/60">
+			<div class="mb-2">
+				<svg class="w-12 h-12 mx-auto text-[#E50914]/50 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				No details available for this recommendation
 			</div>
+			<Button 
+				variant="ghost" 
+				on:click={onDismiss}
+				class="mx-auto"
+			>
+				Dismiss
+			</Button>
 		</div>
 	{/await}
 </div>

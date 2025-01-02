@@ -3,6 +3,15 @@
 	export let className: string = "";
 </script>
 
-<div class={cn("rounded-xl bg-neutral-800/70 shadow-md backdrop-blur-gradient text-white", className)} {...$$restProps}>
+<div 
+	class={cn(
+		"rounded-xl bg-[#1A1A1A] shadow-lg backdrop-blur-lg text-white",
+		"border border-[#2C2C2C]",
+		"transition-all duration-300 ease-in-out",
+		"hover:shadow-xl hover:scale-[1.01]",
+		className
+	)} 
+	{...$$restProps}
+>
 	<slot />
 </div> 

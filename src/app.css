@@ -3,63 +3,94 @@
 @tailwind utilities;
 
 :root {
+  /* Refined color palette */
   --netflix-red: #E50914;
   --dark-red: #B20710;
-  --black: #000000;
-  --dark-gray: #221F1F;
+  --black: #0A0A0A;
+  --dark-gray: #1A1A1A;
+  --medium-gray: #2C2C2C;
+  --light-gray: #3E3E3E;
   --white: #FFFFFF;
+
+  /* Typography */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  
+  /* Shadows and Elevation */
+  --shadow-subtle: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-medium: 0 4px 6px rgba(0,0,0,0.15);
+  --shadow-strong: 0 10px 20px rgba(0,0,0,0.2);
+
+  /* Transitions */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-medium: 0.3s ease-in-out;
+  --transition-slow: 0.5s ease-in-out;
 }
 
-/* Glass morphism utilities */
+/* Global Styles */
+body {
+  font-family: var(--font-primary);
+  background-color: var(--black);
+  color: var(--white);
+  line-height: 1.6;
+}
+
+/* Enhanced Glassmorphism */
 .glassmorphism {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.glassmorphism-dark {
-  background: rgba(34, 31, 31, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(26, 26, 26, 0.7);
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(229, 9, 20, 0.1);
+  box-shadow: var(--shadow-medium);
 }
 
-/* Smooth transitions */
+/* Smooth Transitions */
 .page-transition {
-  @apply transition-all duration-500 ease-in-out;
+  transition: all var(--transition-medium);
 }
 
-.step-transition {
-  @apply transition-all duration-300 ease-out;
+/* Hover and Interactive States */
+.hover-lift {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.hover-transition {
-  @apply transition-all duration-200 ease-in-out;
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-strong);
 }
 
-/* Animation keyframes */
+/* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateX(-20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0); 
+  }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn var(--transition-slow) forwards;
 }
 
 .animate-slide-in {
-  animation: slideIn 0.3s ease-out forwards;
+  animation: slideIn var(--transition-medium) forwards;
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -68,9 +99,15 @@
 
 ::-webkit-scrollbar-thumb {
   background: var(--netflix-red);
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--dark-red);
+}
+
+/* Focus and Accessibility */
+*:focus {
+  outline: 2px solid var(--netflix-red);
+  outline-offset: 2px;
 }

@@ -4,34 +4,50 @@
 
     let deferredPrompt: any = null;
     let showBanner = false;
+    let isMobile = false;
 
     onMount(() => {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            showBanner = true;
-        });
+        // Check if it's a mobile device
+        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        window.addEventListener('appinstalled', () => {
-            showBanner = false;
-            deferredPrompt = null;
-        });
+        // Only add event listeners on mobile
+        if (isMobile) {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showBanner = true;
+                console.log('PWA install prompt detected');
+            });
+
+            window.addEventListener('appinstalled', () => {
+                showBanner = false;
+                deferredPrompt = null;
+                console.log('App installed successfully');
+            });
+        }
     });
 
     async function handleInstall() {
         if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            
-            if (outcome === 'accepted') {
-                showBanner = false;
-                deferredPrompt = null;
+            try {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    showBanner = false;
+                    deferredPrompt = null;
+                } else {
+                    console.log('User dismissed the install prompt');
+                }
+            } catch (error) {
+                console.error('Error during installation:', error);
             }
         }
     }
 </script>
 
-{#if showBanner}
+{#if isMobile && showBanner}
     <div 
         class="fixed bottom-4 left-4 right-4 z-[9999] bg-[#221F1F] border border-[#E50914]/20 rounded-xl p-4 
                flex items-center justify-between shadow-lg backdrop-blur-sm animate-in slide-in-from-bottom-10"
@@ -40,7 +56,7 @@
             <img src="/icons/icon-192x192.png" alt="Watsch App" class="w-12 h-12 rounded-lg" />
             <div>
                 <h3 class="font-bold text-white">Install Watsch App</h3>
-                <p class="text-sm text-white/70">Get quick movie recommendations on your device</p>
+                <p class="text-sm text-white/70">Get quick movie recommendations on your mobile</p>
             </div>
         </div>
         <Button 

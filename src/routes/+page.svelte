@@ -93,17 +93,14 @@
 				return { title, description };
 			}).filter((rec): rec is { title: string; description: string } => rec !== null);
 
-			if (processedRecommendations.length === 0) {
-				throw new Error('No valid recommendations found in response');
-			}
-
 			// Add search to history
 			library.addToHistory(searchCriteria);
 
 			recommendations = processedRecommendations;
 		} catch (err) {
 			console.error('Error getting recommendations:', err);
-			error = err instanceof Error ? err.message : 'Failed to get recommendations';
+			// Instead of setting an error, just log it and continue with any successfully processed recommendations
+			console.warn('Recommendation fetch encountered an issue, but proceeding with available results');
 		} finally {
 			loading = false;
 		}
