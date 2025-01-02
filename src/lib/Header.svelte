@@ -42,7 +42,7 @@
 				<button
 					on:click={handleToggleSidebar}
 					class="h-[38px] w-[38px] flex items-center justify-center rounded-lg bg-[#E50914]/10 backdrop-blur-sm border border-[#E50914]/20 hover:bg-[#E50914] transition-all duration-300 text-[#E50914] hover:text-white group"
-					aria-label={$i18nStore.t('navigation.library')}
+					aria-label="Start Exploring"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />

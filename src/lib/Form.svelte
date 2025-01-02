@@ -293,8 +293,8 @@
 									<div class="flex justify-end">
 										<button
 											on:click={handleSubmit}
-											class="px-6 py-3 bg-[#E50914] text-white rounded-full font-medium hover:bg-[#B20710] transition-colors duration-300 flex items-center space-x-2"
-											disabled={loading}
+											class="px-6 py-3 bg-[#E50914] text-white rounded-lg font-medium hover:bg-[#B20710] transition-colors duration-300 flex items-center space-x-2"
+												disabled={loading}
 										>
 											{#if loading}
 												<LoadingIndicator />
@@ -318,7 +318,7 @@
 				{#if currentStep > 1}
 					<button
 						on:click={prevStep}
-						class="px-6 py-2 rounded-full bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/90 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300"
+						class="px-6 py-2 rounded-lg bg-[#221F1F] border border-[#E50914]/20 text-[#FFFFFF]/90 hover:bg-[#E50914]/10 hover:border-[#E50914] transition-all duration-300"
 					>
 						{$i18nStore.t('form.buttons.previous')}
 					</button>
@@ -329,7 +329,7 @@
 				{#if currentStep < totalSteps}
 					<button
 						on:click={nextStep}
-						class="px-6 py-2 rounded-full bg-[#E50914] text-white font-medium hover:bg-[#B20710] transition-colors duration-300"
+						class="px-6 py-2 rounded-lg bg-[#E50914] text-white font-medium hover:bg-[#B20710] transition-colors duration-300"
 					>
 						{$i18nStore.t('form.buttons.next')}
 					</button>

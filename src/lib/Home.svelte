@@ -19,7 +19,7 @@
 	<div class="flex flex-wrap items-center mr-auto">
 		<button
 			on:click={handleClick}
-			class="w-full md:w-auto text-center bg-[#E50914] hover:bg-[#B20710] mb-4 flex-none rounded-full text-white font-medium py-3 px-6 mr-8 transition-colors duration-300"
+			class="w-full md:w-auto text-center bg-[#E50914] hover:bg-[#B20710] mb-4 flex-none rounded-lg text-white font-medium py-3 px-6 mr-8 transition-colors duration-300"
 		>
 			{$i18nStore.t('home.cta')}
 		</button>

@@ -13,14 +13,14 @@
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
-	export let onDismiss: () => void;
-	export let index: number;
+	export const onDismiss: () => void = () => {};
+	export const index: number = 0;
 
 	interface MovieDetails {
 		Title: string;
 		Year: string;
 		Poster: string | null;
-		Plot: string;
+			Plot: string;
 		Rated: string;
 		Actors: string;
 		Genre: string;
