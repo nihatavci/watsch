@@ -1,0 +1,71 @@
+{
+  "common": {
+    "app_name": "Watsch",
+    "welcome": "Watsch'a Hoş Geldiniz",
+    "get_recommendations": "Öneriler Al",
+    "loading": "Yükleniyor...",
+    "error": "Bir şeyler yanlış gitti"
+  },
+  "home": {
+    "title": "Mükemmel Filminizi Bulun",
+    "subtitle": "Size özel film ve dizileri keşfedin",
+    "cta": "Keşfetmeye Başla"
+  },
+  "recommendations": {
+    "no_results": "Öneri bulunamadı",
+    "try_again": "Tercihlerinizi değiştirmeyi deneyin",
+    "error": {
+      "stream": "Yanıt alınırken hata oluştu",
+      "partial": "Önerileri alırken sorun oluştu, mevcut sonuçlarla devam ediyoruz",
+      "details": "Öneri detayları yüklenirken hata oluştu"
+    },
+    "minutes": "Dk",
+    "original_language": "Orijinal",
+    "read_more": "Devamını Oku",
+    "cast": "Oyuncular",
+    "add_to_watchlist": "İzleme Listesine Ekle",
+    "remove_from_watchlist": "İzleme Listesinden Çıkar",
+    "added_to_watchlist_short": "İzleme Listesine Eklendi",
+    "added_to_watchlist": "\"{title}\" izleme listenize eklendi",
+    "removed_from_watchlist": "\"{title}\" izleme listenizden çıkarıldı",
+    "no_details": "Bu öneri için detay bulunmuyor"
+  },
+  "navigation": {
+    "home": "Ana Sayfa",
+    "library": "Kütüphane",
+    "profile": "Profil",
+    "settings": "Ayarlar"
+  },
+  "library": {
+    "saved_items": "Kaydedilenler",
+    "empty_message": "Kaydettiğiniz filmler burada görünecek",
+    "remove_item": "Kütüphaneden kaldır"
+  },
+  "form": {
+    "steps": {
+      "1": "Tür",
+      "2": "Platformlar",
+      "3": "Kategoriler",
+      "4": "Tercihler"
+    },
+    "questions": {
+      "type": "Ne izlemek istersiniz?",
+      "platforms": "Nerede izliyorsunuz?",
+      "genres": "Hangi kategoriler ilginizi çekiyor?",
+      "preferences": "Özel tercihleriniz var mı?"
+    },
+    "cinema_types": {
+      "movie": "Film",
+      "tv_show": "Dizi",
+      "no_preference": "Fark Etmez"
+    },
+    "labels": {
+      "popular_genres": "Popüler Kategoriler",
+      "specialized_genres": "Diğer Kategoriler"
+    },
+    "placeholders": {
+      "search": "Ara...",
+      "preferences": "Tercihlerinizi yazın..."
+    }
+  }
+} 

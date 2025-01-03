@@ -14,66 +14,103 @@
     let deferredPrompt: BeforeInstallPromptEvent | null = null;
     let showBanner = false;
     let isMobileDevice = false;
+    let isIOS = false;
+    let isInstallable = false;
 
     function checkIfMobile() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const userAgent = navigator.userAgent.toLowerCase();
+        isIOS = /iphone|ipad|ipod/.test(userAgent);
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
     }
 
     function checkIfInstallable() {
+        // Check if already installed
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
             (window.navigator as any).standalone ||
             document.referrer.includes('android-app://');
-        const isDismissed = localStorage.getItem('pwa-banner-dismissed') === 'true';
-        return !isStandalone && isMobileDevice && !isDismissed;
+
+        // Check if banner was dismissed in the last 24 hours
+        const dismissedTime = localStorage.getItem('pwa-banner-dismissed-time');
+        const isDismissed = dismissedTime && (Date.now() - parseInt(dismissedTime)) < 24 * 60 * 60 * 1000;
+
+        // Show banner if mobile, not installed, not dismissed, and either iOS or has install prompt
+        return !isStandalone && !isDismissed && isMobileDevice && (isIOS || deferredPrompt !== null);
+    }
+
+    function updateInstallableStatus() {
+        isInstallable = checkIfInstallable();
+        showBanner = isInstallable;
     }
 
     onMount(() => {
         isMobileDevice = checkIfMobile();
 
         if (isMobileDevice) {
+            // Listen for beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e as BeforeInstallPromptEvent;
-                showBanner = checkIfInstallable();
+                updateInstallableStatus();
             });
 
+            // Listen for appinstalled event
             window.addEventListener('appinstalled', () => {
                 showBanner = false;
+                localStorage.setItem('pwa-installed', 'true');
             });
 
-            showBanner = checkIfInstallable();
+            // Check display mode changes
+            window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+                if (e.matches) {
+                    showBanner = false;
+                }
+            });
+
+            // Initial check
+            updateInstallableStatus();
         }
     });
 
     async function installApp() {
-        if (!deferredPrompt) {
-            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                alert('To install the app on iOS:\n1. Tap the Share button\n2. Scroll down and tap "Add to Home Screen"');
-            }
+        if (isIOS) {
+            // Show iOS-specific instructions
+            const instructions = $i18nStore.t('pwa.ios_instructions', 
+                'To install on iOS:\n1. Tap the Share button (rectangle with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right');
+            alert(instructions);
+            dismissBanner();
             return;
         }
 
-        try {
-            await deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                showBanner = false;
+        if (deferredPrompt) {
+            try {
+                await deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    showBanner = false;
+                    localStorage.setItem('pwa-installed', 'true');
+                }
+                
+                // Clear the prompt
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('Installation error:', error);
+                // Show fallback instructions
+                alert($i18nStore.t('pwa.install_error', 'Installation failed. Please try using your browser\'s "Add to Home Screen" option.'));
             }
-        } catch (error) {
-            console.error('Installation error:', error);
         }
     }
 
     function dismissBanner() {
         showBanner = false;
-        localStorage.setItem('pwa-banner-dismissed', 'true');
+        localStorage.setItem('pwa-banner-dismissed-time', Date.now().toString());
     }
 </script>
 
 {#if showBanner}
     <div 
         class="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-50"
-        transition:fade={{ duration: 200 }}
+        transition:fade={{ duration: 300 }}
     >
         <div class="bg-[#1A1A1A]/95 backdrop-blur-sm border border-[#E50914]/20 rounded-xl p-4 shadow-lg">
             <div class="flex items-start gap-4">
@@ -85,14 +122,24 @@
                     </div>
                 </div>
                 <div class="flex-1">
-                    <h3 class="text-lg font-semibold text-white mb-1">{$i18nStore.t('pwa.install_title', 'Install Watsch App')}</h3>
-                    <p class="text-sm text-white/70 mb-3">{$i18nStore.t('pwa.install_description', 'Add to your home screen for quick access')}</p>
+                    <h3 class="text-lg font-semibold text-white mb-1">
+                        {isIOS ? 
+                            $i18nStore.t('pwa.install_title_ios', 'Add to Home Screen') : 
+                            $i18nStore.t('pwa.install_title', 'Install Watsch App')}
+                    </h3>
+                    <p class="text-sm text-white/70 mb-3">
+                        {isIOS ? 
+                            $i18nStore.t('pwa.install_description_ios', 'Install Watsch for the best experience') : 
+                            $i18nStore.t('pwa.install_description', 'Add to your home screen for quick access')}
+                    </p>
                     <div class="flex flex-wrap gap-2">
                         <button
                             class="px-4 py-2 bg-[#E50914] hover:bg-[#B20710] text-white rounded-lg transition-colors text-sm font-medium"
                             on:click={installApp}
                         >
-                            {$i18nStore.t('pwa.install_now', 'Install Now')}
+                            {isIOS ? 
+                                $i18nStore.t('pwa.show_instructions', 'Show Instructions') : 
+                                $i18nStore.t('pwa.install_now', 'Install Now')}
                         </button>
                         <button
                             class="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white/90 rounded-lg transition-colors text-sm"
@@ -105,6 +152,7 @@
                 <button
                     class="flex-shrink-0 text-white/50 hover:text-white transition-colors"
                     on:click={dismissBanner}
+                    aria-label={$i18nStore.t('pwa.close', 'Close')}
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />

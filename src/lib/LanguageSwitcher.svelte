@@ -3,7 +3,7 @@
     import { i18nStore, changeLanguage, supportedLanguages, detectLanguage } from './i18n';
     import { fade } from 'svelte/transition';
 
-    type Language = 'en' | 'es' | 'fr' | 'de';
+    type Language = 'en' | 'es' | 'fr' | 'de' | 'tr';
     let mounted = false;
     let isOpen = false;
 
@@ -11,14 +11,16 @@
         'en': 'English',
         'es': 'Español',
         'fr': 'Français',
-        'de': 'Deutsch'
+        'de': 'Deutsch',
+        'tr': 'Türkçe'
     };
 
     const languageFlags: Record<Language, string> = {
         'en': '🇬🇧',
         'es': '🇪🇸',
         'fr': '🇫🇷',
-        'de': '🇩🇪'
+        'de': '🇩🇪',
+        'tr': '🇹🇷'
     };
 
     // Subscribe to language changes

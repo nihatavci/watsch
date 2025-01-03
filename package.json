@@ -13,6 +13,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.5.17",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.45.0",
@@ -23,7 +24,6 @@
 		"postcss": "^8.4.49",
 		"prettier": "^2.8.0",
 		"prettier-plugin-svelte": "^2.10.1",
-		"svelte": "^4.0.0",
 		"svelte-check": "^3.4.3",
 		"tailwindcss": "^3.4.17",
 		"tslib": "^2.4.1",
@@ -32,6 +32,9 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@capacitor/android": "^6.2.0",
+		"@capacitor/cli": "^6.2.0",
+		"@capacitor/core": "^6.2.0",
 		"@radix-ui/react-hover-card": "^1.1.4",
 		"@radix-ui/react-progress": "^1.1.1",
 		"@radix-ui/react-slot": "^1.1.1",
@@ -46,12 +49,12 @@
 		"lucide-react": "^0.469.0",
 		"punycode": "^2.3.1",
 		"shadcn-ui": "^0.9.4",
+		"svelte": "^4.2.19",
 		"svelte-i18next": "^2.2.2",
 		"svelte-scrollto": "^0.2.0",
 		"tailwind-merge": "^2.6.0",
 		"three": "^0.172.0",
 		"tsparticles": "^3.7.1",
-		"vanta": "^0.5.24",
-		"vite-plugin-pwa": "^0.20.0"
+		"vanta": "^0.5.24"
 	}
 }
