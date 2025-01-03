@@ -2,70 +2,93 @@
   "common": {
     "app_name": "Watsch",
     "welcome": "Watsch'a Hoş Geldiniz",
-    "get_recommendations": "Öneriler Al",
+    "get_recommendations": "Size Özel Öneriler",
     "loading": "Yükleniyor...",
-    "error": "Bir şeyler yanlış gitti"
+    "error": "Bir hata oluştu",
+    "retry": "Tekrar Dene",
+    "close": "Kapat"
   },
   "home": {
-    "title": "Mükemmel Filminizi Bulun",
-    "subtitle": "Size özel film ve dizileri keşfedin",
-    "cta": "Keşfetmeye Başla"
+    "title": "İzleyeceğiniz En İyi İçeriği Bulun",
+    "subtitle": "Size özel seçilmiş film ve dizileri keşfedin",
+    "cta": "Hemen Keşfedin"
   },
   "recommendations": {
-    "no_results": "Öneri bulunamadı",
-    "try_again": "Tercihlerinizi değiştirmeyi deneyin",
+    "no_results": "Hiç öneri bulunamadı",
+    "try_again": "Farklı tercihler deneyebilirsiniz",
     "error": {
-      "stream": "Yanıt alınırken hata oluştu",
-      "partial": "Önerileri alırken sorun oluştu, mevcut sonuçlarla devam ediyoruz",
-      "details": "Öneri detayları yüklenirken hata oluştu"
+      "stream": "Yanıt alınırken bir hata oluştu",
+      "partial": "Bazı öneriler yüklenirken sorun oluştu, mevcut sonuçları görüntülüyoruz",
+      "details": "İçerik detayları yüklenirken hata oluştu"
     },
-    "minutes": "Dk",
-    "original_language": "Orijinal",
+    "minutes": "dakika",
+    "original_language": "Orijinal Dil",
     "read_more": "Devamını Oku",
-    "cast": "Oyuncular",
-    "add_to_watchlist": "İzleme Listesine Ekle",
-    "remove_from_watchlist": "İzleme Listesinden Çıkar",
-    "added_to_watchlist_short": "İzleme Listesine Eklendi",
+    "cast": "Oyuncu Kadrosu",
+    "add_to_watchlist": "İzleme Listeme Ekle",
+    "remove_from_watchlist": "İzleme Listemden Çıkar",
+    "added_to_watchlist_short": "Listeye Eklendi",
     "added_to_watchlist": "\"{title}\" izleme listenize eklendi",
     "removed_from_watchlist": "\"{title}\" izleme listenizden çıkarıldı",
-    "no_details": "Bu öneri için detay bulunmuyor"
+    "no_details": "Bu içerik için detaylı bilgi bulunmuyor",
+    "rating": "Puan",
+    "release_date": "Yayın Tarihi",
+    "genres": "Türler",
+    "similar": "Benzer İçerikler",
+    "streaming": "İzleme Platformları"
   },
   "navigation": {
     "home": "Ana Sayfa",
-    "library": "Kütüphane",
-    "profile": "Profil",
-    "settings": "Ayarlar"
+    "library": "Kütüphanem",
+    "profile": "Profilim",
+    "settings": "Ayarlar",
+    "back": "Geri"
   },
   "library": {
     "saved_items": "Kaydedilenler",
-    "empty_message": "Kaydettiğiniz filmler burada görünecek",
-    "remove_item": "Kütüphaneden kaldır"
+    "empty_message": "İzleme listenize henüz bir şey eklemediniz",
+    "remove_item": "Listeden Çıkar",
+    "watch_later": "Daha Sonra İzle",
+    "favorites": "Favorilerim"
   },
   "form": {
     "steps": {
-      "1": "Tür",
-      "2": "Platformlar",
+      "1": "İçerik Türü",
+      "2": "Platform",
       "3": "Kategoriler",
       "4": "Tercihler"
     },
     "questions": {
-      "type": "Ne izlemek istersiniz?",
-      "platforms": "Nerede izliyorsunuz?",
-      "genres": "Hangi kategoriler ilginizi çekiyor?",
-      "preferences": "Özel tercihleriniz var mı?"
+      "type": "Ne tür bir içerik arıyorsunuz?",
+      "platforms": "Hangi platformlarda izliyorsunuz?",
+      "genres": "Hangi türleri tercih edersiniz?",
+      "preferences": "Özel istekleriniz var mı?"
     },
     "cinema_types": {
       "movie": "Film",
       "tv_show": "Dizi",
-      "no_preference": "Fark Etmez"
+      "no_preference": "Farketmez"
     },
     "labels": {
-      "popular_genres": "Popüler Kategoriler",
-      "specialized_genres": "Diğer Kategoriler"
+      "popular_genres": "Popüler Türler",
+      "specialized_genres": "Diğer Türler",
+      "duration": "Süre",
+      "year": "Yıl",
+      "rating": "Puan"
     },
     "placeholders": {
       "search": "Ara...",
-      "preferences": "Tercihlerinizi yazın..."
-    }
+      "preferences": "Örnek: 90'lar bilim kurgu filmleri, Oscar ödüllü dramalar..."
+    },
+    "submit": "Önerileri Göster",
+    "back": "Geri",
+    "next": "İleri"
+  },
+  "settings": {
+    "language": "Dil Seçimi",
+    "theme": "Tema",
+    "notifications": "Bildirimler",
+    "privacy": "Gizlilik",
+    "about": "Hakkında"
   }
 } 
