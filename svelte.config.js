@@ -5,7 +5,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	kit: {
 		adapter: adapter({
-			// Remove the runtime specification as Vercel will auto-detect it
+			runtime: 'nodejs20.x'
 		})
 	},
 	preprocess: vitePreprocess()
