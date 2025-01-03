@@ -1,12 +1,12 @@
-// See https://kit.svelte.dev/docs/types#app
-// for information about these interfaces
-declare global {
-	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface Platform {}
-	}
+/// <reference types="svelte" />
+declare module "*.svelte" {
+	import type { ComponentType } from "svelte";
+	const component: ComponentType;
+	export default component;
 }
 
-export {};
+declare namespace svelteHTML {
+	interface HTMLAttributes<T> {
+		[key: string]: any;
+	}
+}

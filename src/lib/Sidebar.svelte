@@ -18,6 +18,10 @@
 	<div
 		class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
 		on:click={() => (isOpen = false)}
+		on:keydown={(e) => e.key === 'Escape' && (isOpen = false)}
+		role="button"
+		tabindex="0"
+		aria-label={$i18nStore.t('common.close_sidebar', 'Close sidebar')}
 		transition:fade={{ duration: 200 }}
 	/>
 

@@ -6,9 +6,10 @@ import enTranslations from './locales/en.json';
 import esTranslations from './locales/es.json';
 import frTranslations from './locales/fr.json';
 import deTranslations from './locales/de.json';
+import trTranslations from './locales/tr.json';
 
 // Supported languages
-export const supportedLanguages = ['en', 'es', 'fr', 'de'];
+export const supportedLanguages = ['en', 'es', 'fr', 'de', 'tr'];
 
 // Default language
 export const defaultLanguage = 'en';
@@ -46,7 +47,8 @@ i18n
       en: { translation: enTranslations },
       es: { translation: esTranslations },
       fr: { translation: frTranslations },
-      de: { translation: deTranslations }
+      de: { translation: deTranslations },
+      tr: { translation: trTranslations }
     },
     lng: initialLanguage,
     fallbackLng: defaultLanguage,

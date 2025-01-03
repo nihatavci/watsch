@@ -1,16 +1,16 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
   let mouseX = 0;
   let mouseY = 0;
   let isMobile = false;
 
-  const handleMouseMove = (event) => {
+  const handleMouseMove = (event: MouseEvent) => {
     mouseX = event.clientX;
     mouseY = event.clientY;
   };
 
-  const handleTouchMove = (event) => {
+  const handleTouchMove = (event: TouchEvent) => {
     isMobile = true;
     mouseX = event.touches[0].clientX;
     mouseY = event.touches[0].clientY;
