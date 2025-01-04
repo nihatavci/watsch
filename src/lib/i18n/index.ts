@@ -26,29 +26,36 @@ export async function detectLanguage(): Promise<string> {
         return defaultLanguage;
     }
 
-    // Check localStorage first
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
-        return storedLanguage;
-    }
-
     try {
-        // Get geolocation-based language
+        // First try geolocation
         const response = await fetch('/api/geolocation');
-        const { language } = await response.json();
+        const data = await response.json();
         
-        if (supportedLanguages.includes(language)) {
-            return language;
+        if (data.language && supportedLanguages.includes(data.language)) {
+            console.log('Language detected from geolocation:', data.language);
+            return data.language;
         }
-    } catch (error) {
-        console.error('Error detecting location:', error);
-    }
 
-    // Fallback to browser language
-    const browserLanguage = navigator.language.split('-')[0];
-    return supportedLanguages.includes(browserLanguage) 
-        ? browserLanguage 
-        : defaultLanguage;
+        // If geolocation fails, check localStorage
+        const storedLanguage = localStorage.getItem('language');
+        if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
+            console.log('Language detected from localStorage:', storedLanguage);
+            return storedLanguage;
+        }
+
+        // Finally, try browser language
+        const browserLanguage = navigator.language.split('-')[0];
+        if (supportedLanguages.includes(browserLanguage)) {
+            console.log('Language detected from browser:', browserLanguage);
+            return browserLanguage;
+        }
+
+        console.log('Falling back to default language:', defaultLanguage);
+        return defaultLanguage;
+    } catch (error) {
+        console.error('Error in language detection:', error);
+        return defaultLanguage;
+    }
 }
 
 // Initialize with default language first
