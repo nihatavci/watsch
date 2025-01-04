@@ -51,49 +51,47 @@ export async function detectLanguage(): Promise<string> {
         : defaultLanguage;
 }
 
-// Make initialization async
-export async function initializeI18n() {
-    const initialLanguage = isBrowser ? await detectLanguage() : defaultLanguage;
-    
-    await i18n
-        .use(LanguageDetector)
-        .init({
-            resources: {
-                en: { translation: enTranslations },
-                es: { translation: esTranslations },
-                fr: { translation: frTranslations },
-                de: { translation: deTranslations },
-                tr: { translation: trTranslations }
-            },
-            lng: initialLanguage,
-            fallbackLng: defaultLanguage,
-            debug: import.meta.env.DEV,
-            interpolation: {
-                escapeValue: false
-            },
-            detection: {
-                order: ['localStorage', 'navigator'],
-                caches: isBrowser ? ['localStorage'] : []
-            }
-        });
+// Initialize with default language first
+i18n.use(LanguageDetector).init({
+    resources: {
+        en: { translation: enTranslations },
+        es: { translation: esTranslations },
+        fr: { translation: frTranslations },
+        de: { translation: deTranslations },
+        tr: { translation: trTranslations }
+    },
+    lng: defaultLanguage,
+    fallbackLng: defaultLanguage,
+    debug: import.meta.env.DEV,
+    interpolation: {
+        escapeValue: false
+    },
+    detection: {
+        order: ['localStorage', 'navigator'],
+        caches: isBrowser ? ['localStorage'] : []
+    }
+});
 
-    return i18n;
+// Create store immediately
+export const i18nStore = createI18nStore(i18n);
+
+// Initialize language asynchronously
+if (isBrowser) {
+    detectLanguage().then(language => {
+        if (language !== i18n.language) {
+            changeLanguage(language);
+        }
+    });
 }
-
-// Initialize i18n and create store
-const i18nInstance = await initializeI18n();
-export const i18nStore = createI18nStore(i18nInstance);
 
 // Function to change language
 export function changeLanguage(lng: string) {
-  if (!isBrowser) {
-    return;
-  }
-
-  if (supportedLanguages.includes(lng)) {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('language', lng);
-  }
+    if (!isBrowser) return;
+    
+    if (supportedLanguages.includes(lng)) {
+        i18n.changeLanguage(lng);
+        localStorage.setItem('language', lng);
+    }
 }
 
 export default i18n; 
