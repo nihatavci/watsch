@@ -32,10 +32,10 @@
         isOpen = false;
     }
 
-    onMount(() => {
+    onMount(async () => {
         mounted = true;
         // Set initial language from detection if not already set
-        const detectedLang = detectLanguage();
+        const detectedLang = await detectLanguage();
         if (isValidLanguage(detectedLang) && !currentLanguage) {
             changeLanguage(detectedLang);
         }

@@ -21,49 +21,68 @@ const isBrowser = typeof window !== 'undefined';
 const i18n = i18next.createInstance();
 
 // Function to detect user's language
-export function detectLanguage(): string {
-  if (!isBrowser) {
-    return defaultLanguage;
-  }
+export async function detectLanguage(): Promise<string> {
+    if (!isBrowser) {
+        return defaultLanguage;
+    }
 
-  const storedLanguage = localStorage.getItem('language');
-  if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
-    return storedLanguage;
-  }
+    // Check localStorage first
+    const storedLanguage = localStorage.getItem('language');
+    if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
+        return storedLanguage;
+    }
 
-  const browserLanguage = navigator.language.split('-')[0];
-  return supportedLanguages.includes(browserLanguage) 
-    ? browserLanguage 
-    : defaultLanguage;
+    try {
+        // Get geolocation-based language
+        const response = await fetch('/api/geolocation');
+        const { language } = await response.json();
+        
+        if (supportedLanguages.includes(language)) {
+            return language;
+        }
+    } catch (error) {
+        console.error('Error detecting location:', error);
+    }
+
+    // Fallback to browser language
+    const browserLanguage = navigator.language.split('-')[0];
+    return supportedLanguages.includes(browserLanguage) 
+        ? browserLanguage 
+        : defaultLanguage;
 }
 
-// Initialize with detected language
-const initialLanguage = isBrowser ? detectLanguage() : defaultLanguage;
+// Make initialization async
+export async function initializeI18n() {
+    const initialLanguage = isBrowser ? await detectLanguage() : defaultLanguage;
+    
+    await i18n
+        .use(LanguageDetector)
+        .init({
+            resources: {
+                en: { translation: enTranslations },
+                es: { translation: esTranslations },
+                fr: { translation: frTranslations },
+                de: { translation: deTranslations },
+                tr: { translation: trTranslations }
+            },
+            lng: initialLanguage,
+            fallbackLng: defaultLanguage,
+            debug: import.meta.env.DEV,
+            interpolation: {
+                escapeValue: false
+            },
+            detection: {
+                order: ['localStorage', 'navigator'],
+                caches: isBrowser ? ['localStorage'] : []
+            }
+        });
 
-i18n
-  .use(LanguageDetector)
-  .init({
-    resources: {
-      en: { translation: enTranslations },
-      es: { translation: esTranslations },
-      fr: { translation: frTranslations },
-      de: { translation: deTranslations },
-      tr: { translation: trTranslations }
-    },
-    lng: initialLanguage,
-    fallbackLng: defaultLanguage,
-    debug: import.meta.env.DEV,
-    interpolation: {
-      escapeValue: false
-    },
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: isBrowser ? ['localStorage'] : []
-    }
-  });
+    return i18n;
+}
 
-// Create Svelte store
-export const i18nStore = createI18nStore(i18n);
+// Initialize i18n and create store
+const i18nInstance = await initializeI18n();
+export const i18nStore = createI18nStore(i18nInstance);
 
 // Function to change language
 export function changeLanguage(lng: string) {
