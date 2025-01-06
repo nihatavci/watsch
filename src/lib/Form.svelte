@@ -293,12 +293,14 @@
 									<div class="flex justify-end">
 										<button
 											on:click={handleSubmit}
-											class="px-6 py-3 bg-[#E50914] text-white rounded-lg font-medium hover:bg-[#B20710] transition-colors duration-300 flex items-center space-x-2"
-												disabled={loading}
+											class="px-6 py-3 bg-[#E50914] text-white rounded-lg font-medium hover:bg-[#B20710] transition-all duration-300 flex items-center justify-center space-x-2 min-w-[200px]"
+											disabled={loading}
 										>
 											{#if loading}
-												<LoadingIndicator />
-												<span>{$i18nStore.t('common.loading')}</span>
+												<div class="flex items-center space-x-3">
+													<LoadingIndicator />
+													<span>{$i18nStore.t('common.loading')}</span>
+												</div>
 											{:else}
 												<span>{$i18nStore.t('form.buttons.get_recommendations')}</span>
 											{/if}
@@ -399,5 +401,20 @@
 		background: rgba(255, 255, 255, 0.05);
 		border-color: rgba(229, 9, 20, 0.3);
 		box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.1);
+	}
+
+	button[disabled] {
+		background: #E50914 !important;
+		opacity: 0.8;
+	}
+
+	.loading-indicator {
+		animation: pulse 1.5s infinite;
+	}
+
+	@keyframes pulse {
+		0% { opacity: 1; }
+		50% { opacity: 0.5; }
+		100% { opacity: 1; }
 	}
 </style>
