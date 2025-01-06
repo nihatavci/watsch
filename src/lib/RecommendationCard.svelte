@@ -69,15 +69,20 @@
 		}
 	}
 
-	async function getRecommendationInfo(): Promise<MovieDetails> {
+	async function getRecommendationInfo(): Promise<MovieDetails | null> {
 		try {
 			const currentLang = $i18nStore.language;
+
+			// Clean up the title by removing the genre in parentheses
+			const cleanTitle = recommendation.title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+
+			console.log('Searching TMDB for:', cleanTitle); // Debug log
 
 			// First search for the movie/show
 			const searchResponse = await fetch(`/api/tmdb/search`, {
 				method: 'POST',
 				body: JSON.stringify({ 
-					title: recommendation.title,
+					title: cleanTitle, // Use the cleaned title
 					type: recommendation.type || 'movie',
 					language: currentLang
 				}),
@@ -88,9 +93,17 @@
 
 			const searchData = await searchResponse.json();
 
+			// Debug log
+			if (!searchData.results || searchData.results.length === 0) {
+				console.log('No TMDB results for:', cleanTitle);
+			} else {
+				console.log('TMDB found:', searchData.results.length, 'results for', cleanTitle);
+			}
+
+			// Handle no results without throwing error
 			if (!searchResponse.ok || !searchData.results || searchData.results.length === 0) {
-				loadingFailed = true;
-				throw new Error('No results found');
+				console.log('No results found for:', recommendation.title);
+				return null;  // Return null instead of throwing error
 			}
 
 			// Get the first result's details
@@ -187,8 +200,7 @@
 			return details;
 		} catch (error) {
 			console.error('Error fetching movie details:', error);
-			loadingFailed = true;
-			throw error;
+			return null;  // Return null on error
 		}
 	}
 
