@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import LoadingCard from './LoadingCard.svelte';
 	import { library } from '../stores/library';
 	import type { SavedItem, Recommendation } from './types';
@@ -10,6 +10,7 @@
 	import Badge from './ui/badge.svelte';
 	import { i18nStore } from './i18n';
 	import GenreTag from './GenreTag.svelte';
+	import { Share2, Download, Copy, Instagram, ExternalLink } from 'lucide-svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -20,7 +21,7 @@
 		Title: string;
 		Year: string;
 		Poster: string | null;
-			Plot: string;
+		Plot: string;
 		Rated: string;
 		Actors: string;
 		Genre: string;
@@ -29,12 +30,18 @@
 		ReleaseDate: string;
 		Insights: string[];
 		Language: string | null;
+		tmdbId: number | null;
 		LocalizedData: {
 			Title: string;
 			Plot: string;
 			Actors: string;
 			Genre: string;
 		};
+		streamingLinks?: Array<{
+			platform: string;
+			url: string;
+			type: string;
+		}>;
 	}
 
 	const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
@@ -42,6 +49,9 @@
 	let showRemoveButton = false;
 	let showFullDescription = false;
 	let loadingFailed = false;
+	let showShareMenu = false;
+	let isCopying = false;
+	let isDownloading = false;
 
 	async function translateWithChatGPT(text: string, targetLanguage: string): Promise<string> {
 		try {
@@ -175,6 +185,19 @@
 
 			const insights = await insightsResponse.json();
 
+			const streamingResponse = await fetch('/api/streaming-availability', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					tmdbId: firstResult.id,
+					type: recommendation.type || 'movie'
+				})
+			});
+
+			const streamingData = await streamingResponse.json();
+
 			// Construct the movie details with both original and localized data
 			const details: MovieDetails = {
 				Title: originalData.title || originalData.name,
@@ -189,12 +212,14 @@
 				ReleaseDate: originalData.release_date || originalData.first_air_date,
 				Insights: insights.insights || [],
 				Language: originalData.original_language?.toUpperCase() || null,
+				tmdbId: firstResult.id,
 				LocalizedData: {
 					Title: localData.title || localData.name,
 					Plot: localData.overview || originalData.overview,
 					Actors: localData.credits?.cast?.slice(0, 4).map((actor: { name: string }) => actor.name).join(', ') || '',
 					Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || ''
-				}
+				},
+				streamingLinks: streamingData.streamingLinks || []
 			};
 
 			return details;
@@ -224,7 +249,8 @@
 			poster: data.Poster,
 			platforms: selectedPlatforms,
 			rating: data.Rating || null,
-			genre: data.Genre || ''
+			genre: data.Genre || '',
+			tmdbId: data.tmdbId?.toString() || ''
 		};
 		
 		library.addToSaved(savedItem);
@@ -241,6 +267,70 @@
 		showNotification($i18nStore.t('recommendations.removed_from_watchlist', { title: data.Title }));
 		isAdded = false;
 		showRemoveButton = false;
+	}
+
+	function toggleShareMenu() {
+		showShareMenu = !showShareMenu;
+	}
+
+	async function downloadMovieCard(data: MovieDetails) {
+		try {
+			isDownloading = true;
+			showNotification($i18nStore.t('share.downloading'));
+			const response = await fetch('/api/generate-movie-card', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					title: data.LocalizedData.Title,
+					year: data.Year,
+					poster: data.Poster,
+					rating: data.Rating,
+					genre: data.Genre,
+					runtime: data.Runtime,
+					streamingLinks: data.streamingLinks
+				})
+			});
+			
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${data.Title.replace(/\s+/g, '-')}-card.png`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			window.URL.revokeObjectURL(url);
+			showNotification($i18nStore.t('share.download_complete'));
+		} catch (error) {
+			console.error('Error generating movie card:', error);
+			showNotification($i18nStore.t('share.download_error'));
+		} finally {
+			isDownloading = false;
+		}
+	}
+
+	function shareOnWhatsApp(data: MovieDetails) {
+		const text = `${data.LocalizedData.Title} (${data.Year})\n${data.LocalizedData.Plot}\n${window.location.href}`;
+		window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+	}
+
+	function shareOnInstagram() {
+		window.open('https://instagram.com', '_blank');
+	}
+
+	async function copyLink() {
+		try {
+			isCopying = true;
+			await navigator.clipboard.writeText(window.location.href);
+			showNotification($i18nStore.t('common.link_copied'));
+			await new Promise(resolve => setTimeout(resolve, 1000));
+		} catch (error) {
+			console.error('Failed to copy:', error);
+		} finally {
+			isCopying = false;
+		}
 	}
 </script>
 
@@ -262,9 +352,9 @@
 						</div>
 
 						<!-- Content -->
-						<div class="flex-1 p-4 flex flex-col min-h-[200px]">
+						<div class="flex-1 p-6 flex flex-col min-h-[250px]">
 							<!-- Header -->
-							<div class="flex items-start justify-between mb-2">
+							<div class="flex items-start justify-between mb-4">
 								<div>
 									<h2 class="text-xl font-bold text-white mb-1">
 										{data.LocalizedData.Title}
@@ -288,7 +378,7 @@
 							</div>
 
 							<!-- Plot -->
-							<div class="mb-3">
+							<div class="mb-4">
 								<p class="text-sm text-white/70 {showFullDescription ? '' : 'line-clamp-2'}">
 									{data.LocalizedData.Plot}
 								</p>
@@ -304,13 +394,13 @@
 
 							<!-- Cast -->
 							{#if data.LocalizedData.Actors}
-								<div class="text-xs text-white/50 mb-2">
+								<div class="text-xs text-white/50 mb-3">
 									{$i18nStore.t('recommendations.cast')}: {data.LocalizedData.Actors}
 								</div>
 							{/if}
 
 							<!-- Tags -->
-							<div class="flex flex-wrap gap-1.5 mb-3">
+							<div class="flex flex-wrap gap-2 mb-4">
 								{#each selectedPlatforms as platform}
 									<Badge variant="secondary">
 										{platform}
@@ -325,7 +415,7 @@
 
 							<!-- AI Insights -->
 							{#if data.Insights?.length > 0}
-								<div class="flex flex-wrap gap-1.5 mb-3">
+								<div class="flex flex-wrap gap-2 mb-4">
 									{#each data.Insights as insight}
 										<div class="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/20 border border-red-900/30 rounded-full text-xs text-red-400">
 											<svg class="w-3.5 h-3.5 text-[#E50914]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,13 +427,35 @@
 								</div>
 							{/if}
 
+							<!-- Streaming Links -->
+							{#if data.streamingLinks && data.streamingLinks.length > 0}
+								<div class="mb-4">
+									<h3 class="text-sm font-medium text-white/70 mb-3">
+										{$i18nStore.t('recommendations.streaming')}:
+									</h3>
+									<div class="flex flex-wrap gap-2">
+										{#each data.streamingLinks as link}
+											<a
+												href={link.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/50 hover:bg-neutral-700/50 border border-white/10 rounded-full text-xs text-white/90 transition-colors duration-200"
+											>
+												<span>{link.platform}</span>
+												<ExternalLink class="w-3 h-3" />
+											</a>
+										{/each}
+									</div>
+								</div>
+							{/if}
+
 							<!-- Action Button -->
-							<div class="mt-auto">
+							<div class="mt-auto flex items-center gap-2">
 								<Button
 									variant={isAdded ? "ghost" : "default"}
 									class={isAdded 
-										? "w-full h-12 bg-neutral-800/50 hover:bg-neutral-700/50 text-white rounded-xl" 
-										: "w-full h-12 bg-[#E50914] hover:bg-[#B20710] text-white rounded-xl"}
+										? "flex-1 h-12 bg-neutral-800/50 hover:bg-neutral-700/50 text-white rounded-xl" 
+										: "flex-1 h-12 bg-[#E50914] hover:bg-[#B20710] text-white rounded-xl"}
 									on:click={() => isAdded ? (showRemoveButton ? handleRemove(data) : null) : handleSave(data)}
 								>
 									{#if isAdded}
@@ -354,6 +466,66 @@
 										{$i18nStore.t('recommendations.add_to_watchlist')}
 									{/if}
 								</Button>
+
+								<!-- Share button -->
+								<div class="relative flex items-center">
+									<Button
+										variant="ghost"
+										class="h-12 w-12 bg-neutral-800/50 hover:bg-neutral-700/50 text-white rounded-xl transition-colors duration-200 flex items-center justify-center"
+										on:click={toggleShareMenu}
+									>
+										<Share2 class="w-5 h-5" />
+									</Button>
+
+									<!-- Share menu -->
+									{#if showShareMenu}
+										<div
+											class="absolute bottom-full right-0 mb-2 w-48 bg-neutral-800/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 overflow-hidden"
+											transition:slide={{ duration: 150 }}
+											on:mouseleave={() => showShareMenu = false}
+										>
+											<button
+												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-700/50 text-white/90 text-sm transition-colors duration-200"
+												on:click={() => downloadMovieCard(data)}
+												disabled={isDownloading}
+											>
+												{#if isDownloading}
+													<div class="w-4 h-4 border-2 border-t-transparent border-white/90 rounded-full animate-spin" />
+												{:else}
+													<Download class="w-4 h-4" />
+												{/if}
+												{isDownloading ? $i18nStore.t('share.downloading') : $i18nStore.t('share.download_card')}
+											</button>
+											
+											<button
+												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-700/50 text-white/90 text-sm transition-colors duration-200"
+												on:click={() => shareOnWhatsApp(data)}
+											>
+												<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+													<path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.85 15.85L14.79 16.91C13.31 18.39 10.69 18.39 9.21 16.91L7.15 14.85C5.67 13.37 5.67 10.75 7.15 9.27L8.21 8.21C8.59 7.83 9.16 7.83 9.54 8.21L11.25 9.92C11.63 10.3 11.63 10.87 11.25 11.25L10.54 11.96C10.16 12.34 10.16 12.91 10.54 13.29L11.71 14.46C12.09 14.84 12.66 14.84 13.04 14.46L13.75 13.75C14.13 13.37 14.7 13.37 15.08 13.75L16.79 15.46C17.17 15.84 17.17 16.41 16.79 16.79L15.85 15.85Z"/>
+												</svg>
+												{$i18nStore.t('share.share_whatsapp')}
+											</button>
+											
+											<button
+												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-700/50 text-white/90 text-sm transition-colors duration-200"
+												on:click={shareOnInstagram}
+											>
+												<Instagram class="w-4 h-4" />
+												{$i18nStore.t('share.share_instagram')}
+											</button>
+											
+											<button
+												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-700/50 text-white/90 text-sm transition-colors duration-200"
+												on:click={copyLink}
+												disabled={isCopying}
+											>
+												<Copy class="w-4 h-4" />
+												{isCopying ? $i18nStore.t('share.copied') : $i18nStore.t('share.copy_link')}
+											</button>
+										</div>
+									{/if}
+								</div>
 							</div>
 						</div>
 					</div>
@@ -372,6 +544,10 @@
 </div>
 
 <style>
+	button {
+		-webkit-tap-highlight-color: transparent;
+	}
+
 	.backdrop-blur-gradient {
 		background: linear-gradient(
 			to bottom,

@@ -1,83 +1,74 @@
 <script lang="ts">
-	import { fade, fly } from 'svelte/transition';
+	import { sidebar } from '../stores/sidebar';
+	import { X, Film } from 'lucide-svelte';
+	import { fly } from 'svelte/transition';
 	import { library } from '../stores/library';
-	import { i18nStore } from './i18n';
 
-	export let isOpen = false;
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			isOpen = false;
-		}
-	}
+	$: isOpen = $sidebar.isOpen;
+	$: movies = $library.movies || [];
 </script>
-
-<svelte:window on:keydown={handleKeydown}/>
 
 {#if isOpen}
 	<div
-		class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-		on:click={() => (isOpen = false)}
-		on:keydown={(e) => e.key === 'Escape' && (isOpen = false)}
-		role="button"
-		tabindex="0"
-		aria-label={$i18nStore.t('common.close_sidebar', 'Close sidebar')}
-		transition:fade={{ duration: 200 }}
+		class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+		on:click={() => sidebar.set({ isOpen: false, view: null })}
+		transition:fly={{ duration: 200, opacity: 0 }}
 	/>
-
 	<div
-		class="fixed right-0 top-0 h-full w-80 bg-black/80 backdrop-blur-sm border-l border-white/10 z-50 p-6 overflow-y-auto"
-		transition:fly={{ x: "100%", duration: 300 }}
+		class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[#0f0f0f] border-l border-white/10 z-50 overflow-hidden"
+		transition:fly={{ x: 400, duration: 300 }}
 	>
-		<div class="flex justify-between items-center mb-8">
-			<h2 class="text-xl font-bold text-white">{$i18nStore.t('navigation.library')}</h2>
-			<button
-				on:click={() => (isOpen = false)}
-				class="text-white/50 hover:text-white/80 transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-				</svg>
-			</button>
-		</div>
+		<div class="flex flex-col h-full">
+			<!-- Header -->
+			<div class="flex items-center justify-between p-4 border-b border-white/10">
+				<div class="flex items-center gap-3">
+					<Film size={20} class="text-[#E50914]" />
+					<h2 class="text-lg font-medium text-white">Your Movie List</h2>
+				</div>
+				<button
+					class="p-2 text-white/50 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+					on:click={() => sidebar.set({ isOpen: false, view: null })}
+				>
+					<X size={20} />
+				</button>
+			</div>
 
-		<div class="space-y-6">
-			{#if $library.savedItems.length > 0}
-				<div class="space-y-4">
-					<h3 class="text-sm font-medium text-white/70">{$i18nStore.t('library.saved_items')}</h3>
-					{#each $library.savedItems as item}
-						<div class="flex items-start space-x-4 bg-white/5 rounded-lg p-4 group">
-							<div class="w-16 h-24 flex-none bg-cover bg-center rounded" style="background-image: url({item.poster})"></div>
-							<div class="flex-1 min-w-0">
-								<p class="text-sm font-medium text-white truncate">{item.title}</p>
-								<p class="text-xs text-white/50">{item.year}</p>
-								{#if item.platforms.length > 0}
-									<div class="mt-2 flex flex-wrap gap-1">
-										{#each item.platforms as platform}
-											<span class="px-2 py-0.5 rounded text-[10px] bg-white/10 text-white/70">
-												{platform}
-											</span>
-										{/each}
-									</div>
-								{/if}
-							</div>
+			<!-- Content -->
+			<div class="flex-1 overflow-y-auto p-4">
+				{#if movies.length > 0}
+					<div class="grid grid-cols-2 gap-4">
+						{#each movies as movie}
 							<button
-								class="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
-								on:click={() => library.removeFromSaved(item.title)}
-								aria-label={$i18nStore.t('library.remove_item')}
+								class="relative group rounded-lg overflow-hidden bg-white/5 hover:bg-white/10 transition-all duration-300 hover:scale-[1.02]"
+								style="aspect-ratio: 2/3;"
+								on:click={() => {
+									library.selectMovie(movie);
+								}}
 							>
-								<svg class="w-4 h-4 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-								</svg>
+								{#if movie.poster_path}
+									<img
+										src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+										alt={movie.title}
+										class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity"
+									/>
+								{/if}
+								<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+									<div class="absolute bottom-0 left-0 right-0 p-3">
+										<h3 class="text-sm font-medium text-white group-hover:text-white/90">{movie.title}</h3>
+										{#if movie.release_date}
+											<p class="text-xs text-white/50 mt-1">{new Date(movie.release_date).getFullYear()}</p>
+										{/if}
+									</div>
+								</div>
 							</button>
-						</div>
-					{/each}
-				</div>
-			{:else}
-				<div class="text-white/50 text-center py-8">
-					{$i18nStore.t('library.empty_message')}
-				</div>
-			{/if}
+						{/each}
+					</div>
+				{:else}
+					<div class="text-center py-12">
+						<p class="text-white/50">No movies saved yet</p>
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 {/if} 

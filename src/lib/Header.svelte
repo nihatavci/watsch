@@ -1,77 +1,90 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
-	import { i18nStore } from './i18n';
-	import LanguageSwitcher from './LanguageSwitcher.svelte';
-	import { library } from '../stores/library';
+	import { page } from '$app/stores';
+	import { Film, Users, Trophy, Menu } from 'lucide-svelte';
+	import { sidebar } from '../stores/sidebar';
 
-	const dispatch = createEventDispatcher();
-	let showPulse = false;
-	let previousLibraryCount = $library.savedItems.length;
+	export let roomPhase: 'join' | 'nominate' | 'vote' | 'results' | null = null;
+	export let roomCode: string | null = null;
+	export let participants: Array<{ id: string; nickname: string }> = [];
 
-	function handleLogoClick() {
-		dispatch('resetApp');
-	}
-
-	function handleToggleSidebar() {
-		dispatch('toggleSidebar');
-	}
-
-	// Watch for library changes
-	$: {
-		if ($library.savedItems.length > previousLibraryCount) {
-			showPulse = true;
-			setTimeout(() => {
-				showPulse = false;
-			}, 2000);
-		}
-		previousLibraryCount = $library.savedItems.length;
+	function toggleSidebar() {
+		sidebar.set({ isOpen: true, view: 'library' });
 	}
 </script>
 
-<header class="fixed top-0 left-0 right-0 bg-black/40 backdrop-blur-sm">
-	<nav class="container mx-auto px-4 py-4 flex justify-between items-center">
-		<a href="/" on:click={() => location.reload()} class="flex items-center transition-opacity">
-			<span class="text-2xl font-bold text-white hover:text-[#E50914]">
-				Wat<span class="text-[#E50914]">sch</span>
-			</span>
-		</a>
-
-		<div class="flex items-center gap-3">
-			<LanguageSwitcher />
-			<div class="relative">
-				<button
-					on:click={handleToggleSidebar}
-					class="h-[38px] w-[38px] flex items-center justify-center rounded-lg bg-[#E50914]/10 backdrop-blur-sm border border-[#E50914]/20 hover:bg-[#E50914] transition-all duration-300 text-[#E50914] hover:text-white group"
-					aria-label="Start Exploring"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-					</svg>
-				</button>
-				{#if showPulse}
-					<div class="absolute -top-1 -right-1 animate-ping-once">
-						<div class="w-3 h-3 bg-[#E50914] rounded-full opacity-75"></div>
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl border-b border-white/10">
+	<div class="max-w-7xl mx-auto px-4 py-3">
+		<div class="flex justify-between items-center">
+			<!-- Logo and Navigation -->
+			<div class="flex items-center gap-6">
+				<a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+					<div class="text-white font-bold text-2xl">
+						<span>Wat</span>
+						<span class="text-[#E50914]">sch</span>
 					</div>
-				{/if}
+				</a>
+				<nav class="flex items-center gap-6">
+					<a
+						href="/movie-night"
+						class="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
+						class:text-white={$page.url.pathname === '/movie-night'}
+					>
+						<span class="text-xl transform transition-transform group-hover:rotate-12">🎬</span>
+						<span>Movie Night</span>
+					</a>
+				</nav>
 			</div>
+
+			<!-- Room Info -->
+			{#if roomPhase && roomPhase !== 'join'}
+				<div class="hidden md:flex items-center gap-4">
+					<!-- Room Code -->
+					{#if roomCode}
+						<div class="flex items-center gap-2 text-white/70">
+							<span class="text-sm">Room:</span>
+							<code class="bg-white/10 px-2 py-1 rounded text-sm">{roomCode}</code>
+						</div>
+					{/if}
+
+					<!-- Phase Indicator -->
+					<div class="flex items-center gap-2 text-white/70">
+						<div class="px-2 py-1 rounded bg-white/10 text-sm capitalize flex items-center gap-1">
+							{#if roomPhase === 'nominate'}
+								<Film size={14} class="transform transition-transform group-hover:rotate-12" />
+								<span>Picking Movies</span>
+							{:else if roomPhase === 'vote'}
+								<Trophy size={14} class="transform transition-transform group-hover:rotate-12" />
+								<span>Voting Time</span>
+							{:else if roomPhase === 'results'}
+								<Trophy size={14} class="text-[#E50914] transform transition-transform group-hover:rotate-12" />
+								<span>Winner!</span>
+							{/if}
+						</div>
+					</div>
+
+					<!-- Participants -->
+					{#if participants.length > 0}
+						<div class="flex items-center gap-2 text-white/70">
+							<Users size={14} class="transform transition-transform group-hover:rotate-12" />
+							<span class="text-sm">{participants.length} Friends</span>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			<!-- Sidebar Toggle -->
+			<button
+				class="p-2 text-white/50 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-300 hover:scale-105 group"
+				on:click={toggleSidebar}
+			>
+				<Menu size={20} class="transform transition-transform group-hover:rotate-12" />
+			</button>
 		</div>
-	</nav>
+	</div>
 </header>
 
 <style>
-	header {
-		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-		z-index: 50;
-	}
-
-	:global(.animate-ping-once) {
-		animation: ping 1s cubic-bezier(0, 0, 0.2, 1);
-	}
-
-	@keyframes ping {
-		75%, 100% {
-			transform: scale(2);
-			opacity: 0;
-		}
+	:global(.group:hover .transform) {
+		transform: rotate(12deg);
 	}
 </style>

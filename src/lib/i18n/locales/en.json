@@ -4,12 +4,40 @@
         "welcome": "Welcome to Watsch",
         "get_recommendations": "Get Recommendations",
         "loading": "Loading...",
-        "error": "Something went wrong"
+        "error": "Something went wrong",
+        "link_copied": "Link copied to clipboard"
     },
     "home": {
         "title": "Find Your Perfect Watch",
         "subtitle": "Discover movies and shows tailored just for you",
-        "cta": "Start Exploring"
+        "solo_title": "Personal Recommendations",
+        "solo_description": "Get personalized movie and show recommendations based on your preferences",
+        "group_title": "Movie Night",
+        "group_description": "Host a movie night with friends and vote for what to watch together"
+    },
+    "movie_night": {
+        "title": "Movie Night",
+        "room": "Movie Night Room",
+        "enter_nickname": "Enter your nickname",
+        "enter_code": "Enter room code",
+        "create_room": "Create Room",
+        "join": "Join",
+        "code_copied": "Room code copied to clipboard",
+        "enter_details": "Please enter your nickname and room code",
+        "create_room_error": "Failed to create room",
+        "join_room_error": "Failed to join room",
+        "nomination_phase": "Nomination Phase",
+        "nominated_by": "Nominated by {nickname}",
+        "start_voting": "Start Voting",
+        "voting_phase": "Voting Phase",
+        "selected": "Selected",
+        "click_to_vote": "Click to vote",
+        "winner": "Winner",
+        "votes": "votes",
+        "watch_on": "Watch on {platform}",
+        "nominate_error": "Failed to nominate movie",
+        "vote_error": "Failed to submit votes",
+        "start_voting_error": "Failed to start voting"
     },
     "recommendations": {
         "no_results": "No recommendations found",
@@ -28,7 +56,12 @@
         "added_to_watchlist_short": "Added to Watch List",
         "added_to_watchlist": "Added \"{title}\" to your watch list",
         "removed_from_watchlist": "Removed \"{title}\" from your watch list",
-        "no_details": "No details available for this recommendation"
+        "no_details": "No details available for this recommendation",
+        "streaming": "Watch On",
+        "streaming_not_available": "No streaming options available",
+        "subscription": "Subscription",
+        "rent": "Rent",
+        "buy": "Buy"
     },
     "navigation": {
         "home": "Home",
@@ -72,5 +105,15 @@
             "next": "Next",
             "get_recommendations": "Get Recommendations"
         }
+    },
+    "share": {
+        "download_card": "Download Card",
+        "downloading": "Downloading...",
+        "download_complete": "Download Complete",
+        "download_error": "Download Failed",
+        "copy_link": "Copy Link",
+        "copied": "Copied!",
+        "share_whatsapp": "Share on WhatsApp",
+        "share_instagram": "Share on Instagram"
     }
 } 

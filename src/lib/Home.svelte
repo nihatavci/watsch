@@ -1,35 +1,36 @@
 <script lang="ts">
-	import { i18nStore } from './i18n';
 	import { createEventDispatcher } from 'svelte';
+	import { i18nStore } from './i18n';
+	import { Film, Users } from 'lucide-svelte';
+	import Button from './ui/button.svelte';
 
 	const dispatch = createEventDispatcher();
-
-	function handleClick() {
-		dispatch('click');
-	}
 </script>
 
-<div class="min-h-[calc(80vh-5rem)] w-full flex flex-col justify-center px-4">
-	<div
-		class="relative z-10 text-left md:text-left font-bold text-slate-200 text-4xl md:text-5xl mb-8 md:mb-16 w-full"
-	>
-		{$i18nStore.t('home.title')} <br class="hidden md:block" /> 
-		<span class="text-[#E50914]">{$i18nStore.t('home.subtitle')}</span>
-	</div>
-	<div class="flex flex-wrap items-center mr-auto">
-		<button
-			on:click={handleClick}
-			class="w-full md:w-auto text-center bg-[#E50914] hover:bg-[#B20710] mb-4 flex-none rounded-lg text-white font-medium py-3 px-6 mr-8 transition-colors duration-300"
-		>
-			{$i18nStore.t('home.cta')}
-		</button>
+<div class="min-h-screen flex items-center justify-center">
+	<div class="max-w-2xl mx-auto px-4 text-center">
+		<h1 class="text-4xl md:text-6xl font-bold text-white mb-8">
+			{$i18nStore.t('home.title')}
+		</h1>
+		<p class="text-lg text-white/70 mb-12 max-w-xl mx-auto">
+			{$i18nStore.t('home.description')}
+		</p>
+
+		<div class="flex flex-col sm:flex-row gap-4 justify-center">
+			<Button
+				on:click={() => dispatch('solo')}
+				class="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg transition-colors backdrop-blur-sm flex items-center justify-center gap-3"
+			>
+				<Film size={24} />
+				{$i18nStore.t('home.solo_button')}
+			</Button>
+			<Button
+				on:click={() => dispatch('group')}
+				class="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg transition-colors backdrop-blur-sm flex items-center justify-center gap-3"
+			>
+				<Users size={24} />
+				{$i18nStore.t('home.group_button')}
+			</Button>
+		</div>
 	</div>
 </div>
-
-<style>
-	/* Ensure the home content doesn't block the background */
-	div {
-		position: relative;
-		z-index: 10;
-	}
-</style>

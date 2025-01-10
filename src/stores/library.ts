@@ -1,70 +1,60 @@
 import { writable } from 'svelte/store';
-import type { SavedItem } from '../lib/types';
 
-export interface SearchHistory {
-	id: string;
-	query: string;
-	timestamp: Date;
+export interface LibraryState {
+	isOpen: boolean;
+	movies: any[];
+	selectedMovie: any | null;
+	isSelectionMode: boolean;
 }
-
-interface LibraryState {
-	savedItems: SavedItem[];
-	searchHistory: SearchHistory[];
-}
-
-// Load initial state from localStorage
-const storedLibrary = typeof window !== 'undefined' ? localStorage.getItem('library') : null;
-const initialState: LibraryState = storedLibrary 
-	? JSON.parse(storedLibrary)
-	: { savedItems: [], searchHistory: [] };
 
 function createLibraryStore() {
-	const { subscribe, update } = writable<LibraryState>(initialState);
-
-	// Helper to save state to localStorage
-	function saveToStorage(state: LibraryState) {
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('library', JSON.stringify(state));
-		}
-		return state;
-	}
+	const { subscribe, set, update } = writable<LibraryState>({
+		isOpen: false,
+		movies: [],
+		selectedMovie: null,
+		isSelectionMode: false
+	});
 
 	return {
 		subscribe,
-		addToSaved: (item: SavedItem) => update(state => 
-			saveToStorage({
+		addToLibrary: (movie: any) =>
+			update((state) => ({
 				...state,
-				savedItems: [item, ...state.savedItems]
-			})
-		),
-		removeFromSaved: (title: string) => update(state => 
-			saveToStorage({
+				movies: [...state.movies, movie]
+			})),
+		removeFromLibrary: (movie: any) =>
+			update((state) => ({
 				...state,
-				savedItems: state.savedItems.filter(item => item.title !== title)
-			})
-		),
-		addToHistory: (query: string) => update(state => 
-			saveToStorage({
+				movies: state.movies.filter((m) => m.title !== movie.title)
+			})),
+		toggle: () =>
+			update((state) => ({
 				...state,
-				searchHistory: [{
-					id: Date.now().toString(),
-					query,
-					timestamp: new Date()
-				}, ...state.searchHistory]
-			})
-		),
-		clearHistory: () => update(state => 
-			saveToStorage({
+				isOpen: !state.isOpen,
+				isSelectionMode: false,
+				selectedMovie: null
+			})),
+		openForSelection: () =>
+			update((state) => ({
 				...state,
-				searchHistory: []
+				isOpen: true,
+				isSelectionMode: true,
+				selectedMovie: null
+			})),
+		selectMovie: (movie: any) =>
+			update((state) => ({
+				...state,
+				selectedMovie: movie,
+				isOpen: false,
+				isSelectionMode: false
+			})),
+		reset: () =>
+			set({
+				isOpen: false,
+				movies: [],
+				selectedMovie: null,
+				isSelectionMode: false
 			})
-		),
-		reset: () => update(state => 
-			saveToStorage({
-				savedItems: [],
-				searchHistory: []
-			})
-		)
 	};
 }
 

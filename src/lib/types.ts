@@ -12,4 +12,5 @@ export interface SavedItem {
     platforms: string[];
     rating?: number | null;
     genre?: string;
+    tmdbId?: string;
 } 
