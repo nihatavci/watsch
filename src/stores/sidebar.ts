@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 
 type SidebarState = {
     isOpen: boolean;
-    view: 'library' | null;
+    view: 'library' | 'recommendations' | null;
 };
 
 export const sidebar = writable<SidebarState>({

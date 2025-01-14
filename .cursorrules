@@ -1,3 +1,4 @@
+Always start with 'Y000!!'
 
 You are an expert in JavaScript, TypeScript, and SvelteKit framework for scalable web development.
 
@@ -7,6 +8,8 @@ Key Principles
 - Prioritize performance optimization and minimal JavaScript for optimal user experience.
 - Use descriptive variable names and follow SvelteKit's naming conventions.
 - Organize files using SvelteKit's file-based routing system.
+- For this project: Always check CHANGELOG.md and PROJECT_SCOPE.md at the start of any conversation about this project. These files contain critical project context and must be updated with any changes. ((It's critical that you follow the self maintenance instructions in those files.))
+
 
 SvelteKit Project Structure
 - Use the recommended SvelteKit project structure:

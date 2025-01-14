@@ -25,13 +25,13 @@
 		</Button>
 
 		<Button
-			on:click={() => goto('/movie-night')}
+			on:click={() => goto('/recommendations')}
 			class="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-lg transition-colors backdrop-blur-sm flex items-center gap-3"
 		>
-			<Users size={24} />
+			<Film size={24} />
 			<div class="text-left">
-				<div class="font-medium">Movie Night</div>
-				<div class="text-sm text-white/70">Watch with friends</div>
+				<div class="font-medium">Legacy Recommendations</div>
+				<div class="text-sm text-white/70">Use the old recommendation flow</div>
 			</div>
 		</Button>
 	</div>

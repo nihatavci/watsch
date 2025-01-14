@@ -12,6 +12,9 @@
 	let selectedCategories: string[] = [];
 	let selectedPlatforms: string[] = [];
 	let specificDescriptors = '';
+	let isSubmitting = false;
+	let recommendations: Array<{ title: string; description: string }> = [];
+	let error: string | null = null;
 
 	const categories = [
 		'Action',
@@ -32,16 +35,49 @@
 
 	const platforms = ['Netflix', 'Prime Video', 'Disney+', 'HBO Max', 'Apple TV+', 'Hulu'];
 
-	function handleSubmit() {
+	async function handleSubmit() {
+		isSubmitting = true;
+
 		if (selectedCategories.length === 0) {
 			selectedCategories = ['Any'];
 		}
-		dispatch('submit', {
-			cinemaType,
-			categories: selectedCategories,
-			platforms: selectedPlatforms,
-			descriptors: specificDescriptors
-		});
+
+		// Construct the search criteria
+		let prompt = `Give me a list of 5 ${cinemaType} recommendations`;
+		if (selectedCategories.length > 0) {
+			prompt += ` that fit these categories: ${selectedCategories.join(', ')}`;
+		}
+		if (selectedPlatforms.length > 0) {
+			prompt += ` available on ${selectedPlatforms.join(' or ')}`;
+		}
+		if (specificDescriptors) {
+			prompt += `. Additional preferences: ${specificDescriptors}`;
+		}
+		prompt += `. Please return this response as a numbered list with the ${cinemaType}'s title, followed by a colon, and then a brief description.`;
+
+		try {
+			const response = await fetch('/api/getRecommendation', {
+				method: 'POST',
+				body: JSON.stringify({
+					searched: prompt
+				}),
+				headers: {
+					'content-type': 'application/json'
+				}
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to get recommendations');
+			}
+
+			const data = await response.json();
+			dispatch('submit', { recommendations: data.recommendations });
+		} catch (error) {
+			console.error('Error submitting form:', error);
+			error = 'Failed to get recommendations';
+		} finally {
+			isSubmitting = false;
+		}
 	}
 </script>
 
@@ -143,14 +179,14 @@
 
 	<Button
 		type="submit"
-		class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-		disabled={loading}
+		class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
+		disabled={isSubmitting}
 	>
-		{#if loading}
-			<div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+		{#if isSubmitting}
+			<div class="w-5 h-5 border-2 border-t-white border-white/20 rounded-full animate-spin" />
 		{:else}
 			<Search size={20} />
 		{/if}
-		{loading ? 'Finding movies...' : 'Find Movies'}
+		{isSubmitting ? 'Finding movies...' : 'Find Movies'}
 	</Button>
 </form>

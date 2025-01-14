@@ -97,6 +97,16 @@
 	function dismissRecommendation(index: number) {
 		recommendations = recommendations.filter((_, i) => i !== index);
 	}
+
+	async function handleFormSubmit(event: CustomEvent<{ recommendations: string[] }>) {
+		const { recommendations: newRecommendations } = event.detail;
+		recommendations = newRecommendations.map((rec: string) => {
+			const match = rec.match(/\d+\.\s*(.*?):\s*(.*)/);
+			if (!match) return null;
+			const [, title, description] = match;
+			return { title, description };
+		}).filter((rec): rec is { title: string; description: string } => rec !== null);
+	}
 </script>
 
 <div class="max-w-3xl mx-auto pt-10 pb-10 md:pt-16 md:pb-6 text-[#FFFFFF]">
@@ -108,7 +118,7 @@
 				bind:specificDescriptors
 				bind:loading
 				bind:selectedPlatforms
-				on:click={getRecommendations}
+				on:submit={handleFormSubmit}
 			/>
 			{#if error}
 				<div class="mt-4 p-4 rounded-xl bg-red-500/10 text-red-400">
