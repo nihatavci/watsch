@@ -2,7 +2,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import LoadingCard from './LoadingCard.svelte';
 	import { library } from '../stores/library';
-	import type { SavedItem, Recommendation } from './types';
+	import type { Recommendation } from './types';
 	import { showNotification } from '../stores/notifications';
 	import Card from './ui/card.svelte';
 	import CardContent from './ui/card-content.svelte';
@@ -245,7 +245,7 @@
 		}
 
 		// Ensure 'year' is a string
-		const yearString = typeof data.Year === 'number' ? data.Year.toString() : data.Year;
+		const yearString = (data?.Year?.toString() ?? '');
 
 		// Handle cases where selectedPlatforms might not be an array
 		const platformsArray = Array.isArray(selectedPlatforms) ? selectedPlatforms : [];

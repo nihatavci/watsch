@@ -1,5 +1,17 @@
 import { writable } from 'svelte/store';
-import type { SavedItem, Movie } from '$lib/types';
+import { browser } from '$app/environment';
+import { sidebar } from './sidebar';
+
+export interface SavedItem {
+	id: string;
+	title: string;
+	year: string;
+	poster: string | null;
+	platforms: string[];
+	rating: number | null;
+	genre: string;
+	tmdbId: string | null;
+}
 
 function createLibraryStore() {
 	const { subscribe, update } = writable<{ movies: Movie[]; saved: SavedItem[] }>({
