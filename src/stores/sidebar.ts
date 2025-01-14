@@ -5,11 +5,6 @@ type SidebarState = {
     view: 'library' | 'recommendations' | null;
 };
 
-interface SidebarState {
-	isOpen: boolean;
-	view: string | null;
-}
-
 function createSidebar() {
 	const { subscribe, set, update } = writable<SidebarState>({
 		isOpen: false,
@@ -20,8 +15,10 @@ function createSidebar() {
 		subscribe,
 		set,
 		update,
-		toggle: () => update((state) => ({ ...state, isOpen: !state.isOpen })),
-		setView: (view: string) => update((state) => ({ ...state, view }))
+		toggle: () => update(state => ({ ...state, isOpen: !state.isOpen })),
+		showLibrary: () => update(state => ({ ...state, isOpen: true, view: 'library' })),
+		showRecommendations: () => update(state => ({ ...state, isOpen: true, view: 'recommendations' })),
+		close: () => update(state => ({ ...state, isOpen: false, view: null }))
 	};
 }
 

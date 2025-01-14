@@ -13,59 +13,57 @@ export interface SavedItem {
 	tmdbId: string | null;
 }
 
+interface LibraryState {
+	saved: SavedItem[];
+	movies?: Movie[];
+	selectedMovie?: Movie | null;
+}
+
+interface Movie {
+	id: string;
+	title: string;
+	release_date?: string;
+	poster_path?: string;
+}
+
 function createLibraryStore() {
-	const { subscribe, update } = writable<{ movies: Movie[]; saved: SavedItem[] }>({
-		movies: [],
-		saved: []
-	});
+	const defaultState: LibraryState = { saved: [] };
+	
+	// Load initial state from localStorage if available
+	const initialState: LibraryState = browser ? 
+		JSON.parse(localStorage.getItem('library') || JSON.stringify(defaultState)) : 
+		defaultState;
+
+	const { subscribe, update } = writable<LibraryState>(initialState);
+
+	// Save to localStorage whenever the store changes
+	if (browser) {
+		subscribe(state => {
+			localStorage.setItem('library', JSON.stringify(state));
+		});
+	}
 
 	return {
 		subscribe,
-		addMovie: (movie: Movie) => {
-			update((currentLibrary) => {
-				if (!currentLibrary.movies?.some((m) => m.id === movie.id)) {
-					console.log('Movie added to library:', movie);
-					return { ...currentLibrary, movies: [...(currentLibrary.movies || []), movie] };
-				}
-				return currentLibrary;
-			});
-		},
 		addToSaved: (savedItem: SavedItem) => {
-			update((currentLibrary) => {
-				if (!currentLibrary.saved?.some((item) => item.id === savedItem.id)) {
-					console.log('Item added to saved:', savedItem);
-					return { ...currentLibrary, saved: [...(currentLibrary.saved || []), savedItem] };
+			console.log('Adding to saved:', savedItem);
+			update(state => {
+				const saved = state.saved || [];
+				if (!saved.some(item => item.id === savedItem.id)) {
+					sidebar.showLibrary();
+					return { saved: [...saved, savedItem] };
 				}
-				console.log('Item already in saved:', savedItem);
-				return currentLibrary;
+				return state;
 			});
 		},
 		removeFromSaved: (itemId: string) => {
-			update((currentLibrary) => ({
-				...currentLibrary,
-				saved: currentLibrary.saved?.filter((item) => item.id !== itemId) || []
+			update(state => ({
+				saved: (state.saved || []).filter(item => item.id !== itemId)
 			}));
 		},
-		toggle: () =>
-			update((state) => ({
-				...state,
-				isOpen: !state.isOpen,
-				isSelectionMode: false,
-				selectedMovie: null
-			})),
-		openForSelection: () =>
-			update((state) => ({
-				...state,
-				isOpen: true,
-				isSelectionMode: true
-			})),
-		selectMovie: (movie: any) =>
-			update((state) => ({
-				...state,
-				selectedMovie: movie,
-				isSelectionMode: false,
-				isOpen: false
-			}))
+		selectMovie: (movie: Movie) => {
+			update(state => ({ ...state, selectedMovie: movie }));
+		}
 	};
 }
 

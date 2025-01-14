@@ -80,12 +80,21 @@
 					{#if savedItems.length > 0}
 						<div class="space-y-4">
 							{#each savedItems as item}
-								<div
-									class="p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+								<button
+									class="w-full p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group relative"
+									on:click={() => library.removeFromSaved(item.id)}
 								>
-									<h3 class="font-medium text-white">{item.title}</h3>
-									<p class="text-sm text-white/50">{item.year}</p>
-								</div>
+									<div class="flex justify-between items-center">
+										<div>
+											<h3 class="font-medium text-white group-hover:text-white/90">{item.title}</h3>
+											<p class="text-sm text-white/50">{item.year}</p>
+										</div>
+										<X 
+											size={16} 
+											class="text-white/30 group-hover:text-white/70 transition-colors"
+										/>
+									</div>
+								</button>
 							{/each}
 						</div>
 					{:else}
@@ -93,6 +102,10 @@
 							<p class="text-white/50">No items in your watchlist yet</p>
 						</div>
 					{/if}
+				{:else}
+					<div class="text-center py-12">
+						<p class="text-white/50">Select a view from the menu</p>
+					</div>
 				{/if}
 			</div>
 		</div>
