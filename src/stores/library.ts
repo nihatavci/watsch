@@ -1,60 +1,56 @@
 import { writable } from 'svelte/store';
 
-export interface LibraryState {
-	isOpen: boolean;
-	movies: any[];
-	selectedMovie: any | null;
-	isSelectionMode: boolean;
+export interface SavedItem {
+	id: string;
+	title: string;
+	year: string;
+	poster: string;
+	platforms: string[];
+	rating: number | null;
+	genre: string;
+	tmdbId: string;
+}
+
+export interface Movie {
+	id: string;
+	title: string;
+	description: string;
+	poster_path?: string;
+	release_date?: string;
 }
 
 function createLibraryStore() {
-	const { subscribe, set, update } = writable<LibraryState>({
-		isOpen: false,
+	const { subscribe, update } = writable<{ movies: Movie[]; saved: SavedItem[] }>({
 		movies: [],
-		selectedMovie: null,
-		isSelectionMode: false
+		saved: []
 	});
 
 	return {
 		subscribe,
-		addToLibrary: (movie: any) =>
-			update((state) => ({
-				...state,
-				movies: [...state.movies, movie]
-			})),
-		removeFromLibrary: (movie: any) =>
-			update((state) => ({
-				...state,
-				movies: state.movies.filter((m) => m.title !== movie.title)
-			})),
-		toggle: () =>
-			update((state) => ({
-				...state,
-				isOpen: !state.isOpen,
-				isSelectionMode: false,
-				selectedMovie: null
-			})),
-		openForSelection: () =>
-			update((state) => ({
-				...state,
-				isOpen: true,
-				isSelectionMode: true,
-				selectedMovie: null
-			})),
-		selectMovie: (movie: any) =>
-			update((state) => ({
-				...state,
-				selectedMovie: movie,
-				isOpen: false,
-				isSelectionMode: false
-			})),
-		reset: () =>
-			set({
-				isOpen: false,
-				movies: [],
-				selectedMovie: null,
-				isSelectionMode: false
-			})
+		addMovie: (movie: Movie) => {
+			update((currentLibrary) => {
+				if (!currentLibrary.movies.some((m) => m.id === movie.id)) {
+					console.log('Movie added to library:', movie);
+					return { ...currentLibrary, movies: [...currentLibrary.movies, movie] };
+				}
+				return currentLibrary;
+			});
+		},
+		addToSaved: (savedItem: SavedItem) => {
+			update((currentLibrary) => {
+				if (!currentLibrary.saved.some((item) => item.id === savedItem.id)) {
+					console.log('Item added to saved:', savedItem);
+					return { ...currentLibrary, saved: [...currentLibrary.saved, savedItem] };
+				}
+				return currentLibrary;
+			});
+		},
+		removeFromSaved: (itemId: string) => {
+			update((currentLibrary) => ({
+				...currentLibrary,
+				saved: currentLibrary.saved.filter((item) => item.id !== itemId)
+			}));
+		}
 	};
 }
 

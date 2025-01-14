@@ -4,14 +4,14 @@
 	import Button from './ui/button.svelte';
 	import { Film, Tv, Search } from 'lucide-svelte';
 
-	export let loading = false;
+	export const loading = false;
+	export let cinemaType = 'movie';
+	export let selectedCategories: string[] = [];
+	export let specificDescriptors = '';
+	export let selectedPlatforms: string[] = [];
 
 	const dispatch = createEventDispatcher();
 
-	let cinemaType = 'movie';
-	let selectedCategories: string[] = [];
-	let selectedPlatforms: string[] = [];
-	let specificDescriptors = '';
 	let isSubmitting = false;
 	let recommendations: Array<{ title: string; description: string }> = [];
 	let error: string | null = null;
@@ -84,83 +84,89 @@
 <form on:submit|preventDefault={handleSubmit} class="space-y-6">
 	<!-- Cinema Type -->
 	<div class="space-y-2">
-		<label class="block text-sm font-medium text-white/80">
-			What would you like to watch?
-		</label>
-		<div class="flex gap-2">
-			<button
-				type="button"
-				class="flex-1 px-4 py-2 rounded-lg {cinemaType === 'movie'
-					? 'bg-white/20 text-white'
-					: 'bg-white/5 text-white/50'} transition-colors flex items-center justify-center gap-2"
-				on:click={() => (cinemaType = 'movie')}
-			>
-				<Film size={20} />
-				Movie
-			</button>
-			<button
-				type="button"
-				class="flex-1 px-4 py-2 rounded-lg {cinemaType === 'tv'
-					? 'bg-white/20 text-white'
-					: 'bg-white/5 text-white/50'} transition-colors flex items-center justify-center gap-2"
-				on:click={() => (cinemaType = 'tv')}
-			>
-				<Tv size={20} />
-				TV Show
-			</button>
-		</div>
+		<fieldset>
+			<legend class="block text-sm font-medium text-white/80">
+				What would you like to watch?
+			</legend>
+			<div class="flex gap-2">
+				<button
+					type="button"
+					class="flex-1 px-4 py-2 rounded-lg {cinemaType === 'movie'
+						? 'bg-white/20 text-white'
+						: 'bg-white/5 text-white/50'} transition-colors flex items-center justify-center gap-2"
+					on:click={() => (cinemaType = 'movie')}
+				>
+					<Film size={20} />
+					Movie
+				</button>
+				<button
+					type="button"
+					class="flex-1 px-4 py-2 rounded-lg {cinemaType === 'tv'
+						? 'bg-white/20 text-white'
+						: 'bg-white/5 text-white/50'} transition-colors flex items-center justify-center gap-2"
+					on:click={() => (cinemaType = 'tv')}
+				>
+					<Tv size={20} />
+					TV Show
+				</button>
+			</div>
+		</fieldset>
 	</div>
 
 	<!-- Categories -->
 	<div class="space-y-2">
-		<label class="block text-sm font-medium text-white/80">
-			Choose genres (optional)
-		</label>
-		<div class="flex flex-wrap gap-2">
-			{#each categories as category}
-				<button
-					type="button"
-					class="px-3 py-1 rounded-full text-sm {selectedCategories.includes(category)
-						? 'bg-white/20 text-white'
-						: 'bg-white/5 text-white/50'} transition-colors"
-					on:click={() => {
-						if (selectedCategories.includes(category)) {
-							selectedCategories = selectedCategories.filter((c) => c !== category);
-						} else {
-							selectedCategories = [...selectedCategories, category];
-						}
-					}}
-				>
-					{category}
-				</button>
-			{/each}
-		</div>
+		<fieldset>
+			<legend class="block text-sm font-medium text-white/80">
+				Choose genres (optional)
+			</legend>
+			<div class="flex flex-wrap gap-2">
+				{#each categories as category}
+					<button
+						type="button"
+						class="px-3 py-1 rounded-full text-sm {selectedCategories.includes(category)
+							? 'bg-white/20 text-white'
+							: 'bg-white/5 text-white/50'} transition-colors"
+						on:click={() => {
+							if (selectedCategories.includes(category)) {
+								selectedCategories = selectedCategories.filter((c) => c !== category);
+							} else {
+								selectedCategories = [...selectedCategories, category];
+							}
+						}}
+					>
+						{category}
+					</button>
+				{/each}
+			</div>
+		</fieldset>
 	</div>
 
 	<!-- Platforms -->
 	<div class="space-y-2">
-		<label class="block text-sm font-medium text-white/80">
-			Available on (optional)
-		</label>
-		<div class="flex flex-wrap gap-2">
-			{#each platforms as platform}
-				<button
-					type="button"
-					class="px-3 py-1 rounded-full text-sm {selectedPlatforms.includes(platform)
-						? 'bg-white/20 text-white'
-						: 'bg-white/5 text-white/50'} transition-colors"
-					on:click={() => {
-						if (selectedPlatforms.includes(platform)) {
-							selectedPlatforms = selectedPlatforms.filter((p) => p !== platform);
-						} else {
-							selectedPlatforms = [...selectedPlatforms, platform];
-						}
-					}}
-				>
-					{platform}
-				</button>
-			{/each}
-		</div>
+		<fieldset>
+			<legend class="block text-sm font-medium text-white/80">
+				Available on (optional)
+			</legend>
+			<div class="flex flex-wrap gap-2">
+				{#each platforms as platform}
+					<button
+						type="button"
+						class="px-3 py-1 rounded-full text-sm {selectedPlatforms.includes(platform)
+							? 'bg-white/20 text-white'
+							: 'bg-white/5 text-white/50'} transition-colors"
+						on:click={() => {
+							if (selectedPlatforms.includes(platform)) {
+								selectedPlatforms = selectedPlatforms.filter((p) => p !== platform);
+							} else {
+								selectedPlatforms = [...selectedPlatforms, platform];
+							}
+						}}
+					>
+						{platform}
+					</button>
+				{/each}
+			</div>
+		</fieldset>
 	</div>
 
 	<!-- Additional Preferences -->

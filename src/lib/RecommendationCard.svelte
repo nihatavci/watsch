@@ -2,7 +2,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import LoadingCard from './LoadingCard.svelte';
 	import { library } from '../stores/library';
-	import type { SavedItem, Recommendation } from './types';
+	import type { SavedItem } from '../stores/library';
 	import { showNotification } from '../stores/notifications';
 	import Card from './ui/card.svelte';
 	import CardContent from './ui/card-content.svelte';
@@ -11,6 +11,7 @@
 	import { i18nStore } from './i18n';
 	import GenreTag from './GenreTag.svelte';
 	import { Share2, Download, Copy, Instagram, ExternalLink } from 'lucide-svelte';
+	import type { Recommendation } from './types';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -242,10 +243,13 @@
 			return;
 		}
 
+		// Ensure 'year' is a string
+		const yearString = typeof data.Year === 'number' ? data.Year.toString() : data.Year;
+
 		const savedItem: SavedItem = {
 			id: Date.now().toString(),
 			title: data.Title,
-			year: data.Year,
+			year: yearString,
 			poster: data.Poster,
 			platforms: selectedPlatforms,
 			rating: data.Rating || null,
@@ -257,7 +261,11 @@
 		showNotification($i18nStore.t('recommendations.added_to_watchlist', { title: data.Title }));
 		isAdded = true;
 
+		// Add pulse animation
+		const card = document.querySelector('.recommendation-card');
+		card?.classList.add('pulse-animation');
 		setTimeout(() => {
+			card?.classList.remove('pulse-animation');
 			showRemoveButton = true;
 		}, 2000);
 	}
@@ -334,7 +342,7 @@
 	}
 </script>
 
-<div class="relative rounded-xl text-white backdrop-blur-gradient">
+<div class="recommendation-card relative rounded-xl text-white backdrop-blur-gradient">
 	{#await promise}
 		<LoadingCard />
 	{:then data}
@@ -557,5 +565,18 @@
 		);
 		backdrop-filter: blur(8px);
 		-webkit-backdrop-filter: blur(8px);
+	}
+
+	.pulse-animation {
+		animation: pulse 0.5s cubic-bezier(0.4, 0, 0.6, 1) 1;
+	}
+
+	@keyframes pulse {
+		0%, 100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.05);
+		}
 	}
 </style>

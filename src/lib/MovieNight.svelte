@@ -49,6 +49,10 @@
 	let loading = false;
 	let recommendations: Movie[] = [];
 	let showRecommendationForm = false;
+	let cinemaType = 'movie';
+	let selectedCategories: string[] = [];
+	let selectedPlatforms: string[] = [];
+	let specificDescriptors = '';
 
 	$: console.log('Current state:', { roomPhase, isHost, participants });
 
