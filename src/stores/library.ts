@@ -51,7 +51,7 @@ function createLibraryStore() {
 				const saved = state.saved || [];
 				if (!saved.some(item => item.id === savedItem.id)) {
 					sidebar.showWatchlist();
-					return { saved: [...saved, savedItem] };
+					return { saved: [savedItem, ...saved] };
 				}
 				return state;
 			});
