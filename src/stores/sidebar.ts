@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 
 type SidebarState = {
     isOpen: boolean;
-    view: 'library' | 'recommendations' | null;
+    view: 'library' | 'watchlist' | 'recommendations' | null;
 };
 
 function createSidebar() {
@@ -17,6 +17,7 @@ function createSidebar() {
 		update,
 		toggle: () => update(state => ({ ...state, isOpen: !state.isOpen })),
 		showLibrary: () => update(state => ({ ...state, isOpen: true, view: 'library' })),
+		showWatchlist: () => update(state => ({ ...state, isOpen: true, view: 'watchlist' })),
 		showRecommendations: () => update(state => ({ ...state, isOpen: true, view: 'recommendations' })),
 		close: () => update(state => ({ ...state, isOpen: false, view: null }))
 	};

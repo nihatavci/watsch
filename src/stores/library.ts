@@ -50,7 +50,7 @@ function createLibraryStore() {
 			update(state => {
 				const saved = state.saved || [];
 				if (!saved.some(item => item.id === savedItem.id)) {
-					sidebar.showLibrary();
+					sidebar.showWatchlist();
 					return { saved: [...saved, savedItem] };
 				}
 				return state;
