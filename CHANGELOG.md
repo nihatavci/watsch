@@ -2,7 +2,7 @@
 To maintain project context across conversations, always start a new chat with the following instructions:  
 
 ```
-You are working on the (project name here)
+You are working on the Watsch project
 Read CHANGELOG.md and PROJECT_SCOPE.md now, report your findings, and strictly follow all instructions found in these documents.  
 You must complete the check-in process before proceeding with any task.  
 
@@ -18,7 +18,7 @@ Begin check-in process and document analysis.
    - Read `CHANGELOG.md` and `PROJECT_SCOPE.md`.  
    - Briefly report:  
      ```
-     Read [filename]: [key points relevant to current task]
+     Read CHANGELOG.md: [key points relevant to current task]
      ```
 
 2. **Review Context**:  
