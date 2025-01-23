@@ -1819,6 +1819,11 @@ deepmerge@^4.3.1:
   resolved "https://registry.npmjs.org/deepmerge/-/deepmerge-4.3.1.tgz"
   integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
 
+deepseek-api@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.npmjs.org/deepseek-api/-/deepseek-api-1.0.6.tgz"
+  integrity sha512-hGySKX5XpSGyWgl8SivgD4SJPUISZSaMYHPtVE9Luyerr5HITgcDJyKG5yRMo9Iota3Ec8qrbXD540kc/lTfDw==
+
 defaults@^1.0.3:
   version "1.0.4"
   resolved "https://registry.npmjs.org/defaults/-/defaults-1.0.4.tgz"

@@ -35,6 +35,9 @@
 
 	function toggleMenu() {
 		open = !open;
+		if (open && window.navigator.vibrate) {
+			window.navigator.vibrate(50);
+		}
 	}
 </script>
 
@@ -47,13 +50,13 @@
 
 <!-- Mobile Menu Button -->
 <button
-	class="fixed top-4 right-4 z-50 p-2 rounded-lg bg-black/20 backdrop-blur-lg md:hidden text-white/60 hover:text-white"
+	class="fixed top-4 right-4 z-50 p-3 rounded-xl bg-black/40 backdrop-blur-lg md:hidden text-white/60 hover:text-white border border-red-500/20 active:scale-95 transition-all"
 	on:click={toggleMenu}
 >
 	{#if open}
-		<X class="w-6 h-6" />
+		<X class="w-5 h-5" />
 	{:else}
-		<Menu class="w-6 h-6" />
+		<Menu class="w-5 h-5" />
 	{/if}
 </button>
 
@@ -65,10 +68,10 @@
 		transition:fade={{ duration: 200 }}
 	/>
 	<div
-		class="fixed inset-y-0 left-0 w-64 bg-[#14142380] backdrop-blur-xl z-50 md:hidden"
+		class="fixed inset-y-0 left-0 w-[280px] bg-[#14142380] backdrop-blur-xl z-50 md:hidden p-6"
 		transition:fly={{ x: -320, duration: 300, opacity: 1 }}
 	>
-		<div class="flex flex-col h-full p-4">
+		<div class="flex flex-col h-full">
 			<slot />
 		</div>
 	</div>

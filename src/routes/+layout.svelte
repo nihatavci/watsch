@@ -67,7 +67,7 @@
 						Watsch
 					</span>
 				</a>
-				<div class="flex flex-col">
+				<div class="flex flex-col gap-1">
 					{#each links as link}
 						<SidebarLink {link} />
 					{/each}
@@ -90,14 +90,14 @@
 		</SidebarBody>
 	</Sidebar>
 
-	<div class="ml-[60px] h-screen overflow-y-auto">
-		<main>
+	<div class="md:ml-[60px] h-screen overflow-y-auto">
+		<main class="min-h-screen">
 			<slot />
 		</main>
 	</div>
 </div>
 
-<div class="fixed bottom-4 left-3 z-[60]">
+<div class="fixed bottom-4 left-3 z-[60] md:block hidden">
 	<ThemeToggle />
 </div>
 
@@ -109,7 +109,7 @@
 		background-image: linear-gradient(to bottom right, rgba(30, 0, 60, 0.95), rgba(10, 1, 24, 0.97));
 	}
 	:global(body) {
-		@apply m-0 p-0;
+		@apply m-0 p-0 antialiased;
 	}
 </style>
   

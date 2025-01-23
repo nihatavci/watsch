@@ -19,9 +19,10 @@ export async function getEnvVariables() {
         // For web development
         envVariables = {
             TMDB_API_KEY: import.meta.env.VITE_TMDB_API_KEY,
-            OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY
+            OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
+            OMDB_API_KEY: import.meta.env.VITE_OMDB_API_KEY
         };
     }
     
     return envVariables;
-} 
+}

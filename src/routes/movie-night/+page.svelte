@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { Popcorn, HelpCircle } from 'lucide-svelte';
+	import { writable } from 'svelte/store';
 
 	let username = '';
 	let roomCode = '';
+
+	// Define proper type for the movie store
+	type Movie = {
+		title: string;
+		// add other movie properties you need
+	};
+	const generatedMovie = writable<Movie | null>(null);
 
 	function handleStartParty() {
 		if (!username) return;
@@ -13,6 +21,45 @@
 	function handleJoinParty() {
 		if (!username || !roomCode) return;
 		goto(`/room/${roomCode}?username=${encodeURIComponent(username)}`);
+	}
+
+	async function generateMovie() {
+		console.log('Starting movie generation...'); 
+		try {
+			console.log('Sending request to /api/getRecommendation...');
+			const response = await fetch('/api/getRecommendation', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			
+			console.log('Response status:', response.status);
+			console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+			
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error('API Error Response:', {
+					status: response.status,
+					statusText: response.statusText,
+					body: errorText
+				});
+				throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+			}
+			
+			const data = await response.json();
+			console.log('API Response Data:', data);
+			
+			if (data.error) {
+				console.error('API returned error:', data.error);
+				throw new Error(data.error);
+			}
+			
+			generatedMovie.set(data);
+			console.log('Movie data successfully set to store:', data);
+		} catch (error: unknown) {
+			console.error('Generation Error:', error instanceof Error ? error.message : 'Unknown error occurred');
+		}
 	}
 </script>
 
@@ -93,6 +140,22 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Add this to display the generated movie -->
+			{#if $generatedMovie}
+				<div class="mt-4 p-4 rounded-lg bg-black/40 text-white">
+					<h3 class="text-xl font-bold">{$generatedMovie.title}</h3>
+					<!-- Add other movie details you want to display -->
+				</div>
+			{/if}
+
+			<!-- Add the button with proper click handler -->
+			<button
+				on:click={generateMovie}
+				class="w-full py-3 rounded-lg bg-gradient-to-r from-red-500 via-red-500 to-red-600 hover:shadow-xl hover:shadow-red-500/20 text-white font-medium text-base transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+			>
+				Generate Movie
+			</button>
 		</div>
 	</div>
 </div>

@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { getEnvVariables } from '$lib/env';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
@@ -9,11 +10,16 @@ export const POST: RequestHandler = async ({ request }) => {
 			return json({ error: 'Title is required' }, { status: 400 });
 		}
 
-		const OMDB_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
+		const env = await getEnvVariables();
+		const OMDB_API_KEY = env.OMDB_API_KEY;
 		
 		if (!OMDB_API_KEY) {
 			console.error('OMDB API key is not configured');
-			return json({ error: 'API configuration error' }, { status: 500 });
+			console.log('Available environment variables:', Object.keys(env));
+			return json({ 
+				error: 'API configuration error',
+				details: 'OMDB_API_KEY is missing from environment variables'
+			}, { status: 500 });
 		}
 
 		// Add retry logic
