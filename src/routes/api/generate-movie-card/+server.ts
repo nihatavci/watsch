@@ -11,137 +11,157 @@ export const POST: RequestHandler = async ({ request }) => {
             rating,
             genre,
             runtime,
-            streamingLinks
+            streamingLinks,
+            overview,
+            type
         } = await request.json();
 
-        // Create canvas with vertical orientation
-        const width = 800;
-        const height = 1200;
+        // Create canvas with 16:9 aspect ratio
+        const width = 1200;
+        const height = 675;
         const canvas = createCanvas(width, height);
         const ctx = canvas.getContext('2d');
 
-        // Create solid black background
+        // Create dark background
         ctx.fillStyle = '#0A0A0A';
         ctx.fillRect(0, 0, width, height);
 
-        // Load poster image for background and main display
+        // Load and draw poster image
         const posterImage = await loadImage(poster);
-
-        // Draw blurred background
-        const bgWidth = width * 3;
-        const bgHeight = height * 3;
-        const bgX = -(bgWidth - width) / 2;
-        const bgY = -(bgHeight - height) / 2;
         
-        // More blur and darker background
-        ctx.filter = 'blur(70px) brightness(0.2)';
-        ctx.drawImage(posterImage, bgX, bgY, bgWidth, bgHeight);
-        ctx.filter = 'none';
+        // Calculate poster dimensions (maintain aspect ratio)
+        const posterHeight = height * 0.9; // 90% of height
+        const posterWidth = posterHeight * (2/3); // Standard movie poster ratio
+        const posterX = 60;
+        const posterY = (height - posterHeight) / 2;
 
-        // Add subtle noise texture
-        const noiseCanvas = createCanvas(width, height);
-        const noiseCtx = noiseCanvas.getContext('2d');
-        const imageData = noiseCtx.createImageData(width, height);
-        const data = imageData.data;
-
-        for (let i = 0; i < data.length; i += 4) {
-            const noise = Math.random() * 6;
-            data[i] = data[i + 1] = data[i + 2] = 255;
-            data[i + 3] = noise;
-        }
-
-        noiseCtx.putImageData(imageData, 0, 0);
-        ctx.globalAlpha = 0.01;
-        ctx.drawImage(noiseCanvas, 0, 0);
-        ctx.globalAlpha = 1;
-
-        // Draw gradient overlay with more contrast
-        const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, 'rgba(10, 10, 10, 0.7)');
-        gradient.addColorStop(0.6, 'rgba(10, 10, 10, 0.85)');
-        gradient.addColorStop(1, 'rgba(10, 10, 10, 0.98)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, width, height);
-
-        // Draw main poster with rounded corners
-        const posterWidth = width * 0.65;
-        const posterHeight = (posterWidth * 1.5);
-        const posterX = (width - posterWidth) / 2;
-        const posterY = 70;
-
-        // Create rounded rectangle clip path
+        // Draw poster with rounded corners
         ctx.save();
         ctx.beginPath();
-        const radius = 24;
+        const radius = 12;
         ctx.roundRect(posterX, posterY, posterWidth, posterHeight, radius);
         ctx.clip();
         ctx.drawImage(posterImage, posterX, posterY, posterWidth, posterHeight);
         ctx.restore();
 
-        // Add text content aligned with poster edge
-        const textX = posterX;
-        let textY = posterY + posterHeight + 60;
+        // Add gradient overlay
+        const gradient = ctx.createLinearGradient(posterX, 0, width, 0);
+        gradient.addColorStop(0, 'rgba(10, 10, 10, 0)');
+        gradient.addColorStop(0.4, 'rgba(10, 10, 10, 0.8)');
+        gradient.addColorStop(1, 'rgba(10, 10, 10, 0.95)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
 
-        // Title with shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-        ctx.shadowBlur = 15;
+        // Content area
+        const contentX = posterX + posterWidth + 60;
+        let contentY = posterY + 40;
+
+        // Title with year
+        ctx.font = 'bold 48px Inter';
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px Arial';
-        ctx.textAlign = 'left';
-        ctx.fillText(title, textX, textY);
-        textY += 50;
+        const titleText = `${title}${year ? ` (${year})` : ''}`;
+        
+        // Handle long titles
+        const maxTitleWidth = width - contentX - 60;
+        let titleLines = [];
+        let words = titleText.split(' ');
+        let currentLine = words[0];
+        
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const width = ctx.measureText(currentLine + ' ' + word).width;
+            if (width < maxTitleWidth) {
+                currentLine += ' ' + word;
+            } else {
+                titleLines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        titleLines.push(currentLine);
 
-        // Year, Runtime, and Rating
-        ctx.shadowBlur = 0;
-        ctx.font = '28px Arial';
-        ctx.fillStyle = '#cccccc';
-        let infoText = `${year}`;
-        if (runtime) {
-            infoText += ` • ${runtime}`;
+        // Draw title lines
+        titleLines.forEach((line, index) => {
+            ctx.fillText(line, contentX, contentY + (index * 56));
+        });
+        contentY += (titleLines.length * 56) + 20;
+
+        // Metadata (Runtime, Rating, Type)
+        ctx.font = '24px Inter';
+        ctx.fillStyle = '#999999';
+        let metaText = [];
+        if (runtime) metaText.push(runtime);
+        if (rating) metaText.push(`${rating}%`);
+        if (type) metaText.push(type.toUpperCase());
+        ctx.fillText(metaText.join(' • '), contentX, contentY);
+        contentY += 40;
+
+        // Overview
+        if (overview) {
+            ctx.font = '20px Inter';
+            ctx.fillStyle = '#cccccc';
+            const maxWidth = width - contentX - 60;
+            const words = overview.split(' ');
+            let line = '';
+            let lines = [];
+
+            for (const word of words) {
+                const testLine = line + word + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth) {
+                    lines.push(line);
+                    line = word + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+
+            // Limit to 3 lines
+            lines = lines.slice(0, 3);
+            if (lines.length === 3) {
+                lines[2] = lines[2].trim() + '...';
+            }
+
+            lines.forEach((line, index) => {
+                ctx.fillText(line, contentX, contentY + (index * 28));
+            });
+            contentY += (lines.length * 28) + 40;
         }
-        if (rating) {
-            infoText += ` • ${rating}% Audience Score`;
-        }
-        ctx.fillText(infoText, textX, textY);
-        textY += 50;
 
         // Genres
         if (genre) {
             const genres = genre.split(', ');
-            ctx.font = '24px Arial';
-            
-            let tagX = textX;
+            ctx.font = '18px Inter';
+            let tagX = contentX;
             const tagPadding = 16;
             const tagSpacing = 10;
-            const maxTagX = width - posterX;
+            const tagHeight = 32;
             
             for (const genreText of genres) {
-                ctx.fillStyle = 'rgba(229, 9, 20, 0.15)';
                 const textWidth = ctx.measureText(genreText).width;
                 const tagWidth = textWidth + (tagPadding * 2);
                 
-                if (tagX + tagWidth > maxTagX) {
-                    tagX = textX;
-                    textY += 45;
-                }
+                if (tagX + tagWidth > width - 60) break;
 
+                // Tag background
+                ctx.fillStyle = 'rgba(229, 9, 20, 0.15)';
                 ctx.beginPath();
-                ctx.roundRect(tagX, textY - 24, tagWidth, 32, 16);
+                ctx.roundRect(tagX, contentY - 24, tagWidth, tagHeight, 16);
                 ctx.fill();
                 
+                // Tag text
                 ctx.fillStyle = '#E50914';
-                ctx.fillText(genreText, tagX + tagPadding, textY);
+                ctx.fillText(genreText, tagX + tagPadding, contentY);
                 
                 tagX += tagWidth + tagSpacing;
             }
-            textY += 60;
         }
 
         // Add watermark
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.font = '20px Arial';
+        ctx.font = '20px Inter';
         ctx.textAlign = 'right';
-        ctx.fillText('watsch.com', width - posterX, height - 40);
+        ctx.fillText('watsch.tv', width - 40, height - 30);
 
         // Convert canvas to buffer
         const buffer = canvas.toBuffer('image/png');
@@ -149,7 +169,7 @@ export const POST: RequestHandler = async ({ request }) => {
         return new Response(buffer, {
             headers: {
                 'Content-Type': 'image/png',
-                'Content-Disposition': `attachment; filename="${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-card.png"`
+                'Content-Disposition': `attachment; filename="${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-watsch.png"`
             }
         });
     } catch (error) {

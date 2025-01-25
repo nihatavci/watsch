@@ -1,99 +1,160 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { OPENAI_API_KEY, TMDB_API_KEY } from '$env/static/private';
+import { getEnvVariables } from '$lib/env';
 
-async function getAIRecommendations(prompt: string) {
-	try {
-		const response = await fetch('https://api.openai.com/v1/chat/completions', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${OPENAI_API_KEY}`
-			},
-			body: JSON.stringify({
-				model: "gpt-3.5-turbo",
-				messages: [{
-					role: "system",
-					content: "You are a movie recommendation expert. Provide recommendations in the format: '1. Movie Title: Brief description'"
-				}, {
-					role: "user",
-					content: `Suggest 5 movies based on these criteria: ${prompt}. Focus on providing diverse, high-quality recommendations that match the specified genres and preferences.`
-				}],
-				temperature: 0.7,
-				max_tokens: 500
-			})
-		});
+type GenreMap = {
+	[key: string]: number;
+};
 
-		const data = await response.json();
-		return data.choices[0].message.content.split('\n').filter(line => line.trim());
-	} catch (error) {
-		console.error('OpenAI API Error:', error);
-		throw error;
-	}
-}
+const GENRE_MAP: GenreMap = {
+	Action: 28,
+	Adventure: 12,
+	Animation: 16,
+	Comedy: 35,
+	Crime: 80,
+	Documentary: 99,
+	Drama: 18,
+	Family: 10751,
+	Fantasy: 14,
+	Horror: 27,
+	Mystery: 9648,
+	Romance: 10749,
+	'Sci-Fi': 878,
+	Thriller: 53
+};
 
-async function getTMDBDetails(title: string) {
-	try {
-		const response = await fetch(
-			`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=en-US&page=1&include_adult=false`
-		);
-		
-		const data = await response.json();
-		if (data.results && data.results.length > 0) {
-			const movie = data.results[0];
-			return {
-				title: movie.title,
-				description: movie.overview,
-				year: new Date(movie.release_date).getFullYear(),
-				rating: movie.vote_average,
-				poster_path: movie.poster_path,
-				tmdb_id: movie.id
-			};
-		}
-		return null;
-	} catch (error) {
-		console.error('TMDB API Error:', error);
-		return null;
-	}
-}
+const TV_GENRE_MAP: GenreMap = {
+	Action: 10759,
+	Adventure: 10759,
+	Animation: 16,
+	Comedy: 35,
+	Crime: 80,
+	Documentary: 99,
+	Drama: 18,
+	Family: 10751,
+	Fantasy: 10765,
+	Horror: 9648,
+	Mystery: 9648,
+	Romance: 10749,
+	'Sci-Fi': 10765,
+	Thriller: 80
+};
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { searched } = await request.json();
-		
+		console.log('Received search request:', searched);
+
 		if (!searched) {
-			return json({ error: "Search criteria is required" }, { status: 400 });
+			console.error('No search criteria provided');
+			return json({ error: 'No search criteria provided' }, { status: 400 });
 		}
 
-		// Get AI recommendations
-		const aiRecommendations = await getAIRecommendations(searched);
+		const [mediaType, ...rest] = searched.split(',').map((s: string) => s.trim());
+
+		if (!mediaType || !['movie', 'tv'].includes(mediaType)) {
+			console.error('Invalid media type:', mediaType);
+			return json({ error: 'Invalid media type. Must be "movie" or "tv".' }, { status: 400 });
+		}
+
+		const genres = rest.filter((item: string) => !item.startsWith(' on '));
+		const platforms = rest
+			.find((item: string) => item.startsWith(' on '))
+			?.replace(' on ', '')
+			.split(',')
+			.map((p: string) => p.trim()) || [];
+
+		console.log('Parsed request:', { mediaType, genres, platforms });
+
+		const genreMap = mediaType === 'tv' ? TV_GENRE_MAP : GENRE_MAP;
+		const genreIds = genres
+			.map((genre: string) => genreMap[genre])
+			.filter((id: number | undefined): id is number => id !== undefined);
+
+		const env = await getEnvVariables();
+		const TMDB_API_KEY = env.TMDB_API_KEY;
+
+		if (!TMDB_API_KEY) {
+			console.error('TMDB API key not found');
+			return json({ error: 'TMDB API key not configured' }, { status: 500 });
+		}
+
+		const url = new URL(`https://api.themoviedb.org/3/discover/${mediaType}`);
+		url.searchParams.append('api_key', TMDB_API_KEY);
+		url.searchParams.append('language', 'en-US');
+		url.searchParams.append('sort_by', 'popularity.desc');
+		url.searchParams.append('include_adult', 'false');
+		url.searchParams.append('page', '1');
 		
-		// Process each recommendation and get TMDB details
-		const processedRecommendations = [];
-		for (const rec of aiRecommendations) {
-			const match = rec.match(/^\d+\.\s*([^:]+):/);
-			if (match) {
-				const title = match[1].trim();
-				const tmdbDetails = await getTMDBDetails(title);
-				if (tmdbDetails) {
-					processedRecommendations.push(
-						`${rec.split(':')[0]}: ${tmdbDetails.title}: ${tmdbDetails.description}`
-					);
-				}
-			}
+		if (genreIds.length > 0) {
+			url.searchParams.append('with_genres', genreIds.join(','));
 		}
 
-		// If we don't have enough recommendations, fill with AI suggestions
-		const finalRecommendations = processedRecommendations.length > 0 ? 
-			processedRecommendations : aiRecommendations;
+		console.log('Fetching from TMDB:', url.toString());
 
-		return new Response(finalRecommendations.join('\n'), {
-			headers: { 'Content-Type': 'text/plain' }
+		const response = await fetch(url.toString());
+		const data = await response.json();
+
+		if (!response.ok) {
+			console.error('TMDB API Error:', {
+				status: response.status,
+				statusText: response.statusText,
+				data
+			});
+			return json(
+				{
+					error: data.status_message || 'Failed to fetch from TMDB',
+					details: data
+				},
+				{ status: response.status }
+			);
+		}
+
+		if (!data.results || data.results.length === 0) {
+			console.log('No results found');
+			return json({ error: 'No movies found matching your criteria' }, { status: 404 });
+		}
+
+		const recommendations = data.results.slice(0, 5).map((item: any) => {
+			try {
+				return {
+					id: item.id,
+					title: item.title || item.name,
+					description: item.overview,
+					type: mediaType,
+					year: item.release_date || item.first_air_date
+						? new Date(item.release_date || item.first_air_date).getFullYear()
+						: null,
+					rating: Math.round(item.vote_average * 10),
+					poster_path: item.poster_path
+						? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+						: null,
+					backdrop_path: item.backdrop_path
+						? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+						: null,
+					popularity: item.popularity,
+					genre_ids: item.genre_ids,
+					original_language: item.original_language?.toUpperCase()
+				};
+			} catch (err) {
+				console.error('Error processing item:', err, item);
+				return null;
+			}
+		}).filter(Boolean);
+
+		console.log('Processed recommendations:', {
+			count: recommendations.length,
+			titles: recommendations.map(r => r.title)
 		});
+
+		return json(recommendations);
 	} catch (error) {
-		console.error('Error generating recommendation:', error);
+		console.error('Error in getRecommendation:', error);
 		return json(
-			{ error: "Failed to generate recommendation" },
+			{
+				error: error instanceof Error ? error.message : 'Failed to get recommendations',
+				details: error instanceof Error ? error.stack : undefined
+			},
 			{ status: 500 }
 		);
 	}

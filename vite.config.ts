@@ -1,12 +1,11 @@
+import { defineConfig } from 'vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
-export default {
-  plugins: [
-    sveltekit()
-  ],
-  server: {
-    fs: {
-      allow: ['..']
-    }
-  }
-};
+export default defineConfig({
+	plugins: [sveltekit()],
+	server: {
+		fs: {
+			allow: ['..']
+		}
+	}
+});

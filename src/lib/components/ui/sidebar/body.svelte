@@ -49,6 +49,9 @@
 </style>
 
 <!-- Mobile Sidebar -->
+<!-- Remove this entire mobile sidebar implementation since it's duplicating -->
+<!-- Remove or comment out this section -->
+<!--
 <div class="h-14 px-4 flex flex-row md:hidden items-center justify-between bg-[#181B18] w-full">
 	<div class="flex justify-end z-20 w-full">
 		<Menu class="text-[#9B9C9E] cursor-pointer w-5 h-5" on:click={() => open.set(!$open)} />
@@ -69,4 +72,10 @@
 			<slot />
 		</div>
 	{/if}
+</div>
+-->
+
+<!-- Keep only the slot for content -->
+<div class={cn('flex flex-col', className)}>
+	<slot />
 </div> 

@@ -28,7 +28,7 @@ Begin check-in process and document analysis.
    - Use the gathered context to guide your suggestions or actions.
 
 4. **Proceed Only After Context Review**:  
-   - Ensure all actions align with the project’s scope and continuity requirements.
+   - Ensure all actions align with the project's scope and continuity requirements.
 
 ---
 
@@ -108,5 +108,39 @@ Begin check-in process and document analysis.
 
 ## [Unreleased]
 
+### Fixed [API-ENDPOINT-FIX-001]
+- Fixed 405 Method Not Allowed errors in TMDB API integration:
+  - Changed TMDB search endpoint from POST to GET method
+  - Updated RecommendationCard to use GET requests with URL parameters
+  - Improved error handling for TMDB API responses
+  - Added proper parameter validation for search and details endpoints
+- Fixed translation service errors:
+  - Updated translation endpoint to use environment utility
+  - Added graceful fallback to original text when translation fails
+  - Improved error logging for OpenAI API responses
+
 ### Changed
+- Updated movie recommendation API endpoint to verify movies exist in TMDB before returning them
+- Improved error handling in recommendations to show more specific error messages
+- Modified search criteria format to be more concise while maintaining functionality
+- Enhanced mobile responsiveness with better spacing and font sizes
+  - Reduced padding and margins for mobile screens
+  - Added responsive text sizes using sm: and md: breakpoints
+  - Improved button and input field sizes for touch targets
+  - Made the "Show Filters" button full width on mobile
+  - Adjusted grid gaps and spacing for better mobile layout
+
+### Fixed
+- Restored form collapse functionality after generating recommendations
+- Fixed TypeScript error in error handling by properly typing the error object
+- Fixed mobile layout issues with better responsive design
+
+### Technical Details
+- The recommendation system now:
+  1. Verifies movies with TMDB before showing them
+  2. Only returns movies that have poster images
+  3. Collapses the form after successful recommendation generation
+  4. Maintains proper error handling and loading states
+  5. Provides a consistent experience across all screen sizes
+
 [Document all changes here.]

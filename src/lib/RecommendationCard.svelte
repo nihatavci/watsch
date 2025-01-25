@@ -10,8 +10,9 @@
 	import Badge from './ui/badge.svelte';
 	import { i18nStore } from './i18n';
 	import GenreTag from './GenreTag.svelte';
-	import { Share2, Download, Copy, Instagram, ExternalLink } from 'lucide-svelte';
+	import { Share2, Download, Copy, Instagram, ExternalLink, X } from 'lucide-svelte';
 	import type { SavedItem } from '../stores/library';
+	import { createEventDispatcher } from 'svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -54,6 +55,8 @@
 	let isCopying = false;
 	let isDownloading = false;
 
+	const dispatch = createEventDispatcher();
+
 	async function translateWithChatGPT(text: string, targetLanguage: string): Promise<string> {
 		try {
 			const response = await fetch('/api/translate', {
@@ -69,11 +72,12 @@
 			});
 
 			if (!response.ok) {
-				throw new Error('Translation failed');
+				console.error('Translation error:', await response.text());
+				return text; // Fallback to original text
 			}
 
 			const data = await response.json();
-			return data.translatedText;
+			return data.translatedText || text;
 		} catch (error) {
 			console.error('Translation error:', error);
 			return text; // Fallback to original text
@@ -83,77 +87,44 @@
 	async function getRecommendationInfo(): Promise<MovieDetails | null> {
 		try {
 			const currentLang = $i18nStore.language;
-
-			// Clean up the title by removing the genre in parentheses
 			const cleanTitle = recommendation.title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
-			console.log('Searching TMDB for:', cleanTitle); // Debug log
+			console.log('Fetching details for:', cleanTitle, 'in', currentLang);
 
 			// First search for the movie/show
-			const searchResponse = await fetch(`/api/tmdb/search`, {
-				method: 'POST',
-				body: JSON.stringify({ 
-					title: cleanTitle, // Use the cleaned title
-					type: recommendation.type || 'movie',
-					language: currentLang
-				}),
-				headers: {
-					'content-type': 'application/json'
-				}
-			});
+			const searchResponse = await fetch(`/api/tmdb/search?title=${encodeURIComponent(cleanTitle)}&type=${encodeURIComponent(recommendation.type || 'movie')}&language=${encodeURIComponent(currentLang)}`);
 
 			const searchData = await searchResponse.json();
 
-			// Debug log
-			if (!searchData.results || searchData.results.length === 0) {
-				console.log('No TMDB results for:', cleanTitle);
-			} else {
-				console.log('TMDB found:', searchData.results.length, 'results for', cleanTitle);
+			if (!searchResponse.ok || !searchData.results?.[0]) {
+				console.error('No results found for:', cleanTitle);
+				return null;
 			}
 
-			// Handle no results without throwing error
-			if (!searchResponse.ok || !searchData.results || searchData.results.length === 0) {
-				console.log('No results found for:', recommendation.title);
-				return null;  // Return null instead of throwing error
-			}
-
-			// Get the first result's details
 			const firstResult = searchData.results[0];
 
-			// Get details in original language (English)
-			const originalResponse = await fetch(`/api/tmdb/details`, {
-				method: 'POST',
-				body: JSON.stringify({ 
-					id: firstResult.id,
-					type: recommendation.type || 'movie',
-					language: 'en'
-				}),
-				headers: {
-					'content-type': 'application/json'
-				}
-			});
+			// Get both original and localized details in parallel
+			const [originalResponse, localResponse] = await Promise.all([
+				fetch(`/api/tmdb/details?id=${firstResult.id}&type=${recommendation.type || 'movie'}&language=en`),
+				fetch(`/api/tmdb/details?id=${firstResult.id}&type=${recommendation.type || 'movie'}&language=${currentLang}`)
+			]);
 
-			const originalData = await originalResponse.json();
-
-			// Get details in local language
-			const localResponse = await fetch(`/api/tmdb/details`, {
-				method: 'POST',
-				body: JSON.stringify({ 
-					id: firstResult.id,
-					type: recommendation.type || 'movie',
-					language: currentLang
-				}),
-				headers: {
-					'content-type': 'application/json'
-				}
-			});
-
-			const localData = await localResponse.json();
+			const [originalData, localData] = await Promise.all([
+				originalResponse.json(),
+				localResponse.json()
+			]);
 
 			if (!originalResponse.ok || !localResponse.ok) {
-				loadingFailed = true;
-				throw new Error('Failed to fetch details');
+				console.error('Failed to fetch details');
+				return null;
 			}
+
+			// Debug log for date fields
+			console.log('Date fields:', {
+				release_date: originalData.release_date,
+				first_air_date: originalData.first_air_date,
+				type: recommendation.type
+			});
 
 			// If local language data is not available or incomplete, use ChatGPT to translate
 			if (currentLang !== 'en' && (!localData.overview || !localData.title)) {
@@ -202,7 +173,11 @@
 			// Construct the movie details with both original and localized data
 			const details: MovieDetails = {
 				Title: originalData.title || originalData.name,
-				Year: new Date(originalData.release_date || originalData.first_air_date).getFullYear().toString(),
+				Year: originalData.release_date 
+					? new Date(originalData.release_date).getFullYear().toString()
+					: originalData.first_air_date 
+					? new Date(originalData.first_air_date).getFullYear().toString()
+					: '',
 				Poster: originalData.poster_path ? `${TMDB_IMAGE_BASE_URL}${originalData.poster_path}` : null,
 				Plot: localData.overview || originalData.overview,
 				Rated: originalData.adult ? 'R' : 'PG-13',
@@ -239,13 +214,13 @@
 
 	function handleSave(data: MovieDetails) {
 		console.log('handleSave called with:', data); // Debugging
-		if (!data?.Title || !data?.Year || !data?.Poster) {
+		if (!data?.Title) {
 			console.error('Missing required fields in media data:', data);
 			return;
 		}
 
-		// Ensure 'year' is a string
-		const yearString = (data?.Year?.toString() ?? '');
+		// Extract year from ReleaseDate if Year is not available
+		const year = data.Year || (data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear().toString() : '');
 
 		// Handle cases where selectedPlatforms might not be an array
 		const platformsArray = Array.isArray(selectedPlatforms) ? selectedPlatforms : [];
@@ -253,8 +228,8 @@
 		const savedItem: SavedItem = {
 			id: Date.now().toString(),
 			title: data.Title,
-			year: yearString,
-			poster: data.Poster,
+			year: year,
+			poster: data.Poster || null,
 			platforms: platformsArray,
 			rating: data.Rating || null,
 			genre: data.Genre || '',
@@ -287,27 +262,45 @@
 		try {
 			isDownloading = true;
 			showNotification($i18nStore.t('share.downloading'));
+
+			// Ensure we have all required data for consistent card generation
+			const cardData = {
+				title: data.LocalizedData.Title || data.Title,
+				year: data.Year || (data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear().toString() : ''),
+				poster: data.Poster || '/placeholder-movie.png',
+				rating: data.Rating,
+				genre: data.Genre,
+				runtime: data.Runtime,
+				streamingLinks: data.streamingLinks || [],
+				overview: data.LocalizedData.Plot || data.Plot,
+				type: recommendation.type || 'movie',
+				insights: data.Insights || [],
+				language: data.Language,
+				actors: data.LocalizedData.Actors || data.Actors
+			};
+
 			const response = await fetch('/api/generate-movie-card', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					title: data.LocalizedData.Title,
-					year: data.Year,
-					poster: data.Poster,
-					rating: data.Rating,
-					genre: data.Genre,
-					runtime: data.Runtime,
-					streamingLinks: data.streamingLinks
-				})
+				body: JSON.stringify(cardData)
 			});
-			
+
+			if (!response.ok) {
+				throw new Error('Failed to generate movie card');
+			}
+
 			const blob = await response.blob();
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = `${data.Title.replace(/\s+/g, '-')}-card.png`;
+
+			// Format filename: "Movie-Title-2024-Watsch"
+			const cleanTitle = cardData.title.replace(/[^a-z0-9\s-]/gi, '').trim();
+			const yearStr = cardData.year ? `-${cardData.year}` : '';
+			a.download = `${cleanTitle}${yearStr}-Watsch.png`;
+
 			document.body.appendChild(a);
 			a.click();
 			document.body.removeChild(a);
@@ -351,26 +344,44 @@
 		{#if data?.Title && data?.Poster}
 			<Card>
 				<CardContent class="p-0">
-					<div class="relative flex bg-neutral-800/70 shadow-md rounded-xl backdrop-blur-gradient overflow-hidden">
-						<div class="w-1/4 relative">
-							<img 
-								src={data.Poster} 
-								alt={data.Title}
-								class="w-full h-full object-cover"
-							/>
-							<div class="absolute inset-0 bg-gradient-to-r from-transparent to-neutral-800/50" />
+					<div class="relative flex flex-col sm:flex-row bg-neutral-800/70 shadow-md rounded-xl backdrop-blur-gradient overflow-hidden min-h-[200px]">
+						<!-- Image container -->
+						<div class="w-full sm:w-1/3 relative min-h-[300px] sm:min-h-full">
+							{#if data.Poster}
+								<img 
+									src={data.Poster} 
+									alt={data.Title}
+									class="absolute inset-0 w-full h-full object-cover"
+									loading="lazy"
+									onerror="this.onerror=null; this.src='/placeholder-movie.png';"
+								/>
+							{:else}
+								<div class="absolute inset-0 bg-neutral-800 flex items-center justify-center">
+									<span class="text-neutral-500">No image available</span>
+								</div>
+							{/if}
+							<div class="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-transparent via-neutral-800/50 to-neutral-800/95" />
 						</div>
 
 						<!-- Content -->
-						<div class="flex-1 p-6 flex flex-col min-h-[250px]">
-							<!-- Header -->
-							<div class="flex items-start justify-between mb-4">
-								<div>
-									<h2 class="text-xl font-bold text-white mb-1">
+						<div class="flex-1 p-5 sm:p-6 flex flex-col relative z-10">
+							<!-- Header with better spacing -->
+							<div class="flex items-start justify-between gap-3 mb-3 sm:mb-4">
+								<div class="flex-1 min-w-0">
+									<h2 class="text-lg sm:text-xl font-bold text-white mb-1 line-clamp-2">
 										{data.LocalizedData.Title}
-										<span class="text-white/60 text-lg ml-2">{data.Year}</span>
+										{#if data.Year || data.ReleaseDate}
+											<span class="text-white/60 text-base sm:text-lg ml-2">
+												({data.Year || (data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear() : '')})
+											</span>
+										{/if}
 									</h2>
-									<div class="flex items-center gap-2 text-sm text-white/60">
+									<div class="flex flex-wrap items-center gap-2 text-sm text-white/60">
+										{#if recommendation.type}
+											<Badge variant="secondary" class="capitalize">
+												{recommendation.type}
+											</Badge>
+										{/if}
 										{#if data.Runtime}<span>{data.Runtime}</span>{/if}
 										{#if data.Language}<span>{$i18nStore.t('recommendations.original_language')}: {data.Language}</span>{/if}
 										{#if data.Rated}
@@ -381,7 +392,7 @@
 									</div>
 								</div>
 								{#if data.Rating}
-									<Badge variant="default">
+									<Badge variant="default" class="flex-shrink-0">
 										{data.Rating}%
 									</Badge>
 								{/if}
@@ -489,7 +500,9 @@
 
 									<!-- Share menu -->
 									{#if showShareMenu}
+										<!-- svelte-ignore a11y-interactive-supports-focus -->
 										<div
+											role="menu"
 											class="absolute bottom-full right-0 mb-2 w-48 bg-neutral-800/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 overflow-hidden"
 											transition:slide={{ duration: 150 }}
 											on:mouseleave={() => showShareMenu = false}

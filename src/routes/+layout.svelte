@@ -3,41 +3,44 @@
 	import '../app.postcss';
 	import { onMount } from 'svelte';
 	import { theme } from '$lib/stores/theme';
-	import { Home, Film, Star, Settings, LogOut, Bookmark } from 'lucide-svelte';
-	import Sidebar from '$lib/components/ui/sidebar/index.svelte';
-	import SidebarBody from '$lib/components/ui/sidebar/body.svelte';
-	import SidebarLink from '$lib/components/ui/sidebar/link.svelte';
+	import { Home, Film, Star, Settings, LogOut, Bookmark, Video } from 'lucide-svelte';
 	import ThemeToggle from '$lib/components/theme-toggle.svelte';
+	import TubelightNavbar from '$lib/components/ui/tubelight-navbar.svelte';
 
-	const links = [
+	const navItems = [
 		{
-			label: 'Home',
-			href: '/',
+			name: 'Home',
+			url: '/',
 			icon: Home
 		},
 		{
-			label: 'Movie Night',
-			href: '/movie-night',
+			name: 'Shorts',
+			url: '/shorts',
+			icon: Video
+		},
+		{
+			name: 'Movie Night',
+			url: '/movie-night',
 			icon: Film
 		},
 		{
-			label: 'Recommendations',
-			href: '/recommendations',
+			name: 'Recommendations',
+			url: '/recommendations',
 			icon: Star
 		},
 		{
-			label: 'Saved Movies',
-			href: '/saved',
+			name: 'Saved',
+			url: '/saved',
 			icon: Bookmark
 		},
 		{
-			label: 'Settings',
-			href: '/settings',
+			name: 'Settings',
+			url: '/settings',
 			icon: Settings
 		},
 		{
-			label: 'Logout',
-			href: '/logout',
+			name: 'Logout',
+			url: '/logout',
 			icon: LogOut
 		}
 	];
@@ -58,47 +61,19 @@
 	});
 </script>
 
-<div class="h-screen overflow-hidden bg-background">
-	<Sidebar bind:open>
-		<SidebarBody>
-			<div class="flex flex-col flex-1">
-				<a href="/" class="flex items-center px-3 py-2 mb-6">
-					<span class="text-sm font-medium text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-						Watsch
-					</span>
-				</a>
-				<div class="flex flex-col gap-1">
-					{#each links as link}
-						<SidebarLink {link} />
-					{/each}
-				</div>
-			</div>
-			<div class="flex flex-col mt-auto pt-4">
-				<div class="flex items-center gap-3 px-3 py-2">
-					<div class="w-8 h-8 rounded-full bg-muted overflow-hidden flex-shrink-0">
-						<img
-							src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-							alt="Profile"
-							class="w-full h-full object-cover"
-						/>
-					</div>
-					<span class="text-[13px] text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-						Your Profile
-					</span>
-				</div>
-			</div>
-		</SidebarBody>
-	</Sidebar>
 
-	<div class="md:ml-[60px] h-screen overflow-y-auto">
-		<main class="min-h-screen">
+<div class="h-screen overflow-hidden bg-background">
+	<TubelightNavbar items={navItems} />
+
+	<div class="h-screen overflow-y-auto pb-0 md:pb-0 md:pt-14">
+		<main class="min-h-screen relative z-20">
 			<slot />
 		</main>
 	</div>
-</div>
 
-<div class="fixed bottom-4 left-3 z-[60] md:block hidden">
-	<ThemeToggle />
+	<div class="fixed bottom-20 left-3 z-[60] md:bottom-4">
+		<ThemeToggle />
+	</div>
 </div>
 
 <style>
@@ -112,4 +87,3 @@
 		@apply m-0 p-0 antialiased;
 	}
 </style>
-  

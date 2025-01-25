@@ -26,11 +26,10 @@
 				<nav class="flex items-center gap-6">
 					<a
 						href="/movie-night"
-						class="text-white/70 hover:text-white transition-colors flex items-center gap-2 group"
-						class:text-white={$page.url.pathname === '/movie-night'}
+						class="flex items-center gap-2 px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors whitespace-nowrap"
 					>
 						<span class="text-xl transform transition-transform group-hover:rotate-12">🎬</span>
-						<span>Movie Night</span>
+						<span class="text-lg">Movie Night</span>
 					</a>
 				</nav>
 			</div>

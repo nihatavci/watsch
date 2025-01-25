@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { env } from '$env/dynamic/private';
 
 interface EnvPlugin {
     getEnvVariables(): Promise<{
@@ -10,19 +11,8 @@ interface EnvPlugin {
 let envVariables: { [key: string]: string } | null = null;
 
 export async function getEnvVariables() {
-    if (envVariables) return envVariables;
-
-    if (Capacitor.isNativePlatform()) {
-        const plugin = (Capacitor as any).Plugins.Env as EnvPlugin;
-        envVariables = await plugin.getEnvVariables();
-    } else {
-        // For web development
-        envVariables = {
-            TMDB_API_KEY: import.meta.env.VITE_TMDB_API_KEY,
-            OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
-            OMDB_API_KEY: import.meta.env.VITE_OMDB_API_KEY
-        };
-    }
-    
-    return envVariables;
+    return {
+        TMDB_API_KEY: process.env.TMDB_API_KEY || env.TMDB_API_KEY,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY || env.OPENAI_API_KEY
+    };
 }

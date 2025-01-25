@@ -149,13 +149,6 @@
 				</div>
 			{/if}
 
-			<!-- Add the button with proper click handler -->
-			<button
-				on:click={generateMovie}
-				class="w-full py-3 rounded-lg bg-gradient-to-r from-red-500 via-red-500 to-red-600 hover:shadow-xl hover:shadow-red-500/20 text-white font-medium text-base transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
-			>
-				Generate Movie
-			</button>
 		</div>
 	</div>
 </div>
