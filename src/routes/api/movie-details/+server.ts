@@ -1,45 +1,65 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { TMDB_API_KEY } from '$env/static/private';
+import { getEnvVariables } from '$lib/env';
 
 export const GET: RequestHandler = async ({ url }) => {
 	try {
-		const title = url.searchParams.get('title');
-		if (!title) {
-			return json({ error: 'Title is required' }, { status: 400 });
+		const id = url.searchParams.get('id');
+		const type = url.searchParams.get('type');
+		const language = url.searchParams.get('language') || 'en-US';
+
+		if (!id || !type) {
+			return json({ error: 'Missing id or type parameter' }, { status: 400 });
 		}
 
-		// Search for the movie
-		const searchResponse = await fetch(
-			`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(title)}&page=1`
+		const env = await getEnvVariables();
+
+		if (!env.TMDB_API_KEY) {
+			console.error('TMDB API key not found');
+			return json({ error: 'TMDB API key not configured' }, { status: 500 });
+		}
+
+		const response = await fetch(
+			`https://api.themoviedb.org/3/${type}/${id}?api_key=${env.TMDB_API_KEY}&language=${language}&append_to_response=credits`,
+			{
+				headers: {
+					'accept': 'application/json'
+				}
+			}
 		);
 
-		if (!searchResponse.ok) {
-			throw new Error('Failed to fetch from TMDB');
-		}
+		const data = await response.json();
 
-		const searchData = await searchResponse.json();
-		const firstResult = searchData.results[0];
-
-		if (!firstResult) {
-			return json({
-				title,
-				poster_path: null,
-				backdrop_path: null,
-				vote_average: null,
-				release_date: null
-			});
+		if (!response.ok) {
+			console.error('TMDB API Error:', data);
+			return json({ error: data.status_message || 'Failed to fetch from TMDB' }, { status: response.status });
 		}
 
 		return json({
-			title: firstResult.title || firstResult.name,
-			poster_path: firstResult.poster_path,
-			backdrop_path: firstResult.backdrop_path,
-			vote_average: firstResult.vote_average,
-			release_date: firstResult.release_date || firstResult.first_air_date
+			id: data.id,
+			title: data.title || data.name,
+			overview: data.overview,
+			type: type,
+			year: data.release_date || data.first_air_date
+				? new Date(data.release_date || data.first_air_date).getFullYear()
+				: null,
+			rating: Math.round(data.vote_average * 10),
+			poster_path: data.poster_path
+				? `https://image.tmdb.org/t/p/w500${data.poster_path}`
+				: null,
+			backdrop_path: data.backdrop_path
+				? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
+				: null,
+			genres: data.genres,
+			runtime: data.runtime || (data.episode_run_time && data.episode_run_time[0]),
+			status: data.status,
+			original_language: data.original_language?.toUpperCase(),
+			credits: data.credits
 		});
 	} catch (error) {
 		console.error('Error fetching movie details:', error);
-		return json({ error: 'Failed to fetch movie details' }, { status: 500 });
+		return json({ 
+			error: error instanceof Error ? error.message : 'Failed to fetch movie details' 
+		}, { status: 500 });
 	}
 }; 
