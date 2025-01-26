@@ -62,7 +62,7 @@
 	],
 	"functions": {
 		"api/*": {
-			"runtime": "@vercel/node@20"
+			"runtime": "nodejs20.x"
 		}
 	}
 }
