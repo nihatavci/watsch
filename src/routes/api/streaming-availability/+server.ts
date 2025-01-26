@@ -1,64 +1,46 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { TMDB_API_KEY } from '$env/static/private';
+import { getEnvVariables } from '$lib/env';
 
 export const POST: RequestHandler = async ({ request }) => {
     try {
         const { tmdbId, type } = await request.json();
+        const env = await getEnvVariables();
 
-        // Fetch watch providers from TMDB
+        if (!tmdbId || !type) {
+            return json({ error: 'Missing required parameters' }, { status: 400 });
+        }
+
         const response = await fetch(
-            `https://api.themoviedb.org/3/${type}/${tmdbId}/watch/providers?api_key=${TMDB_API_KEY}`
+            `https://api.themoviedb.org/3/${type}/${tmdbId}/watch/providers?api_key=${env.TMDB_API_KEY}`
         );
 
         if (!response.ok) {
-            console.error('TMDB API error:', await response.text());
-            return json({ streamingLinks: [] });
+            throw new Error('Failed to fetch streaming providers');
         }
 
         const data = await response.json();
-        const streamingLinks = [];
+        const results = data.results?.US;
 
-        // Get US providers (or fallback to first available region)
-        const regions = data.results || {};
-        const providers = regions.US || Object.values(regions)[0];
-
-        if (providers) {
-            // Add subscription streaming services first
-            if (providers.flatrate) {
-                // Look for Netflix with region-specific URL
-                const netflix = providers.flatrate.find(
-                    (provider: any) => provider.provider_name === 'Netflix'
-                );
-
-                if (netflix && providers.link) {
-                    // Extract Netflix URL from JustWatch if possible
-                    const justWatchUrl = providers.link;
-                    if (justWatchUrl.includes('netflix.com')) {
-                        streamingLinks.push({
-                            platform: 'Netflix',
-                            type: 'subscription',
-                            url: justWatchUrl,
-                            logo: `https://image.tmdb.org/t/p/original${netflix.logo_path}`
-                        });
-                    }
-                }
-            }
-
-            // Add JustWatch link if available
-            if (providers.link) {
-                streamingLinks.push({
-                    platform: 'All Streaming Options',
-                    type: 'all',
-                    url: providers.link,
-                    logo: 'https://www.justwatch.com/appassets/img/logo/JustWatch-logo-large.png'
-                });
-            }
+        if (!results) {
+            return json({ streamingLinks: [] });
         }
+
+        const streamingLinks = [
+            ...(results.flatrate || []),
+            ...(results.free || []),
+            ...(results.ads || [])
+        ].map(provider => ({
+            platform: provider.provider_name,
+            url: results.link,
+            type: 'stream'
+        }));
 
         return json({ streamingLinks });
     } catch (error) {
         console.error('Error fetching streaming availability:', error);
-        return json({ streamingLinks: [] });
+        return json({ 
+            error: error instanceof Error ? error.message : 'Failed to fetch streaming availability' 
+        }, { status: 500 });
     }
 }; 

@@ -1,10 +1,15 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { PRIVATE_RAPID_API_KEY } from '$env/static/private';
+import { getEnvVariables } from '$lib/env';
 
 interface InstagramPost {
-    video_url: string;
+    id: string;
     caption: string;
+    media_type: string;
+    media_url: string;
+    thumbnail_url?: string;
+    permalink: string;
+    timestamp: string;
 }
 
 // For testing, we'll use sample video data until we get the API working
@@ -27,64 +32,58 @@ const SAMPLE_SHORTS = [
 ];
 
 export const GET: RequestHandler = async () => {
-    if (!PRIVATE_RAPID_API_KEY) {
-        console.error('RAPID_API_KEY is not defined');
-        return new Response('Server configuration error', { status: 500 });
-    }
-
     try {
-        const url = 'https://social-media-api6.p.rapidapi.com/instagram/user/reels';
-        console.log('Fetching from:', url);
+        const env = await getEnvVariables();
         
-        const response = await fetch(url, {
-            method: 'POST',
+        if (!env.RAPID_API_KEY) {
+            console.error('RAPID_API_KEY is not defined');
+            return json(
+                { error: 'API configuration error' },
+                { status: 500 }
+            );
+        }
+
+        const options = {
+            method: 'GET',
             headers: {
-                'content-type': 'application/json',
-                'X-RapidAPI-Key': PRIVATE_RAPID_API_KEY,
-                'X-RapidAPI-Host': 'social-media-api6.p.rapidapi.com'
-            },
-            body: JSON.stringify({
-                username: 'moviepulsee'
-            })
-        });
+                'X-RapidAPI-Host': 'instagram-scraper-2022.p.rapidapi.com',
+                'X-RapidAPI-Key': env.RAPID_API_KEY
+            }
+        };
+
+        const response = await fetch(
+            'https://instagram-scraper-2022.p.rapidapi.com/ig/posts_username/?user=watsch.tv',
+            options
+        );
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Response not OK:', {
-                status: response.status,
-                statusText: response.statusText,
-                body: errorText
-            });
-            throw new Error(`API responded with status ${response.status}: ${errorText}`);
+            throw new Error('Failed to fetch Instagram posts');
         }
 
         const data = await response.json();
-        console.log('API Response:', data);
         
-        if (!data.reels) {
-            console.error('Unexpected API response structure:', data);
-            throw new Error('Unexpected API response structure');
+        if (!data.data || !Array.isArray(data.data)) {
+            return json({ posts: [] });
         }
 
-        const shorts = data.reels
-            .filter((post: any) => post.video_url)
+        const posts: InstagramPost[] = data.data
+            .filter((post: any) => post.media_type === 'IMAGE' || post.media_type === 'VIDEO')
             .map((post: any) => ({
-                id: post.id || String(Math.random()),
-                videoUrl: post.video_url,
-                caption: post.caption || 'No caption'
+                id: post.id,
+                caption: post.caption || '',
+                media_type: post.media_type,
+                media_url: post.media_url,
+                thumbnail_url: post.thumbnail_url,
+                permalink: post.permalink,
+                timestamp: post.timestamp
             }));
 
-        if (shorts.length === 0) {
-            console.log('No video posts found in the response');
-            // Return sample data as fallback if no videos found
-            return json(SAMPLE_SHORTS);
-        }
-
-        console.log(`Successfully fetched ${shorts.length} video posts`);
-        return json(shorts);
+        return json({ posts });
     } catch (error) {
-        console.error('Error fetching Instagram data:', error);
-        // Return sample data as fallback if API fails
-        return json(SAMPLE_SHORTS);
+        console.error('Error fetching Instagram posts:', error);
+        return json(
+            { error: error instanceof Error ? error.message : 'Failed to fetch Instagram posts' },
+            { status: 500 }
+        );
     }
 }; 
