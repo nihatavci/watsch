@@ -65,4 +65,4 @@
 			"runtime": "@vercel/node@20"
 		}
 	}
-  }
+}
