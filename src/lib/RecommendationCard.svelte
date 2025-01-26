@@ -574,7 +574,7 @@
 	.backdrop-blur-gradient {
 		background: linear-gradient(
 			to bottom,
-			rgba(34, 31, 31, 0.8) 0%,
+			rgba(34, 31, 31, 0) 0%,
 			rgba(34, 31, 31, 0.9) 50%,
 			rgba(34, 31, 31, 0.95) 100%
 		);
