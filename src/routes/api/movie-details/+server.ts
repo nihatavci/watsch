@@ -23,7 +23,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			`https://api.themoviedb.org/3/${type}/${id}?api_key=${env.TMDB_API_KEY}&language=${language}&append_to_response=credits`,
 			{
 				headers: {
-					'accept': 'application/json'
+					accept: 'application/json'
 				}
 			}
 		);
@@ -32,7 +32,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		if (!response.ok) {
 			console.error('TMDB API Error:', data);
-			return json({ error: data.status_message || 'Failed to fetch from TMDB' }, { status: response.status });
+			return json(
+				{ error: data.status_message || 'Failed to fetch from TMDB' },
+				{ status: response.status }
+			);
 		}
 
 		return json({
@@ -40,13 +43,12 @@ export const GET: RequestHandler = async ({ url }) => {
 			title: data.title || data.name,
 			overview: data.overview,
 			type: type,
-			year: data.release_date || data.first_air_date
-				? new Date(data.release_date || data.first_air_date).getFullYear()
-				: null,
+			year:
+				data.release_date || data.first_air_date
+					? new Date(data.release_date || data.first_air_date).getFullYear()
+					: null,
 			rating: Math.round(data.vote_average * 10),
-			poster_path: data.poster_path
-				? `https://image.tmdb.org/t/p/w500${data.poster_path}`
-				: null,
+			poster_path: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
 			backdrop_path: data.backdrop_path
 				? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
 				: null,
@@ -58,8 +60,11 @@ export const GET: RequestHandler = async ({ url }) => {
 		});
 	} catch (error) {
 		console.error('Error fetching movie details:', error);
-		return json({ 
-			error: error instanceof Error ? error.message : 'Failed to fetch movie details' 
-		}, { status: 500 });
+		return json(
+			{
+				error: error instanceof Error ? error.message : 'Failed to fetch movie details'
+			},
+			{ status: 500 }
+		);
 	}
-}; 
+};

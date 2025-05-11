@@ -1,5 +1,3 @@
-const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default;
-
 /** @type {import('tailwindcss').Config} */
 export default {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
@@ -18,6 +16,11 @@ export default {
 				spin: {
 					to: { transform: 'rotate(360deg)' }
 				}
+			},
+			borderRadius: {
+				lg: 'var(--radius)',
+				md: 'calc(var(--radius) - 2px)',
+				sm: 'calc(var(--radius) - 4px)'
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -52,25 +55,29 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				chart: {
+					1: 'hsl(var(--chart-1))',
+					2: 'hsl(var(--chart-2))',
+					3: 'hsl(var(--chart-3))',
+					4: 'hsl(var(--chart-4))',
+					5: 'hsl(var(--chart-5))'
 				}
-			},
-			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
 			}
 		}
 	},
-	plugins: [addVariablesForColors]
+	plugins: [addVariablesForColors, require('tailwindcss-animate')]
 };
 
 // This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
 function addVariablesForColors({ addBase, theme }) {
+	const flattenColorPalette = require('tailwindcss/lib/util/flattenColorPalette').default;
 	let allColors = flattenColorPalette(theme('colors'));
-	let newVars = Object.fromEntries(Object.entries(allColors).map(([key, val]) => [`--${key}`, val]));
+	let newVars = Object.fromEntries(
+		Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+	);
 
 	addBase({
 		':root': newVars
 	});
 }
-

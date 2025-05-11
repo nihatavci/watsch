@@ -260,12 +260,12 @@
 	}
 
 	async function getRecommendations(prompt: string) {
-		console.log("Original prompt from Form:", prompt); // Log the original prompt
+		console.log('Original prompt from Form:', prompt); // Log the original prompt
 		loading = true;
 		try {
 			// Ensure cinemaType is set
 			if (!cinemaType) {
-				console.error("cinemaType is not set!");
+				console.error('cinemaType is not set!');
 				cinemaType = 'movie'; // Set a default value
 			}
 
@@ -286,7 +286,7 @@
 			}
 			reconstructedPrompt += `. Please return this response as a numbered list with the ${cinemaType}'s title, followed by a colon, and then a brief description.`;
 
-			console.log("Reconstructed prompt:", reconstructedPrompt); // Log the reconstructed prompt
+			console.log('Reconstructed prompt:', reconstructedPrompt); // Log the reconstructed prompt
 
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
@@ -311,7 +311,7 @@
 					const match = rec.match(/\d+\.\s*(.*?):\s*(.*)/);
 					if (!match) return null;
 					const [, title, description] = match;
-					
+
 					try {
 						// Fetch movie details from TMDB
 						const searchResponse = await fetch(`/api/tmdb/search`, {
@@ -319,7 +319,7 @@
 							headers: {
 								'Content-Type': 'application/json'
 							},
-							body: JSON.stringify({ 
+							body: JSON.stringify({
 								title: title.trim(),
 								type: 'movie'
 							})
@@ -401,7 +401,7 @@
 	}
 
 	function handleLibraryClick() {
-		sidebar.update(state => ({ ...state, view: 'library' }));
+		sidebar.update((state) => ({ ...state, view: 'library' }));
 	}
 
 	$: {
@@ -417,7 +417,7 @@
 	function getTargetPosition(selector: string) {
 		const element = document.querySelector(selector);
 		if (!element) return null;
-		
+
 		const rect = element.getBoundingClientRect();
 		return {
 			x: rect.left + rect.width / 2,
@@ -429,7 +429,9 @@
 <!-- Join Screen -->
 <div class="min-h-screen flex flex-col items-center justify-center py-8">
 	<div class="text-center mb-8">
-		<h1 class="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight flex items-center justify-center gap-2">
+		<h1
+			class="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight flex items-center justify-center gap-2"
+		>
 			<span class="text-4xl">🍿</span>
 			Movie Night Fun!
 		</h1>
@@ -474,7 +476,9 @@
 						>
 							<span class="text-lg">{loading ? 'Creating...' : 'Start the Party!'}</span>
 							{#if loading}
-								<div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+								<div
+									class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"
+								/>
 							{:else}
 								<span class="text-xl">🎉</span>
 							{/if}
@@ -494,7 +498,9 @@
 							>
 								<span class="text-lg">{loading ? 'Joining...' : 'Join In!'}</span>
 								{#if loading}
-									<div class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+									<div
+										class="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"
+									/>
 								{:else}
 									<span class="text-xl">🎉</span>
 								{/if}
@@ -568,7 +574,9 @@
 										disabled={loading || participants.length < 2}
 									>
 										{#if loading}
-											<div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+											<div
+												class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
+											/>
 										{:else}
 											<Trophy size={16} />
 											{participants.length < 2 ? 'Waiting for players...' : 'Start Voting'}
@@ -596,7 +604,7 @@
 						</div>
 
 						<!-- Movie Search -->
-						{#if !nominations.some(n => n.participant.id === participantId)}
+						{#if !nominations.some((n) => n.participant.id === participantId)}
 							<div class="text-center p-6 bg-black/30 rounded-lg">
 								<div class="w-16 h-16 mx-auto mb-4">
 									<span class="text-4xl">🎬</span>
@@ -604,9 +612,10 @@
 								<p class="text-white/70 mb-4">Time to pick a movie!</p>
 								<div class="flex justify-center gap-4">
 									<Button
-										on:click={() => showRecommendationForm = true}
+										on:click={() => (showRecommendationForm = true)}
 										class="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed"
-										disabled={loading || nominations.some((n) => n.participant.id === participantId)}
+										disabled={loading ||
+											nominations.some((n) => n.participant.id === participantId)}
 									>
 										<Film size={20} />
 										<span>Find Movies</span>
@@ -635,8 +644,8 @@
 										<X size={20} />
 									</button>
 								</div>
-								<Form 
-									on:submit={getRecommendations} 
+								<Form
+									on:submit={getRecommendations}
 									on:close={() => {
 										showRecommendationForm = false;
 										recommendations = [];
@@ -669,12 +678,16 @@
 													class="w-full aspect-[2/3] object-cover opacity-60"
 												/>
 											{/if}
-											<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+											<div
+												class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+											>
 												<div class="absolute bottom-0 left-0 right-0 p-4">
 													<h4 class="font-medium text-white text-lg mb-1">{movie.title}</h4>
 													<p class="text-sm text-white/70 line-clamp-2 mb-2">{movie.description}</p>
 													{#if movie.release_date}
-														<p class="text-sm text-white/50">{new Date(movie.release_date).getFullYear()}</p>
+														<p class="text-sm text-white/50">
+															{new Date(movie.release_date).getFullYear()}
+														</p>
 													{/if}
 													<Button
 														on:click={() => nominateMovie(movie)}
@@ -682,9 +695,14 @@
 														disabled={loading}
 													>
 														{#if loading}
-															<div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+															<div
+																class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
+															/>
 														{:else}
-															<Trophy size={16} class="transform group-hover:scale-110 transition-transform" />
+															<Trophy
+																size={16}
+																class="transform group-hover:scale-110 transition-transform"
+															/>
 															<span>Pick This One</span>
 														{/if}
 													</Button>
@@ -747,7 +765,9 @@
 									disabled={loading}
 								>
 									{#if loading}
-										<div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+										<div
+											class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
+										/>
 									{:else}
 										<Trophy size={16} />
 										<span>Show Results</span>
@@ -765,20 +785,28 @@
 											class="w-full aspect-[2/3] object-cover opacity-60"
 										/>
 									{/if}
-									<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+									>
 										<div class="absolute bottom-0 left-0 right-0 p-4">
 											<h4 class="font-medium text-white text-lg mb-1">{nomination.movie.title}</h4>
-											<p class="text-sm text-white/70 line-clamp-2 mb-2">{nomination.movie.description}</p>
+											<p class="text-sm text-white/70 line-clamp-2 mb-2">
+												{nomination.movie.description}
+											</p>
 											{#if nomination.movie.release_date}
-												<p class="text-sm text-white/50">{new Date(nomination.movie.release_date).getFullYear()}</p>
+												<p class="text-sm text-white/50">
+													{new Date(nomination.movie.release_date).getFullYear()}
+												</p>
 											{/if}
 											<Button
 												on:click={() => voteForMovie(nomination.movie)}
 												class="mt-3 w-full bg-[#E50914] hover:bg-[#B20710] text-white px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-												disabled={loading || votes.some(v => v.participant.id === participantId)}
+												disabled={loading || votes.some((v) => v.participant.id === participantId)}
 											>
 												{#if loading}
-													<div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+													<div
+														class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
+													/>
 												{:else}
 													<Trophy size={16} />
 													<span>Vote</span>
@@ -797,7 +825,9 @@
 						<div class="flex flex-wrap gap-2">
 							{#each participants as participant}
 								<div
-									class="px-3 py-1.5 rounded-full text-sm {votes.some(v => v.participant.id === participant.id)
+									class="px-3 py-1.5 rounded-full text-sm {votes.some(
+										(v) => v.participant.id === participant.id
+									)
 										? 'bg-[#E50914]/20 text-[#E50914]'
 										: 'bg-black/30 text-white/90'}"
 								>
@@ -813,4 +843,4 @@
 			</Card>
 		</div>
 	</div>
-{/if} 
+{/if}

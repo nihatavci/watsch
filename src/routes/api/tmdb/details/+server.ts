@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ url }) => {
 			return json({ error: 'Missing id or type parameter' }, { status: 400 });
 		}
 
-		const env = await getEnvVariables();
+		const env = getEnvVariables();
 
 		if (!env.TMDB_API_KEY) {
 			console.error('TMDB API key not found');
@@ -24,10 +24,10 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		const response = await fetch(apiUrl, {
 			headers: {
-				'accept': 'application/json'
+				accept: 'application/json'
 			}
 		});
-		
+
 		const data = await response.json();
 
 		if (!response.ok) {
@@ -50,13 +50,12 @@ export const GET: RequestHandler = async ({ url }) => {
 			title: data.title || data.name,
 			overview: data.overview,
 			type: type,
-			year: data.release_date || data.first_air_date
-				? new Date(data.release_date || data.first_air_date).getFullYear()
-				: null,
+			year:
+				data.release_date || data.first_air_date
+					? new Date(data.release_date || data.first_air_date).getFullYear()
+					: null,
 			rating: Math.round(data.vote_average * 10),
-			poster_path: data.poster_path
-				? `https://image.tmdb.org/t/p/w500${data.poster_path}`
-				: null,
+			poster_path: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
 			backdrop_path: data.backdrop_path
 				? `https://image.tmdb.org/t/p/original${data.backdrop_path}`
 				: null,
@@ -75,4 +74,4 @@ export const GET: RequestHandler = async ({ url }) => {
 			{ status: 500 }
 		);
 	}
-}; 
+};

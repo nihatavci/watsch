@@ -3,49 +3,8 @@
 	import '../app.postcss';
 	import { onMount } from 'svelte';
 	import { theme } from '$lib/stores/theme';
-	import { Home, Film, Star, Settings, LogOut, Bookmark, Video } from 'lucide-svelte';
-	import ThemeToggle from '$lib/components/theme-toggle.svelte';
-	import TubelightNavbar from '$lib/components/ui/tubelight-navbar.svelte';
-
-	const navItems = [
-		{
-			name: 'Home',
-			url: '/',
-			icon: Home
-		},
-		{
-			name: 'Shorts',
-			url: '/shorts',
-			icon: Video
-		},
-		{
-			name: 'Movie Night',
-			url: '/movie-night',
-			icon: Film
-		},
-		{
-			name: 'Recommendations',
-			url: '/recommendations',
-			icon: Star
-		},
-		{
-			name: 'Saved',
-			url: '/saved',
-			icon: Bookmark
-		},
-		{
-			name: 'Settings',
-			url: '/settings',
-			icon: Settings
-		},
-		{
-			name: 'Logout',
-			url: '/logout',
-			icon: LogOut
-		}
-	];
-
-	let open = false;
+	import Navbar from '$lib/components/ui/Navbar.svelte';
+	import ToastContainer from '$lib/components/ui/ToastContainer.svelte';
 
 	onMount(() => {
 		// Initialize theme class on document
@@ -61,29 +20,38 @@
 	});
 </script>
 
-
-<div class="h-screen overflow-hidden bg-background">
-	<TubelightNavbar items={navItems} />
-
-	<div class="h-screen overflow-y-auto pb-0 md:pb-0 md:pt-14">
-		<main class="min-h-screen relative z-20">
+<div
+	class="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white transition-colors duration-300"
+>
+	<Navbar />
+	<ToastContainer />
+	<div class="min-h-screen overflow-y-auto pb-20 md:pb-16">
+		<main class="relative z-10">
 			<slot />
 		</main>
-	</div>
-
-	<div class="fixed bottom-20 left-3 z-[60] md:bottom-4">
-		<ThemeToggle />
 	</div>
 </div>
 
 <style>
 	:global(html) {
-		@apply bg-background;
+		transition: background-color 300ms ease-in-out;
 	}
-	:global(html.dark) {
-		background-image: linear-gradient(to bottom right, rgba(30, 0, 60, 0.95), rgba(10, 1, 24, 0.97));
-	}
+
 	:global(body) {
-		@apply m-0 p-0 antialiased;
+		transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
+	}
+
+	:global(*) {
+		transition-property: background-color, border-color, color, fill, stroke;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+		transition-duration: 300ms;
+	}
+
+	/* Apply consistent transitions when theme is changing */
+	:global(.theme-transitioning *) {
+		transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow,
+			transform !important;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+		transition-duration: 300ms !important;
 	}
 </style>

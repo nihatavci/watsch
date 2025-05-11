@@ -4,23 +4,31 @@ import { kv } from '$lib/store/kv';
 export async function POST({ request }) {
 	try {
 		const { roomCode, nickname, votes: selectedVotes } = await request.json();
-		
+
 		if (!roomCode || !nickname || !selectedVotes) {
-			return json({ error: { message: 'Room code, nickname, and votes are required' } }, { status: 400 });
+			return json(
+				{ error: { message: 'Room code, nickname, and votes are required' } },
+				{ status: 400 }
+			);
 		}
 
 		const room = await kv.get(`room:${roomCode.toLowerCase()}`);
-		
+
 		if (!room) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
 		if (room.phase !== 'vote' && room.phase !== 'results') {
-			return json({ error: { message: 'Room is not in voting or results phase' } }, { status: 400 });
+			return json(
+				{ error: { message: 'Room is not in voting or results phase' } },
+				{ status: 400 }
+			);
 		}
 
-		const participant = room.participants.find(p => p.nickname.toLowerCase() === nickname.toLowerCase());
-		
+		const participant = room.participants.find(
+			(p) => p.nickname.toLowerCase() === nickname.toLowerCase()
+		);
+
 		if (!participant) {
 			return json({ error: { message: 'Participant not found' } }, { status: 404 });
 		}
@@ -38,4 +46,4 @@ export async function POST({ request }) {
 		console.error('Error submitting votes:', error);
 		return json({ error: { message: 'Failed to submit votes' } }, { status: 500 });
 	}
-} 
+}

@@ -1,54 +1,32 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getEnvVariables } from '$lib/env';
+import { callOpenAI } from '$lib/api/openai';
 
 export const POST: RequestHandler = async ({ request }) => {
-    try {
-        const env = await getEnvVariables();
-        const { text } = await request.json();
+	try {
+		const { prompt } = await request.json();
 
-        if (!text) {
-            return json({ error: 'Missing text parameter' }, { status: 400 });
-        }
+		if (!prompt) {
+			return json({ error: 'Prompt is required' }, { status: 400 });
+		}
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [
-                    {
-                        role: 'system',
-                        content: 'You are a helpful assistant that generates prompts for movie recommendations.'
-                    },
-                    {
-                        role: 'user',
-                        content: text
-                    }
-                ],
-                temperature: 0.7,
-                max_tokens: 200
-            })
-        });
+		try {
+			const result = await callOpenAI('chat/completions', {
+				model: 'gpt-3.5-turbo',
+				messages: [{ role: 'user', content: prompt }],
+				temperature: 0.7,
+				max_tokens: 1500
+			});
 
-        if (!response.ok) {
-            console.error('OpenAI API Error:', await response.text());
-            return json({ error: 'Failed to generate prompt' }, { status: 500 });
-        }
-
-        const data = await response.json();
-        const generatedPrompt = data.choices[0]?.message?.content?.trim();
-
-        if (!generatedPrompt) {
-            return json({ error: 'No prompt generated' }, { status: 500 });
-        }
-
-        return json({ prompt: generatedPrompt });
-    } catch (error) {
-        console.error('Error generating prompt:', error);
-        return json({ error: 'Failed to generate prompt' }, { status: 500 });
-    }
-}; 
+			return json({
+				response: result.choices[0]?.message?.content || 'No response generated'
+			});
+		} catch (apiError) {
+			console.error('OpenAI API error:', apiError);
+			return json({ error: 'Failed to generate response from AI' }, { status: 500 });
+		}
+	} catch (error) {
+		console.error('Error processing prompt:', error);
+		return json({ error: 'Internal server error' }, { status: 500 });
+	}
+};

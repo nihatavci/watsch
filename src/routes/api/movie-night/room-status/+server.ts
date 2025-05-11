@@ -3,14 +3,14 @@ import { kv } from '$lib/store/kv';
 
 export async function GET({ url }) {
 	try {
-		const roomCode = url.searchParams.get('roomCode');
-		
-		if (!roomCode) {
+		const code = url.searchParams.get('code');
+
+		if (!code) {
 			return json({ error: { message: 'Room code is required' } }, { status: 400 });
 		}
 
-		const room = await kv.get(`room:${roomCode.toLowerCase()}`);
-		
+		const room = await kv.get(`room:${code.toLowerCase()}`);
+
 		if (!room) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
@@ -25,4 +25,4 @@ export async function GET({ url }) {
 		console.error('Error getting room status:', error);
 		return json({ error: { message: 'Failed to get room status' } }, { status: 500 });
 	}
-} 
+}

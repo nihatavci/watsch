@@ -189,7 +189,9 @@
 		disabled={isSubmitting}
 	>
 		{#if isSubmitting}
-			<div class="w-5 h-5 border-2 border-t-gray-900 dark:border-t-white border-gray-200 dark:border-white/20 rounded-full animate-spin" />
+			<div
+				class="w-5 h-5 border-2 border-t-gray-900 dark:border-t-white border-gray-200 dark:border-white/20 rounded-full animate-spin"
+			/>
 		{:else}
 			<Search size={20} />
 		{/if}

@@ -28,17 +28,17 @@ interface Movie {
 
 function createLibraryStore() {
 	const defaultState: LibraryState = { saved: [] };
-	
+
 	// Load initial state from localStorage if available
-	const initialState: LibraryState = browser ? 
-		JSON.parse(localStorage.getItem('library') || JSON.stringify(defaultState)) : 
-		defaultState;
+	const initialState: LibraryState = browser
+		? JSON.parse(localStorage.getItem('library') || JSON.stringify(defaultState))
+		: defaultState;
 
 	const { subscribe, update } = writable<LibraryState>(initialState);
 
 	// Save to localStorage whenever the store changes
 	if (browser) {
-		subscribe(state => {
+		subscribe((state) => {
 			localStorage.setItem('library', JSON.stringify(state));
 		});
 	}
@@ -47,9 +47,9 @@ function createLibraryStore() {
 		subscribe,
 		addToSaved: (savedItem: SavedItem) => {
 			console.log('Adding to saved:', savedItem);
-			update(state => {
+			update((state) => {
 				const saved = state.saved || [];
-				if (!saved.some(item => item.id === savedItem.id)) {
+				if (!saved.some((item) => item.id === savedItem.id)) {
 					sidebar.showWatchlist();
 					return { saved: [savedItem, ...saved] };
 				}
@@ -57,14 +57,14 @@ function createLibraryStore() {
 			});
 		},
 		removeFromSaved: (itemId: string) => {
-			update(state => ({
-				saved: (state.saved || []).filter(item => item.id !== itemId)
+			update((state) => ({
+				saved: (state.saved || []).filter((item) => item.id !== itemId)
 			}));
 		},
 		selectMovie: (movie: Movie) => {
-			update(state => ({ ...state, selectedMovie: movie }));
+			update((state) => ({ ...state, selectedMovie: movie }));
 		}
 	};
 }
 
-export const library = createLibraryStore(); 
+export const library = createLibraryStore();

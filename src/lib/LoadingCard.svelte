@@ -3,8 +3,10 @@
 	export const incomingStream = false;
 </script>
 
-<div class="relative flex flex-col md:flex-row bg-neutral-800/70 shadow-md p-6 rounded-xl animate-pulse">
-	<div class="w-full h-[250px] bg-neutral-700/50 rounded-lg" />
+<div
+	class="relative flex flex-col md:flex-row bg-white dark:bg-black shadow-md p-6 rounded-xl animate-pulse"
+>
+	<div class="w-full h-[250px] bg-gray-100 dark:bg-gray-900/50 rounded-lg" />
 </div>
 
 <style>
@@ -13,7 +15,8 @@
 	}
 
 	@keyframes pulse {
-		0%, 100% {
+		0%,
+		100% {
 			opacity: 0.05;
 		}
 		50% {

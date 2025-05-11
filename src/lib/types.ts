@@ -11,7 +11,7 @@ export interface SavedItem {
 
 // You can add other shared types here as well
 export interface Recommendation {
-    title: string;
-    description: string;
-    type: string;
-} 
+	title: string;
+	description: string;
+	type: string;
+}

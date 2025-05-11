@@ -3,3 +3,8 @@
 node_modules
 build
 .svelte-kit
+.cursor
+.bivvy
+suggestions.md
+prompt.md
+perplexity.md

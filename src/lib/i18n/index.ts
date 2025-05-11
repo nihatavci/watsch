@@ -22,61 +22,61 @@ const i18n = i18next.createInstance();
 
 // Function to detect user's language
 export async function detectLanguage(): Promise<string> {
-    if (!isBrowser) {
-        return defaultLanguage;
-    }
+	if (!isBrowser) {
+		return defaultLanguage;
+	}
 
-    try {
-        // First try geolocation
-        const response = await fetch('/api/geolocation');
-        const data = await response.json();
-        
-        if (data.language && supportedLanguages.includes(data.language)) {
-            console.log('Language detected from geolocation:', data.language);
-            return data.language;
-        }
+	try {
+		// First try geolocation
+		const response = await fetch('/api/geolocation');
+		const data = await response.json();
 
-        // If geolocation fails, check localStorage
-        const storedLanguage = localStorage.getItem('language');
-        if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
-            console.log('Language detected from localStorage:', storedLanguage);
-            return storedLanguage;
-        }
+		if (data.language && supportedLanguages.includes(data.language)) {
+			console.log('Language detected from geolocation:', data.language);
+			return data.language;
+		}
 
-        // Finally, try browser language
-        const browserLanguage = navigator.language.split('-')[0];
-        if (supportedLanguages.includes(browserLanguage)) {
-            console.log('Language detected from browser:', browserLanguage);
-            return browserLanguage;
-        }
+		// If geolocation fails, check localStorage
+		const storedLanguage = localStorage.getItem('language');
+		if (storedLanguage && supportedLanguages.includes(storedLanguage)) {
+			console.log('Language detected from localStorage:', storedLanguage);
+			return storedLanguage;
+		}
 
-        console.log('Falling back to default language:', defaultLanguage);
-        return defaultLanguage;
-    } catch (error) {
-        console.error('Error in language detection:', error);
-        return defaultLanguage;
-    }
+		// Finally, try browser language
+		const browserLanguage = navigator.language.split('-')[0];
+		if (supportedLanguages.includes(browserLanguage)) {
+			console.log('Language detected from browser:', browserLanguage);
+			return browserLanguage;
+		}
+
+		console.log('Falling back to default language:', defaultLanguage);
+		return defaultLanguage;
+	} catch (error) {
+		console.error('Error in language detection:', error);
+		return defaultLanguage;
+	}
 }
 
 // Initialize with default language first
 i18n.use(LanguageDetector).init({
-    resources: {
-        en: { translation: enTranslations },
-        es: { translation: esTranslations },
-        fr: { translation: frTranslations },
-        de: { translation: deTranslations },
-        tr: { translation: trTranslations }
-    },
-    lng: defaultLanguage,
-    fallbackLng: defaultLanguage,
-    debug: import.meta.env.DEV,
-    interpolation: {
-        escapeValue: false
-    },
-    detection: {
-        order: ['localStorage', 'navigator'],
-        caches: isBrowser ? ['localStorage'] : []
-    }
+	resources: {
+		en: { translation: enTranslations },
+		es: { translation: esTranslations },
+		fr: { translation: frTranslations },
+		de: { translation: deTranslations },
+		tr: { translation: trTranslations }
+	},
+	lng: defaultLanguage,
+	fallbackLng: defaultLanguage,
+	debug: import.meta.env.DEV,
+	interpolation: {
+		escapeValue: false
+	},
+	detection: {
+		order: ['localStorage', 'navigator'],
+		caches: isBrowser ? ['localStorage'] : []
+	}
 });
 
 // Create store immediately
@@ -84,21 +84,21 @@ export const i18nStore = createI18nStore(i18n);
 
 // Initialize language asynchronously
 if (isBrowser) {
-    detectLanguage().then(language => {
-        if (language !== i18n.language) {
-            changeLanguage(language);
-        }
-    });
+	detectLanguage().then((language) => {
+		if (language !== i18n.language) {
+			changeLanguage(language);
+		}
+	});
 }
 
 // Function to change language
 export function changeLanguage(lng: string) {
-    if (!isBrowser) return;
-    
-    if (supportedLanguages.includes(lng)) {
-        i18n.changeLanguage(lng);
-        localStorage.setItem('language', lng);
-    }
+	if (!isBrowser) return;
+
+	if (supportedLanguages.includes(lng)) {
+		i18n.changeLanguage(lng);
+		localStorage.setItem('language', lng);
+	}
 }
 
-export default i18n; 
+export default i18n;

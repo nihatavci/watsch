@@ -1,136 +1,136 @@
 {
-  "common": {
-    "app_name": "Watsch",
-    "welcome": "Watsch'a Hoş Geldiniz",
-    "get_recommendations": "Size Özel Öneriler",
-    "loading": "Yükleniyor...",
-    "error": "Bir hata oluştu",
-    "retry": "Tekrar Dene",
-    "close": "Kapat",
-    "link_copied": "Bağlantı panoya kopyalandı"
-  },
-  "home": {
-    "title": "İzleyeceğiniz En İyi İçeriği Bulun",
-    "subtitle": "Size özel seçilmiş film ve dizileri keşfedin",
-    "solo_title": "Kişisel Öneriler",
-    "solo_description": "Tercihlerinize göre size özel film ve dizi önerileri alın",
-    "group_title": "Film Gecesi",
-    "group_description": "Arkadaşlarınızla film gecesi düzenleyin ve birlikte ne izleyeceğinize karar verin"
-  },
-  "movie_night": {
-    "title": "Film Gecesi",
-    "room": "Film Gecesi Odası",
-    "enter_nickname": "Takma adınızı girin",
-    "enter_code": "Oda kodunu girin",
-    "create_room": "Oda Oluştur",
-    "join": "Katıl",
-    "code_copied": "Oda kodu panoya kopyalandı",
-    "enter_details": "Lütfen takma adınızı ve oda kodunu girin",
-    "create_room_error": "Oda oluşturulamadı",
-    "join_room_error": "Odaya katılınamadı",
-    "nomination_phase": "Aday Gösterme Aşaması",
-    "nominated_by": "{nickname} tarafından aday gösterildi",
-    "start_voting": "Oylamayı Başlat",
-    "voting_phase": "Oylama Aşaması",
-    "selected": "Seçildi",
-    "click_to_vote": "Oy vermek için tıklayın",
-    "winner": "Kazanan",
-    "votes": "oy",
-    "watch_on": "{platform}'da İzle",
-    "nominate_error": "Film aday gösterilemedi",
-    "vote_error": "Oylar gönderilemedi",
-    "start_voting_error": "Oylama başlatılamadı"
-  },
-  "recommendations": {
-    "no_results": "Hiç öneri bulunamadı",
-    "try_again": "Farklı tercihler deneyebilirsiniz",
-    "error": {
-      "stream": "Yanıt alınırken bir hata oluştu",
-      "partial": "Bazı öneriler yüklenirken sorun oluştu, mevcut sonuçları görüntülüyoruz",
-      "details": "İçerik detayları yüklenirken hata oluştu"
-    },
-    "minutes": "dakika",
-    "original_language": "Orijinal Dil",
-    "read_more": "Devamını Oku",
-    "cast": "Oyuncu Kadrosu",
-    "add_to_watchlist": "İzleme Listeme Ekle",
-    "remove_from_watchlist": "İzleme Listemden Çıkar",
-    "added_to_watchlist_short": "Listeye Eklendi",
-    "added_to_watchlist": "\"{title}\" izleme listenize eklendi",
-    "removed_from_watchlist": "\"{title}\" izleme listenizden çıkarıldı",
-    "no_details": "Bu içerik için detaylı bilgi bulunmuyor",
-    "rating": "Puan",
-    "release_date": "Yayın Tarihi",
-    "genres": "Türler",
-    "similar": "Benzer İçerikler",
-    "streaming": "İzleme Platformları",
-    "streaming_not_available": "İzleme seçeneği bulunamadı",
-    "subscription": "Abonelik",
-    "rent": "Kiralama",
-    "buy": "Satın Alma"
-  },
-  "navigation": {
-    "home": "Ana Sayfa",
-    "library": "Kütüphanem",
-    "profile": "Profilim",
-    "settings": "Ayarlar",
-    "back": "Geri"
-  },
-  "library": {
-    "saved_items": "Kaydedilenler",
-    "empty_message": "İzleme listenize henüz bir şey eklemediniz",
-    "remove_item": "Listeden Çıkar",
-    "watch_later": "Daha Sonra İzle",
-    "favorites": "Favorilerim"
-  },
-  "form": {
-    "steps": {
-      "1": "İçerik Türü",
-      "2": "Platform",
-      "3": "Kategoriler",
-      "4": "Tercihler"
-    },
-    "questions": {
-      "type": "Ne tür bir içerik arıyorsunuz?",
-      "platforms": "Hangi platformlarda izliyorsunuz?",
-      "genres": "Hangi türleri tercih edersiniz?",
-      "preferences": "Özel istekleriniz var mı?"
-    },
-    "cinema_types": {
-      "movie": "Film",
-      "tv_show": "Dizi",
-      "no_preference": "Farketmez"
-    },
-    "labels": {
-      "popular_genres": "Popüler Türler",
-      "specialized_genres": "Diğer Türler",
-      "duration": "Süre",
-      "year": "Yıl",
-      "rating": "Puan"
-    },
-    "placeholders": {
-      "search": "Ara...",
-      "preferences": "Örnek: 90'lar bilim kurgu filmleri, Oscar ödüllü dramalar..."
-    },
-    "submit": "Önerileri Göster",
-    "back": "Geri",
-    "next": "İleri"
-  },
-  "settings": {
-    "language": "Dil Seçimi",
-    "theme": "Tema",
-    "notifications": "Bildirimler",
-    "privacy": "Gizlilik",
-    "about": "Hakkında"
-  },
-  "share": {
-    "download_card": "Kartı İndir",
-    "downloading": "İndiriliyor...",
-    "download_complete": "İndirme Tamamlandı",
-    "download_error": "İndirme Başarısız",
-    "copy_link": "Bağlantıyı Kopyala",
-    "copied": "Kopyalandı!",
-    "share_whatsapp": "WhatsApp'ta Paylaş",
-    "share_instagram": "Instagram'da Paylaş"
-  }
-} 
+	"common": {
+		"app_name": "Watsch",
+		"welcome": "Watsch'a Hoş Geldiniz",
+		"get_recommendations": "Size Özel Öneriler",
+		"loading": "Yükleniyor...",
+		"error": "Bir hata oluştu",
+		"retry": "Tekrar Dene",
+		"close": "Kapat",
+		"link_copied": "Bağlantı panoya kopyalandı"
+	},
+	"home": {
+		"title": "İzleyeceğiniz En İyi İçeriği Bulun",
+		"subtitle": "Size özel seçilmiş film ve dizileri keşfedin",
+		"solo_title": "Kişisel Öneriler",
+		"solo_description": "Tercihlerinize göre size özel film ve dizi önerileri alın",
+		"group_title": "Film Gecesi",
+		"group_description": "Arkadaşlarınızla film gecesi düzenleyin ve birlikte ne izleyeceğinize karar verin"
+	},
+	"movie_night": {
+		"title": "Film Gecesi",
+		"room": "Film Gecesi Odası",
+		"enter_nickname": "Takma adınızı girin",
+		"enter_code": "Oda kodunu girin",
+		"create_room": "Oda Oluştur",
+		"join": "Katıl",
+		"code_copied": "Oda kodu panoya kopyalandı",
+		"enter_details": "Lütfen takma adınızı ve oda kodunu girin",
+		"create_room_error": "Oda oluşturulamadı",
+		"join_room_error": "Odaya katılınamadı",
+		"nomination_phase": "Aday Gösterme Aşaması",
+		"nominated_by": "{nickname} tarafından aday gösterildi",
+		"start_voting": "Oylamayı Başlat",
+		"voting_phase": "Oylama Aşaması",
+		"selected": "Seçildi",
+		"click_to_vote": "Oy vermek için tıklayın",
+		"winner": "Kazanan",
+		"votes": "oy",
+		"watch_on": "{platform}'da İzle",
+		"nominate_error": "Film aday gösterilemedi",
+		"vote_error": "Oylar gönderilemedi",
+		"start_voting_error": "Oylama başlatılamadı"
+	},
+	"recommendations": {
+		"no_results": "Hiç öneri bulunamadı",
+		"try_again": "Farklı tercihler deneyebilirsiniz",
+		"error": {
+			"stream": "Yanıt alınırken bir hata oluştu",
+			"partial": "Bazı öneriler yüklenirken sorun oluştu, mevcut sonuçları görüntülüyoruz",
+			"details": "İçerik detayları yüklenirken hata oluştu"
+		},
+		"minutes": "dakika",
+		"original_language": "Orijinal Dil",
+		"read_more": "Devamını Oku",
+		"cast": "Oyuncu Kadrosu",
+		"add_to_watchlist": "İzleme Listeme Ekle",
+		"remove_from_watchlist": "İzleme Listemden Çıkar",
+		"added_to_watchlist_short": "Listeye Eklendi",
+		"added_to_watchlist": "\"{title}\" izleme listenize eklendi",
+		"removed_from_watchlist": "\"{title}\" izleme listenizden çıkarıldı",
+		"no_details": "Bu içerik için detaylı bilgi bulunmuyor",
+		"rating": "Puan",
+		"release_date": "Yayın Tarihi",
+		"genres": "Türler",
+		"similar": "Benzer İçerikler",
+		"streaming": "İzleme Platformları",
+		"streaming_not_available": "İzleme seçeneği bulunamadı",
+		"subscription": "Abonelik",
+		"rent": "Kiralama",
+		"buy": "Satın Alma"
+	},
+	"navigation": {
+		"home": "Ana Sayfa",
+		"library": "Kütüphanem",
+		"profile": "Profilim",
+		"settings": "Ayarlar",
+		"back": "Geri"
+	},
+	"library": {
+		"saved_items": "Kaydedilenler",
+		"empty_message": "İzleme listenize henüz bir şey eklemediniz",
+		"remove_item": "Listeden Çıkar",
+		"watch_later": "Daha Sonra İzle",
+		"favorites": "Favorilerim"
+	},
+	"form": {
+		"steps": {
+			"1": "İçerik Türü",
+			"2": "Platform",
+			"3": "Kategoriler",
+			"4": "Tercihler"
+		},
+		"questions": {
+			"type": "Ne tür bir içerik arıyorsunuz?",
+			"platforms": "Hangi platformlarda izliyorsunuz?",
+			"genres": "Hangi türleri tercih edersiniz?",
+			"preferences": "Özel istekleriniz var mı?"
+		},
+		"cinema_types": {
+			"movie": "Film",
+			"tv_show": "Dizi",
+			"no_preference": "Farketmez"
+		},
+		"labels": {
+			"popular_genres": "Popüler Türler",
+			"specialized_genres": "Diğer Türler",
+			"duration": "Süre",
+			"year": "Yıl",
+			"rating": "Puan"
+		},
+		"placeholders": {
+			"search": "Ara...",
+			"preferences": "Örnek: 90'lar bilim kurgu filmleri, Oscar ödüllü dramalar..."
+		},
+		"submit": "Önerileri Göster",
+		"back": "Geri",
+		"next": "İleri"
+	},
+	"settings": {
+		"language": "Dil Seçimi",
+		"theme": "Tema",
+		"notifications": "Bildirimler",
+		"privacy": "Gizlilik",
+		"about": "Hakkında"
+	},
+	"share": {
+		"download_card": "Kartı İndir",
+		"downloading": "İndiriliyor...",
+		"download_complete": "İndirme Tamamlandı",
+		"download_error": "İndirme Başarısız",
+		"copy_link": "Bağlantıyı Kopyala",
+		"copied": "Kopyalandı!",
+		"share_whatsapp": "WhatsApp'ta Paylaş",
+		"share_instagram": "Instagram'da Paylaş"
+	}
+}

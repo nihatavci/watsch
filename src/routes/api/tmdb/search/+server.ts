@@ -7,13 +7,13 @@ export const GET: RequestHandler = async ({ url }) => {
 		const title = url.searchParams.get('title');
 		const type = url.searchParams.get('type')?.toLowerCase() || 'movie';
 		const language = url.searchParams.get('language') || 'en-US';
-		
+
 		if (!title) {
 			return json({ error: 'Missing title parameter' }, { status: 400 });
 		}
 
 		const env = await getEnvVariables();
-		
+
 		if (!env.TMDB_API_KEY) {
 			console.error('TMDB API key not found');
 			return json({ error: 'TMDB API key not configured' }, { status: 500 });
@@ -23,10 +23,12 @@ export const GET: RequestHandler = async ({ url }) => {
 
 		// First try with specific type
 		let response = await fetch(
-			`https://api.themoviedb.org/3/search/${type}?api_key=${env.TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
+			`https://api.themoviedb.org/3/search/${type}?api_key=${
+				env.TMDB_API_KEY
+			}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
 			{
 				headers: {
-					'accept': 'application/json'
+					accept: 'application/json'
 				}
 			}
 		);
@@ -37,10 +39,12 @@ export const GET: RequestHandler = async ({ url }) => {
 		if ((!data.results || data.results.length === 0) && type === 'movie') {
 			console.log('No movie results found, trying TV shows');
 			response = await fetch(
-				`https://api.themoviedb.org/3/search/tv?api_key=${env.TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
+				`https://api.themoviedb.org/3/search/tv?api_key=${
+					env.TMDB_API_KEY
+				}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
 				{
 					headers: {
-						'accept': 'application/json'
+						accept: 'application/json'
 					}
 				}
 			);
@@ -54,10 +58,12 @@ export const GET: RequestHandler = async ({ url }) => {
 		} else if ((!data.results || data.results.length === 0) && type === 'tv') {
 			console.log('No TV results found, trying movies');
 			response = await fetch(
-				`https://api.themoviedb.org/3/search/movie?api_key=${env.TMDB_API_KEY}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
+				`https://api.themoviedb.org/3/search/movie?api_key=${
+					env.TMDB_API_KEY
+				}&query=${encodeURIComponent(title)}&language=${language}&page=1&include_adult=false`,
 				{
 					headers: {
-						'accept': 'application/json'
+						accept: 'application/json'
 					}
 				}
 			);
@@ -93,10 +99,13 @@ export const GET: RequestHandler = async ({ url }) => {
 		return json(data);
 	} catch (error) {
 		console.error('Search error:', error);
-		return new Response(JSON.stringify({ 
-			error: error instanceof Error ? error.message : 'Internal server error' 
-		}), {
-			status: 500
-		});
+		return new Response(
+			JSON.stringify({
+				error: error instanceof Error ? error.message : 'Internal server error'
+			}),
+			{
+				status: 500
+			}
+		);
 	}
-}; 
+};

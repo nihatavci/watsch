@@ -21,4 +21,4 @@ export const GET: RequestHandler = async ({ url }) => {
 	} catch (err) {
 		throw error(500, 'Failed to fetch image');
 	}
-}; 
+};

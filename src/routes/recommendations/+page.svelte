@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { Film, Tv, Sparkles, Brain, Zap } from 'lucide-svelte';
+	import { Film, Tv, Sparkles, Brain, Zap, Search, Star, Clock, ThumbsUp, X } from 'lucide-svelte';
 	import Form from '$lib/Form.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
 	import { library } from '../../stores/library';
-	import { fade, slide } from 'svelte/transition';
+	import { fade, slide, fly } from 'svelte/transition';
+	import { backOut, elasticOut } from 'svelte/easing';
 	import { i18nStore } from '$lib/i18n';
+	import { onMount } from 'svelte';
 
 	interface Recommendation {
 		title: string;
@@ -20,6 +22,11 @@
 	let recommendations: Recommendation[] = [];
 	let error: string | null = null;
 	let isFormCollapsed = false;
+	let mounted = false;
+
+	onMount(() => {
+		mounted = true;
+	});
 
 	const genres = [
 		'Action',
@@ -50,8 +57,11 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					searched: cinemaType + (selectedGenres.length > 0 ? `, ${selectedGenres.join(', ')}` : '') + 
-						(selectedPlatforms.length > 0 ? ` on ${selectedPlatforms.join(', ')}` : '')
+					searched:
+						cinemaType +
+						(selectedGenres.length > 0 ? `, ${selectedGenres.join(', ')}` : '') +
+						(selectedPlatforms.length > 0 ? ` on ${selectedPlatforms.join(', ')}` : ''),
+					preferences: preferences || '' // Pass the user preferences to the API
 				})
 			});
 
@@ -65,12 +75,11 @@
 				throw new Error('No recommendations found');
 			}
 
-			recommendations = data.map(item => ({
+			recommendations = data.map((item) => ({
 				...item,
 				type: cinemaType // Ensure we use the selected type
 			}));
 			isFormCollapsed = true;
-
 		} catch (error: unknown) {
 			console.error('Error getting recommendations:', error);
 			error = error instanceof Error ? error.message : 'Failed to get recommendations';
@@ -85,172 +94,302 @@
 
 	function handleSubmit() {
 		if (!cinemaType) return;
+
+		// Trim preferences and ensure it's properly formatted
+		preferences = preferences.trim();
+
+		// Add context to the preferences if empty to encourage sharing specific preferences
+		if (preferences.length === 0) {
+			// We don't add default preferences, just ensure it's an empty string
+			preferences = '';
+		}
+
 		getRecommendations();
 	}
 
 	function toggleForm() {
 		isFormCollapsed = !isFormCollapsed;
 	}
+
+	// Generate random animation delays for staggered animations
+	const getRandomDelay = (min = 0, max = 300) => Math.random() * (max - min) + min;
 </script>
 
-<div class="relative min-h-screen bg-[#0A0118] pt-16 pb-24">
-	<!-- Gradient background -->
-	<div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(220,38,38,0.15),rgba(255,255,255,0))] -z-20" />
+<svelte:head>
+	<title>Discover Movies & Shows | Watsch</title>
+	<meta
+		name="description"
+		content="Get personalized AI-powered recommendations for your next favorite movie or TV show with Watsch."
+	/>
+</svelte:head>
 
-	<!-- RetroGrid -->
-	<div class="pointer-events-none fixed inset-0 overflow-hidden [perspective:200px] -z-10">
-		<div class="absolute inset-0 [transform:rotateX(65deg)]">
-			<div class="animate-grid [background-image:linear-gradient(to_right,rgba(220,38,38,0.1)_1px,transparent_0),linear-gradient(to_bottom,rgba(220,38,38,0.1)_1px,transparent_0)] [background-repeat:repeat] [background-size:50px_50px] [height:300vh] [inset:0%_0px] [margin-left:-200%] [transform-origin:100%_0_0] [width:600vw]" />
-		</div>
-		<div class="absolute inset-0 bg-gradient-to-t from-[#0A0118] to-transparent to-90%" />
-	</div>
+<div class="relative min-h-screen pt-16 pb-24 overflow-hidden bg-white dark:bg-black">
+	<!-- Remove gradient circles and use a clean black background -->
 
 	<!-- Content -->
-	<div class="relative z-20 w-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-		<div class="space-y-2 sm:space-y-3">
-			<div class="flex items-center gap-2 text-red-500">
-				<Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
-				<span class="text-xs sm:text-sm font-medium">AI-Powered Recommendations</span>
+	<div class="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+		{#if mounted}
+			<div class="space-y-3 sm:space-y-4" in:fly={{ y: -20, duration: 800, easing: backOut }}>
+				<div class="flex items-center gap-2 text-red-500">
+					<Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
+					<span class="text-xs sm:text-sm font-medium uppercase tracking-wider"
+						>AI-POWERED RECOMMENDATIONS</span
+					>
+				</div>
+				<h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
+					Discover Your Next <span class="text-red-500">Favorite</span>
+				</h1>
+				<p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 py-3 sm:py-5 max-w-2xl">
+					Our AI understands your taste and finds the perfect movies and shows tailored just for
+					you.
+				</p>
 			</div>
-			<h1 class="text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-white to-red-500 animate-gradient">
-				Discover Your Next Favorite
-			</h1>
-			<p class="text-base sm:text-lg text-white/60 py-3 sm:py-5 max-w-2xl">
-				Our AI understands your taste and finds the perfect movies for you.
-			</p>
-		</div>
+		{/if}
 
-		<div class="relative mt-4 sm:mt-6">
+		<div class="relative mt-6 sm:mt-8">
 			{#if recommendations.length > 0}
 				<button
 					on:click={toggleForm}
-					class="mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
+					class="mb-4 sm:mb-6 px-4 sm:px-5 py-2.5 rounded-lg bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
 				>
 					<span>{isFormCollapsed ? 'Show Filters' : 'Hide Filters'}</span>
 					<svg
-						class="w-4 h-4 transform transition-transform {isFormCollapsed ? '' : 'rotate-180'}"
+						class="w-4 h-4 transform transition-transform duration-300 {isFormCollapsed
+							? ''
+							: 'rotate-180'}"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
 					>
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M19 9l-7 7-7-7"
+						/>
 					</svg>
 				</button>
 			{/if}
 
 			{#if !isFormCollapsed || recommendations.length === 0}
-				<div transition:slide={{ duration: 300 }}>
-					<form class="space-y-4 sm:space-y-6" on:submit|preventDefault={handleSubmit}>
-						<!-- Cinema Type -->
-						<div class="grid grid-cols-2 gap-2 sm:gap-4">
-							<button
-								type="button"
-								class="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border-2 transition-all {cinemaType === 'movie' ? 'border-red-500 bg-red-500/5' : 'border-red-500/20 hover:border-red-500/40 bg-black/40'}"
-								on:click={() => (cinemaType = 'movie')}
-							>
-								<Film class="w-4 h-4 sm:w-5 sm:h-5 {cinemaType === 'movie' ? 'text-red-500' : 'text-white/60'}" />
-								<span class="text-sm sm:text-base font-medium {cinemaType === 'movie' ? 'text-red-500' : 'text-white/60'}">Movie</span>
-							</button>
-							<button
-								type="button"
-								class="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl border-2 transition-all {cinemaType === 'tv' ? 'border-red-500 bg-red-500/5' : 'border-red-500/20 hover:border-red-500/40 bg-black/40'}"
-								on:click={() => (cinemaType = 'tv')}
-							>
-								<Tv class="w-4 h-4 sm:w-5 sm:h-5 {cinemaType === 'tv' ? 'text-red-500' : 'text-white/60'}" />
-								<span class="text-sm sm:text-base font-medium {cinemaType === 'tv' ? 'text-red-500' : 'text-white/60'}">TV Show</span>
-							</button>
-						</div>
-
-						<!-- Genres -->
-						<div class="space-y-2">
-							<label class="block text-sm sm:text-base font-medium text-white">Choose genres (optional)</label>
-							<div class="flex flex-wrap gap-1.5 sm:gap-2">
-								{#each genres as genre}
+				<div transition:slide={{ duration: 400 }} class="mb-8">
+					<div
+						class="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-xl"
+					>
+						<form class="space-y-5 sm:space-y-7" on:submit|preventDefault={handleSubmit}>
+							<!-- Cinema Type -->
+							<div class="space-y-2">
+								<label
+									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300"
+								>
+									What are you looking for?
+								</label>
+								<div class="grid grid-cols-2 gap-3 sm:gap-4">
 									<button
 										type="button"
-										class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border-2 text-xs sm:text-sm transition-all {selectedGenres.includes(genre) ? 'border-red-500 bg-red-500/5 text-red-500' : 'border-red-500/20 text-white/60 hover:border-red-500/40 bg-black/40'}"
-										on:click={() => {
-											if (selectedGenres.includes(genre)) {
-												selectedGenres = selectedGenres.filter((g) => g !== genre);
-											} else {
-												selectedGenres = [...selectedGenres, genre];
-											}
-										}}
+										class="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 shadow-sm {cinemaType ===
+										'movie'
+											? 'border-red-500 bg-red-500/10 scale-[1.02]'
+											: 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black'}"
+										on:click={() => (cinemaType = 'movie')}
 									>
-										{genre}
+										<div
+											class="flex items-center justify-center w-10 h-10 rounded-full {cinemaType ===
+											'movie'
+												? 'bg-red-500/20 text-red-500'
+												: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}"
+										>
+											<Film class="w-5 h-5" />
+										</div>
+										<span
+											class="text-base sm:text-lg font-medium {cinemaType === 'movie'
+												? 'text-red-500'
+												: 'text-gray-700 dark:text-gray-300'}">Movie</span
+										>
 									</button>
-								{/each}
-							</div>
-						</div>
-
-						<!-- Platforms -->
-						<div class="space-y-2">
-							<label class="block text-sm sm:text-base font-medium text-white">Available on (optional)</label>
-							<div class="flex flex-wrap gap-1.5 sm:gap-2">
-								{#each platforms as platform}
 									<button
 										type="button"
-										class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg border-2 text-xs sm:text-sm transition-all {selectedPlatforms.includes(platform) ? 'border-red-500 bg-red-500/5 text-red-500' : 'border-red-500/20 text-white/60 hover:border-red-500/40 bg-black/40'}"
-										on:click={() => {
-											if (selectedPlatforms.includes(platform)) {
-												selectedPlatforms = selectedPlatforms.filter((p) => p !== platform);
-											} else {
-												selectedPlatforms = [...selectedPlatforms, platform];
-											}
-										}}
+										class="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 shadow-sm {cinemaType ===
+										'tv'
+											? 'border-red-500 bg-red-500/10 scale-[1.02]'
+											: 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black'}"
+										on:click={() => (cinemaType = 'tv')}
 									>
-										{platform}
+										<div
+											class="flex items-center justify-center w-10 h-10 rounded-full {cinemaType ===
+											'tv'
+												? 'bg-red-500/20 text-red-500'
+												: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}"
+										>
+											<Tv class="w-5 h-5" />
+										</div>
+										<span
+											class="text-base sm:text-lg font-medium {cinemaType === 'tv'
+												? 'text-red-500'
+												: 'text-gray-700 dark:text-gray-300'}">TV Show</span
+										>
 									</button>
-								{/each}
+								</div>
 							</div>
-						</div>
 
-						<!-- Preferences -->
-						<div class="space-y-2">
-							<label class="block text-sm sm:text-base font-medium text-white">Any specific preferences? (optional)</label>
-							<input
-								type="text"
-								bind:value={preferences}
-								placeholder="e.g., 'with strong female lead', 'released after 2010'"
-								class="w-full px-3 sm:px-4 py-2 rounded-lg border-2 border-red-500/20 bg-black/40 text-white placeholder-white/40 focus:outline-none focus:border-red-500/40 transition-colors text-xs sm:text-sm"
-							/>
-						</div>
+							<!-- Genres -->
+							<div class="space-y-2">
+								<label
+									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
+								>
+									<ThumbsUp class="w-4 h-4" />
+									Choose genres (optional)
+								</label>
+								<div class="flex flex-wrap gap-2 sm:gap-3">
+									{#each genres as genre, i}
+										{#if mounted}
+											<button
+												type="button"
+												in:fly={{
+													y: 20,
+													delay: getRandomDelay(),
+													duration: 400,
+													easing: elasticOut
+												}}
+												class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 text-sm transition-all duration-300 shadow-sm {selectedGenres.includes(
+													genre
+												)
+													? 'border-red-500 bg-red-500/10 text-red-500 scale-[1.05]'
+													: 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black hover:scale-[1.03]'}"
+												on:click={() => {
+													if (selectedGenres.includes(genre)) {
+														selectedGenres = selectedGenres.filter((g) => g !== genre);
+													} else {
+														selectedGenres = [...selectedGenres, genre];
+													}
+												}}
+											>
+												{genre}
+											</button>
+										{/if}
+									{/each}
+								</div>
+							</div>
 
-						<!-- Submit -->
-						<button
-							type="submit"
-							class="w-full py-2.5 sm:py-3 rounded-lg bg-gradient-to-r from-red-500 via-red-500 to-red-600 hover:shadow-xl hover:shadow-red-500/20 text-white font-medium text-sm sm:text-base transition-all duration-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
-							disabled={!cinemaType || loading}
-						>
-							{#if loading}
-								<div class="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-								<span>Finding the Perfect Match...</span>
-							{:else}
-								<Sparkles class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-								<span>Get AI Recommendations</span>
-							{/if}
-						</button>
-					</form>
+							<!-- Platforms -->
+							<div class="space-y-2">
+								<label
+									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
+								>
+									<Star class="w-4 h-4" />
+									Available on (optional)
+								</label>
+								<div class="flex flex-wrap gap-2 sm:gap-3">
+									{#each platforms as platform, i}
+										{#if mounted}
+											<button
+												type="button"
+												in:fly={{
+													y: 20,
+													delay: getRandomDelay(),
+													duration: 400,
+													easing: elasticOut
+												}}
+												class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 text-sm transition-all duration-300 shadow-sm {selectedPlatforms.includes(
+													platform
+												)
+													? 'border-red-500 bg-red-500/10 text-red-500 scale-[1.05]'
+													: 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black hover:scale-[1.03]'}"
+												on:click={() => {
+													if (selectedPlatforms.includes(platform)) {
+														selectedPlatforms = selectedPlatforms.filter((p) => p !== platform);
+													} else {
+														selectedPlatforms = [...selectedPlatforms, platform];
+													}
+												}}
+											>
+												{platform}
+											</button>
+										{/if}
+									{/each}
+								</div>
+							</div>
+
+							<!-- Preferences -->
+							<div class="space-y-2">
+								<label
+									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
+								>
+									<Brain class="w-4 h-4 text-red-500" />
+									<span class="flex items-center gap-1.5">
+										AI-Enhanced Preferences
+										<span
+											class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+										>
+											SMART
+										</span>
+									</span>
+								</label>
+								<div class="relative">
+									<input
+										type="text"
+										bind:value={preferences}
+										placeholder="e.g., 'with strong female lead', 'from 1990s', '8+ rating'"
+										class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-colors text-sm"
+									/>
+									<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-start gap-2">
+										<Sparkles class="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
+										<span
+											>Our AI will analyze your preferences to enhance your recommendations. Try
+											phrases like "with Tom Hanks", "feel-good comedies", or "mind-bending plots".</span
+										>
+									</div>
+								</div>
+							</div>
+
+							<!-- Submit -->
+							<button
+								type="submit"
+								class="w-full py-3 sm:py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium text-base transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+								disabled={!cinemaType || loading}
+							>
+								{#if loading}
+									<div
+										class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
+									/>
+									<span>AI Analysis in Progress...</span>
+								{:else}
+									<Brain class="w-5 h-5" />
+									<span>Get Smart Recommendations</span>
+								{/if}
+							</button>
+						</form>
+					</div>
 				</div>
 			{/if}
 		</div>
 
 		{#if recommendations.length === 0}
-			<div in:fade>
+			<div in:fade={{ duration: 300 }}>
 				{#if error}
-					<div class="mt-4 p-3 sm:p-4 rounded-xl bg-red-500/10 text-red-400 text-sm sm:text-base">
-						{error}
+					<div
+						class="mt-4 p-5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-base flex items-start gap-3"
+					>
+						<div class="flex-shrink-0 p-2 bg-red-500/20 rounded-full">
+							<X class="w-5 h-5" />
+						</div>
+						<div>
+							<p class="font-medium">Error</p>
+							<p>{error}</p>
+						</div>
 					</div>
 				{/if}
 			</div>
 		{:else}
-			<div class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
+			<div class="mt-8 space-y-5 sm:space-y-6" in:fade={{ duration: 400, delay: 200 }}>
 				{#each recommendations as recommendation, i}
-					<RecommendationCard
-						{recommendation}
-						{selectedPlatforms}
-						on:dismiss={() => dismissRecommendation(i)}
-					/>
+					<div in:fade={{ duration: 400, delay: 300 + i * 100 }}>
+						<RecommendationCard
+							{recommendation}
+							{selectedPlatforms}
+							on:dismiss={() => dismissRecommendation(i)}
+						/>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -258,13 +397,8 @@
 </div>
 
 <style>
-	@keyframes gradient {
-		0% { background-position: 0% 50%; }
-		50% { background-position: 100% 50%; }
-		100% { background-position: 0% 50%; }
+	/* Let the theme system handle the background color */
+	:global(body) {
+		@apply transition-colors duration-300;
 	}
-	.animate-gradient {
-		background-size: 200% auto;
-		animation: gradient 8s linear infinite;
-	}
-</style> 
+</style>

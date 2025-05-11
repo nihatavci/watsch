@@ -23,7 +23,7 @@
 			isCopying = true;
 			await navigator.clipboard.writeText(window.location.href);
 			showNotification('Link copied to clipboard');
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			await new Promise((resolve) => setTimeout(resolve, 1000));
 		} catch (error) {
 			console.error('Failed to copy:', error);
 		} finally {
@@ -91,11 +91,17 @@
 											class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 transition-opacity"
 										/>
 									{/if}
-									<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+									>
 										<div class="absolute bottom-0 left-0 right-0 p-3">
-											<h3 class="text-sm font-medium text-white group-hover:text-white/90">{movie.title}</h3>
+											<h3 class="text-sm font-medium text-white group-hover:text-white/90">
+												{movie.title}
+											</h3>
 											{#if movie.release_date}
-												<p class="text-xs text-white/50 mt-1">{new Date(movie.release_date).getFullYear()}</p>
+												<p class="text-xs text-white/50 mt-1">
+													{new Date(movie.release_date).getFullYear()}
+												</p>
 											{/if}
 										</div>
 									</div>
@@ -115,10 +121,14 @@
 									class="w-full p-14 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left group relative"
 									style="background-image: url('https://image.tmdb.org/t/p/w500{item.poster}'); background-size: cover; background-position: center;"
 								>
-									<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent">
+									<div
+										class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+									>
 										<div class="relative p-3 flex justify-between items-start">
 											<div>
-												<h3 class="font-medium text-white group-hover:text-white/90">{item.title}</h3>
+												<h3 class="font-medium text-white group-hover:text-white/90">
+													{item.title}
+												</h3>
 												<p class="text-sm text-white/50">{item.year}</p>
 											</div>
 											<div class="flex items-center gap-2">
@@ -135,14 +145,16 @@
 														<div
 															class="absolute top-full right-0 mt-2 w-48 bg-neutral-800/95 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 overflow-hidden z-50"
 															transition:slide={{ duration: 150 }}
-															on:mouseleave={() => activeShareMenu = null}
+															on:mouseleave={() => (activeShareMenu = null)}
 														>
 															<button
 																class="w-full px-4 py-3 flex items-center gap-3 hover:bg-neutral-700/50 text-white/90 text-sm transition-colors duration-200"
 																on:click={() => shareOnWhatsApp(item.title)}
 															>
 																<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-																	<path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.85 15.85L14.79 16.91C13.31 18.39 10.69 18.39 9.21 16.91L7.15 14.85C5.67 13.37 5.67 10.75 7.15 9.27L8.21 8.21C8.59 7.83 9.16 7.83 9.54 8.21L11.25 9.92C11.63 10.3 11.63 10.87 11.25 11.25L10.54 11.96C10.16 12.34 10.16 12.91 10.54 13.29L11.71 14.46C12.09 14.84 12.66 14.84 13.04 14.46L13.75 13.75C14.13 13.37 14.7 13.37 15.08 13.75L16.79 15.46C17.17 15.84 17.17 16.41 16.79 16.79L15.85 15.85Z"/>
+																	<path
+																		d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.85 15.85L14.79 16.91C13.31 18.39 10.69 18.39 9.21 16.91L7.15 14.85C5.67 13.37 5.67 10.75 7.15 9.27L8.21 8.21C8.59 7.83 9.16 7.83 9.54 8.21L11.25 9.92C11.63 10.3 11.63 10.87 11.25 11.25L10.54 11.96C10.16 12.34 10.16 12.91 10.54 13.29L11.71 14.46C12.09 14.84 12.66 14.84 13.04 14.46L13.75 13.75C14.13 13.37 14.7 13.37 15.08 13.75L16.79 15.46C17.17 15.84 17.17 16.41 16.79 16.79L15.85 15.85Z"
+																	/>
 																</svg>
 																Share on WhatsApp
 															</button>
@@ -191,4 +203,4 @@
 			</div>
 		</div>
 	</div>
-{/if} 
+{/if}

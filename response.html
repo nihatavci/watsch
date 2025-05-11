@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="./favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker
+					.register('/service-worker.js', { scope: '/' })
+					.then((registration) => {
+						console.log('Service Worker registered with scope:', registration.scope);
+					})
+					.catch((error) => {
+						console.error('Service Worker registration failed:', error);
+					});
+			}
+		</script>
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_dev = {
+						base: new URL('.', location).pathname.slice(0, -1),
+						env: {}
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import('/node_modules/@sveltejs/kit/src/runtime/client/entry.js'),
+						import('/@fs/Users/nihatavci/watsch/.svelte-kit/generated/client/app.js')
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+
+					if ('serviceWorker' in navigator) {
+						addEventListener('load', function () {
+							navigator.serviceWorker.register('./service-worker.js', { type: 'module' });
+						});
+					}
+				}
+			</script>
+		</div>
+	</body>
+</html>

@@ -55,7 +55,10 @@
 								<Trophy size={14} class="transform transition-transform group-hover:rotate-12" />
 								<span>Voting Time</span>
 							{:else if roomPhase === 'results'}
-								<Trophy size={14} class="text-[#E50914] transform transition-transform group-hover:rotate-12" />
+								<Trophy
+									size={14}
+									class="text-[#E50914] transform transition-transform group-hover:rotate-12"
+								/>
 								<span>Winner!</span>
 							{/if}
 						</div>

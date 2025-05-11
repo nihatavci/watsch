@@ -5,21 +5,12 @@ import chromium from '@sparticuz/chromium-min';
 import puppeteer from 'puppeteer-core';
 
 export const POST: RequestHandler = async ({ request }) => {
-    let browser: Browser | null = null;
-    try {
-        const {
-            title,
-            year,
-            poster,
-            rating,
-            genre,
-            runtime,
-            overview,
-            type
-        } = await request.json();
+	let browser: Browser | null = null;
+	try {
+		const { title, year, poster, rating, genre, runtime, overview, type } = await request.json();
 
-        // Create HTML template
-        const html = `
+		// Create HTML template
+		const html = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -104,17 +95,26 @@ export const POST: RequestHandler = async ({ request }) => {
                         <h1 class="title">${title}${year ? ` (${year})` : ''}</h1>
                         <div class="metadata">
                             ${[runtime, rating ? `${rating}%` : null, type?.toUpperCase()]
-                                .filter(Boolean)
-                                .join(' • ')}
+															.filter(Boolean)
+															.join(' • ')}
                         </div>
                         ${overview ? `<p class="overview">${overview}</p>` : ''}
-                        ${genre ? `
+                        ${
+													genre
+														? `
                             <div class="genres">
-                                ${genre.split(', ').map((g: string) => `
+                                ${genre
+																	.split(', ')
+																	.map(
+																		(g: string) => `
                                     <span class="genre">${g}</span>
-                                `).join('')}
+                                `
+																	)
+																	.join('')}
                             </div>
-                        ` : ''}
+                        `
+														: ''
+												}
                     </div>
                     <div class="watermark">watsch.tv</div>
                 </div>
@@ -122,43 +122,45 @@ export const POST: RequestHandler = async ({ request }) => {
             </html>
         `;
 
-        // Launch browser
-        browser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: {
-                width: 1200,
-                height: 675
-            },
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-            ignoreDefaultArgs: false
-        });
+		// Launch browser
+		browser = await puppeteer.launch({
+			args: chromium.args,
+			defaultViewport: {
+				width: 1200,
+				height: 675
+			},
+			executablePath: await chromium.executablePath(),
+			headless: chromium.headless,
+			ignoreDefaultArgs: false
+		});
 
-        // Create new page and set content
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
+		// Create new page and set content
+		const page = await browser.newPage();
+		await page.setContent(html, { waitUntil: 'networkidle0' });
 
-        // Take screenshot
-        const buffer = await page.screenshot({
-            type: 'png',
-            quality: 100
-        });
+		// Take screenshot
+		const buffer = await page.screenshot({
+			type: 'png',
+			quality: 100
+		});
 
-        await browser.close();
-        browser = null;
+		await browser.close();
+		browser = null;
 
-        // Return the image
-        return new Response(buffer, {
-            headers: {
-                'Content-Type': 'image/png',
-                'Content-Disposition': `attachment; filename="${title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-watsch.png"`
-            }
-        });
-    } catch (error) {
-        console.error('Error generating movie card:', error);
-        if (browser) {
-            await browser.close();
-        }
-        return json({ error: 'Failed to generate movie card' }, { status: 500 });
-    }
-}; 
+		// Return the image
+		return new Response(buffer, {
+			headers: {
+				'Content-Type': 'image/png',
+				'Content-Disposition': `attachment; filename="${title
+					.replace(/[^a-z0-9]/gi, '-')
+					.toLowerCase()}-watsch.png"`
+			}
+		});
+	} catch (error) {
+		console.error('Error generating movie card:', error);
+		if (browser) {
+			await browser.close();
+		}
+		return json({ error: 'Failed to generate movie card' }, { status: 500 });
+	}
+};

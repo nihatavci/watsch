@@ -20,34 +20,6 @@
 	</div>
 </div>
 
-<style>
-	:global(.sidebar-base) {
-		height: 100vh;
-		width: 60px;
-		padding: 1rem 0.75rem;
-		display: flex;
-		flex-direction: column;
-		background-color: rgba(10, 1, 24, 0.95);
-		backdrop-filter: blur(20px);
-		flex-shrink: 0;
-		position: fixed;
-		top: 0;
-		left: 0;
-		transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		z-index: 50;
-	}
-
-	:global(.sidebar-base:hover) {
-		width: 240px;
-	}
-
-	@media (max-width: 768px) {
-		:global(.sidebar-base) {
-			display: none;
-		}
-	}
-</style>
-
 <!-- Mobile Sidebar -->
 <!-- Remove this entire mobile sidebar implementation since it's duplicating -->
 <!-- Remove or comment out this section -->
@@ -78,4 +50,32 @@
 <!-- Keep only the slot for content -->
 <div class={cn('flex flex-col', className)}>
 	<slot />
-</div> 
+</div>
+
+<style>
+	:global(.sidebar-base) {
+		height: 100vh;
+		width: 60px;
+		padding: 1rem 0.75rem;
+		display: flex;
+		flex-direction: column;
+		background-color: rgba(10, 1, 24, 0.95);
+		backdrop-filter: blur(20px);
+		flex-shrink: 0;
+		position: fixed;
+		top: 0;
+		left: 0;
+		transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		z-index: 50;
+	}
+
+	:global(.sidebar-base:hover) {
+		width: 240px;
+	}
+
+	@media (max-width: 768px) {
+		:global(.sidebar-base) {
+			display: none;
+		}
+	}
+</style>

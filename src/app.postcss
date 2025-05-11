@@ -2,68 +2,102 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-	:root {
-		--background: 0 0% 100%;
-		--foreground: 240 10% 3.9%;
+:root {
+	/* Base colors */
+	--netflix-red: #e50914;
+	--dark-red: #b20710;
 
-		--card: 0 0% 100%;
-		--card-foreground: 240 10% 3.9%;
+	/* Light mode defaults */
+	--background: 0 0% 100%;
+	--foreground: 240 10% 3.9%;
+	--card: 0 0% 100%;
+	--card-foreground: 240 10% 3.9%;
+	--popover: 0 0% 100%;
+	--popover-foreground: 240 10% 3.9%;
+	--primary: 346 100% 46%;
+	--primary-foreground: 0 0% 98%;
+	--secondary: 240 4.8% 95.9%;
+	--secondary-foreground: 240 5.9% 10%;
+	--muted: 240 4.8% 95.9%;
+	--muted-foreground: 240 3.8% 46.1%;
+	--accent: 240 4.8% 95.9%;
+	--accent-foreground: 240 5.9% 10%;
+	--destructive: 0 84.2% 60.2%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 240 5.9% 90%;
+	--input: 240 5.9% 90%;
+	--ring: 346 100% 46%;
+	--radius: 0.5rem;
 
-		--popover: 0 0% 100%;
-		--popover-foreground: 240 10% 3.9%;
+	/* Transition variables for consistency */
+	--transition-duration: 300ms;
+	--transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-		--primary: 346.8 77.2% 49.8%;
-		--primary-foreground: 355.7 100% 97.3%;
+.dark {
+	/* Dark mode colors */
+	--background: 0 0% 0%; /* True black */
+	--foreground: 0 0% 98%;
+	--card: 0 0% 0%; /* True black */
+	--card-foreground: 0 0% 98%;
+	--popover: 0 0% 0%; /* True black */
+	--popover-foreground: 0 0% 98%;
+	--primary: 346 100% 46%;
+	--primary-foreground: 0 0% 98%;
+	--secondary: 240 3.7% 15.9%;
+	--secondary-foreground: 0 0% 98%;
+	--muted: 240 3.7% 15.9%;
+	--muted-foreground: 240 5% 64.9%;
+	--accent: 240 3.7% 15.9%;
+	--accent-foreground: 0 0% 98%;
+	--destructive: 0 62.8% 30.6%;
+	--destructive-foreground: 0 0% 98%;
+	--border: 240 3.7% 15.9%;
+	--input: 240 3.7% 15.9%;
+	--ring: 346 100% 46%;
+}
 
-		--secondary: 240 4.8% 95.9%;
-		--secondary-foreground: 240 5.9% 10%;
+/* Global Styles */
+body {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	@apply bg-background text-foreground;
+}
 
-		--muted: 240 4.8% 95.9%;
-		--muted-foreground: 240 3.8% 46.1%;
+/* Enhanced Glassmorphism */
+.glassmorphism {
+	@apply dark:bg-black/70 bg-white/70 backdrop-blur-xl border border-white/10 dark:border-white/10 border-gray-200/50;
+}
 
-		--accent: 240 4.8% 95.9%;
-		--accent-foreground: 240 5.9% 10%;
+/* Smooth Transitions */
+.page-transition {
+	transition: all var(--transition-duration) var(--transition-timing);
+}
 
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 0 0% 98%;
+/* Hover and Interactive States */
+.hover-lift {
+	transition: all var(--transition-duration) var(--transition-timing);
+}
 
-		--border: 240 5.9% 90%;
-		--input: 240 5.9% 90%;
-		--ring: 346.8 77.2% 49.8%;
+.hover-lift:hover {
+	@apply translate-y-[-4px] shadow-xl;
+}
 
-		--radius: 0.5rem;
-	}
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+	width: 10px;
+}
 
-	.dark {
-		--background: 20 14.3% 4.1%;
-		--foreground: 0 0% 95%;
+::-webkit-scrollbar-track {
+	@apply bg-secondary;
+}
 
-		--card: 24 9.8% 10%;
-		--card-foreground: 0 0% 95%;
+::-webkit-scrollbar-thumb {
+	@apply bg-muted rounded-full;
+}
 
-		--popover: 0 0% 9%;
-		--popover-foreground: 0 0% 95%;
-
-		--primary: 346.8 77.2% 49.8%;
-		--primary-foreground: 355.7 100% 97.3%;
-
-		--secondary: 240 3.7% 15.9%;
-		--secondary-foreground: 0 0% 98%;
-
-		--muted: 0 0% 15%;
-		--muted-foreground: 240 5% 64.9%;
-
-		--accent: 12 6.5% 15.1%;
-		--accent-foreground: 0 0% 98%;
-
-		--destructive: 0 62.8% 30.6%;
-		--destructive-foreground: 0 85.7% 97.3%;
-
-		--border: 240 3.7% 15.9%;
-		--input: 240 3.7% 15.9%;
-		--ring: 346.8 77.2% 49.8%;
-	}
+::-webkit-scrollbar-thumb:hover {
+	@apply bg-muted-foreground;
 }
 
 @layer base {
@@ -73,29 +107,23 @@
 	body {
 		@apply bg-background text-foreground;
 	}
-}
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-	width: 8px;
-	height: 8px;
-}
-
-::-webkit-scrollbar-track {
-	@apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-	@apply bg-gray-300 dark:bg-gray-700 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	@apply bg-gray-400 dark:bg-gray-600;
+	/* Theme transition for all elements */
+	* {
+		transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow,
+			transform;
+		transition-timing-function: var(--transition-timing);
+		transition-duration: var(--transition-duration);
+	}
 }
 
 /* Smooth transitions between themes */
 @layer utilities {
-	* {
-		@apply transition-colors duration-100;
+	/* Remove the short duration transition that might be conflicting */
+	/* And replace with our consistent theme transition */
+	.transition-theme {
+		transition-property: background-color, border-color, color, fill, stroke;
+		transition-timing-function: var(--transition-timing);
+		transition-duration: var(--transition-duration);
 	}
-} 
+}

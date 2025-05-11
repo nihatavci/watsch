@@ -1,76 +1,76 @@
 {
-    "common": {
-        "app_name": "Watsch",
-        "welcome": "Willkommen bei Watsch",
-        "get_recommendations": "Empfehlungen erhalten",
-        "loading": "Lädt...",
-        "error": "Etwas ist schiefgelaufen"
-    },
-    "home": {
-        "title": "Finde Deinen Perfekten Film",
-        "subtitle": "Entdecke Filme und Serien, die perfekt zu dir passen",
-        "cta": "Starte die Entdeckung"
-    },
-    "recommendations": {
-        "no_results": "Keine Empfehlungen gefunden",
-        "try_again": "Versuche, deine Präferenzen anzupassen",
-        "error": {
-            "stream": "Fehler beim Abrufen der Antwort",
-            "partial": "Problem beim Abrufen der Empfehlungen, aber wir fahren mit verfügbaren Ergebnissen fort",
-            "details": "Fehler beim Laden der Empfehlungsdetails"
-        },
-        "minutes": "Min",
-        "original_language": "Original",
-        "read_more": "Weiterlesen",
-        "cast": "Besetzung",
-        "add_to_watchlist": "Zur Merkliste hinzufügen",
-        "remove_from_watchlist": "Von Merkliste entfernen",
-        "added_to_watchlist_short": "Zur Merkliste hinzugefügt",
-        "added_to_watchlist": "\"{title}\" wurde zu deiner Merkliste hinzugefügt",
-        "removed_from_watchlist": "\"{title}\" wurde von deiner Merkliste entfernt",
-        "no_details": "Keine Details für diese Empfehlung verfügbar"
-    },
-    "navigation": {
-        "home": "Start",
-        "library": "Bibliothek",
-        "profile": "Profil",
-        "settings": "Einstellungen"
-    },
-    "library": {
-        "saved_items": "Gespeicherte Titel",
-        "empty_message": "Deine gespeicherten Filme erscheinen hier",
-        "remove_item": "Aus Bibliothek entfernen"
-    },
-    "form": {
-        "steps": {
-            "1": "Typ",
-            "2": "Plattformen",
-            "3": "Genres",
-            "4": "Präferenzen"
-        },
-        "questions": {
-            "type": "Worauf hast du Lust?",
-            "platforms": "Wo schaust du?",
-            "genres": "Welche Genres interessieren dich?",
-            "preferences": "Besondere Wünsche?"
-        },
-        "cinema_types": {
-            "movie": "Film",
-            "tv_show": "Serie",
-            "no_preference": "Keine Präferenz"
-        },
-        "labels": {
-            "popular_genres": "Beliebte Genres",
-            "specialized_genres": "Weitere Genres"
-        },
-        "placeholders": {
-            "search_genres": "Genres suchen...",
-            "preferences": "Erzähl uns mehr über deine Wünsche... (z.B. 'Nach 2010 erschienen, mit starker weiblicher Hauptrolle')"
-        },
-        "buttons": {
-            "previous": "Zurück",
-            "next": "Weiter",
-            "get_recommendations": "Empfehlungen erhalten"
-        }
-    }
-} 
+	"common": {
+		"app_name": "Watsch",
+		"welcome": "Willkommen bei Watsch",
+		"get_recommendations": "Empfehlungen erhalten",
+		"loading": "Lädt...",
+		"error": "Etwas ist schiefgelaufen"
+	},
+	"home": {
+		"title": "Finde Deinen Perfekten Film",
+		"subtitle": "Entdecke Filme und Serien, die perfekt zu dir passen",
+		"cta": "Starte die Entdeckung"
+	},
+	"recommendations": {
+		"no_results": "Keine Empfehlungen gefunden",
+		"try_again": "Versuche, deine Präferenzen anzupassen",
+		"error": {
+			"stream": "Fehler beim Abrufen der Antwort",
+			"partial": "Problem beim Abrufen der Empfehlungen, aber wir fahren mit verfügbaren Ergebnissen fort",
+			"details": "Fehler beim Laden der Empfehlungsdetails"
+		},
+		"minutes": "Min",
+		"original_language": "Original",
+		"read_more": "Weiterlesen",
+		"cast": "Besetzung",
+		"add_to_watchlist": "Zur Merkliste hinzufügen",
+		"remove_from_watchlist": "Von Merkliste entfernen",
+		"added_to_watchlist_short": "Zur Merkliste hinzugefügt",
+		"added_to_watchlist": "\"{title}\" wurde zu deiner Merkliste hinzugefügt",
+		"removed_from_watchlist": "\"{title}\" wurde von deiner Merkliste entfernt",
+		"no_details": "Keine Details für diese Empfehlung verfügbar"
+	},
+	"navigation": {
+		"home": "Start",
+		"library": "Bibliothek",
+		"profile": "Profil",
+		"settings": "Einstellungen"
+	},
+	"library": {
+		"saved_items": "Gespeicherte Titel",
+		"empty_message": "Deine gespeicherten Filme erscheinen hier",
+		"remove_item": "Aus Bibliothek entfernen"
+	},
+	"form": {
+		"steps": {
+			"1": "Typ",
+			"2": "Plattformen",
+			"3": "Genres",
+			"4": "Präferenzen"
+		},
+		"questions": {
+			"type": "Worauf hast du Lust?",
+			"platforms": "Wo schaust du?",
+			"genres": "Welche Genres interessieren dich?",
+			"preferences": "Besondere Wünsche?"
+		},
+		"cinema_types": {
+			"movie": "Film",
+			"tv_show": "Serie",
+			"no_preference": "Keine Präferenz"
+		},
+		"labels": {
+			"popular_genres": "Beliebte Genres",
+			"specialized_genres": "Weitere Genres"
+		},
+		"placeholders": {
+			"search_genres": "Genres suchen...",
+			"preferences": "Erzähl uns mehr über deine Wünsche... (z.B. 'Nach 2010 erschienen, mit starker weiblicher Hauptrolle')"
+		},
+		"buttons": {
+			"previous": "Zurück",
+			"next": "Weiter",
+			"get_recommendations": "Empfehlungen erhalten"
+		}
+	}
+}

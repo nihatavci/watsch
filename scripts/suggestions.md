@@ -1,6 +1,7 @@
 # Code Improvement Prompt
 
 Review the current codebase for potential improvements:
+
 1. Check for any performance bottlenecks
 2. Identify areas where error handling could be enhanced
 3. Suggest TypeScript type improvements
@@ -11,6 +12,7 @@ Review the current codebase for potential improvements:
 # UI/UX Improvement Prompt
 
 Analyze the current UI/UX and suggest improvements:
+
 1. Review component accessibility
 2. Check responsive design implementation
 3. Suggest performance optimizations for animations and transitions
@@ -22,6 +24,7 @@ Analyze the current UI/UX and suggest improvements:
 # Feature Enhancement Prompt
 
 Consider new features and enhancements:
+
 1. Analyze current user flow and suggest improvements
 2. Consider additional movie recommendation algorithms
 3. Think about social features that could be added
@@ -33,6 +36,7 @@ Consider new features and enhancements:
 # Bug Prevention Prompt
 
 Perform preventive code analysis:
+
 1. Look for potential edge cases in the current implementation
 2. Review API error handling
 3. Check for memory leaks
@@ -44,6 +48,7 @@ Perform preventive code analysis:
 # Movie Recommendation App: UX/UI Improvements
 
 Review the current movie recommendation app and suggest UX/UI improvements for better user engagement and conversion. Focus on:
+
 1. User interface flow and navigation
 2. Visual hierarchy and consistency
 3. Loading states and feedback

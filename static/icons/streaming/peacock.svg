@@ -1,0 +1,14 @@
+<svg width="100" height="30" viewBox="0 0 100 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M50 5C43.0964 5 37.5 10.5964 37.5 17.5C37.5 24.4036 43.0964 30 50 30C56.9036 30 62.5 24.4036 62.5 17.5C62.5 10.5964 56.9036 5 50 5ZM50 25C45.8579 25 42.5 21.6421 42.5 17.5C42.5 13.3579 45.8579 10 50 10C54.1421 10 57.5 13.3579 57.5 17.5C57.5 21.6421 54.1421 25 50 25Z" fill="#37003C"/>
+  <path d="M50 5V10" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 25V30" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M62.5 17.5H57.5" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42.5 17.5H37.5" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M58.5355 9.46447L55 13" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M45 22L41.4645 25.5355" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M58.5355 25.5355L55 22" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M45 13L41.4645 9.46447" stroke="#37003C" stroke-width="2" stroke-linecap="round"/>
+  <path d="M50 25C54.1421 25 57.5 21.6421 57.5 17.5C57.5 13.3579 54.1421 10 50 10C45.8579 10 42.5 13.3579 42.5 17.5C42.5 21.6421 45.8579 25 50 25Z" fill="#3DBB3D"/>
+  <path d="M50 22.5C52.7614 22.5 55 20.2614 55 17.5C55 14.7386 52.7614 12.5 50 12.5C47.2386 12.5 45 14.7386 45 17.5C45 20.2614 47.2386 22.5 50 22.5Z" fill="#FFC600"/>
+  <path d="M50 20C51.3807 20 52.5 18.8807 52.5 17.5C52.5 16.1193 51.3807 15 50 15C48.6193 15 47.5 16.1193 47.5 17.5C47.5 18.8807 48.6193 20 50 20Z" fill="#37003C"/>
+</svg> 

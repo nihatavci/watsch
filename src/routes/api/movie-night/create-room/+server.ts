@@ -5,7 +5,7 @@ import { kv } from '$lib/store/kv';
 export async function POST({ request }) {
 	try {
 		const { hostNickname } = await request.json();
-		
+
 		if (!hostNickname) {
 			return json({ error: { message: 'Nickname is required' } }, { status: 400 });
 		}
@@ -33,4 +33,4 @@ export async function POST({ request }) {
 		console.error('Error creating room:', error);
 		return json({ error: { message: 'Failed to create room' } }, { status: 500 });
 	}
-} 
+}

@@ -90,18 +90,14 @@
 		>
 			<div class="flex gap-2">
 				{#each Array(4) as _, i}
-					<div
-						class="h-20 w-full rounded-lg bg-gray-100 dark:bg-neutral-800 animate-pulse"
-					/>
+					<div class="h-20 w-full rounded-lg bg-gray-100 dark:bg-neutral-800 animate-pulse" />
 				{/each}
 			</div>
 			<div class="flex gap-2 flex-1">
 				{#each Array(2) as _, i}
-					<div
-						class="h-full w-full rounded-lg bg-gray-100 dark:bg-neutral-800 animate-pulse"
-					/>
+					<div class="h-full w-full rounded-lg bg-gray-100 dark:bg-neutral-800 animate-pulse" />
 				{/each}
 			</div>
 		</div>
 	</div>
-</div> 
+</div>

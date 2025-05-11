@@ -12,4 +12,4 @@ export const kv = {
 	},
 	del: async (key: string) => store.delete(key),
 	exists: async (key: string) => store.has(key)
-}; 
+};

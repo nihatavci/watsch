@@ -1,76 +1,76 @@
 {
-    "common": {
-        "app_name": "Watsch",
-        "welcome": "Bienvenue sur Watsch",
-        "get_recommendations": "Obtenir des Recommandations",
-        "loading": "Chargement...",
-        "error": "Une erreur s'est produite"
-    },
-    "home": {
-        "title": "Trouvez Votre Film Parfait",
-        "subtitle": "Découvrez des films et séries personnalisés pour vous",
-        "cta": "Commencer à Explorer"
-    },
-    "recommendations": {
-        "no_results": "Aucune recommandation trouvée",
-        "try_again": "Essayez d'ajuster vos préférences",
-        "error": {
-            "stream": "Impossible d'obtenir la réponse du serveur",
-            "partial": "Un problème est survenu lors de la récupération des recommandations, mais nous continuons avec les résultats disponibles",
-            "details": "Impossible de charger les détails de la recommandation"
-        },
-        "minutes": "min",
-        "original_language": "Original",
-        "read_more": "Lire la suite",
-        "cast": "Distribution",
-        "add_to_watchlist": "Ajouter à Ma Liste",
-        "remove_from_watchlist": "Retirer de Ma Liste",
-        "added_to_watchlist_short": "Ajouté à Ma Liste",
-        "added_to_watchlist": "\"{title}\" a été ajouté à votre liste",
-        "removed_from_watchlist": "\"{title}\" a été retiré de votre liste",
-        "no_details": "Aucun détail disponible pour cette recommandation"
-    },
-    "navigation": {
-        "home": "Accueil",
-        "library": "Bibliothèque",
-        "profile": "Profil",
-        "settings": "Paramètres"
-    },
-    "library": {
-        "saved_items": "Éléments Sauvegardés",
-        "empty_message": "Vos films sauvegardés apparaîtront ici",
-        "remove_item": "Retirer de la bibliothèque"
-    },
-    "form": {
-        "steps": {
-            "1": "Type",
-            "2": "Plateformes",
-            "3": "Genres",
-            "4": "Préférences"
-        },
-        "questions": {
-            "type": "Que voulez-vous regarder ?",
-            "platforms": "Où regardez-vous ?",
-            "genres": "Quels genres vous intéressent ?",
-            "preferences": "Des préférences particulières ?"
-        },
-        "cinema_types": {
-            "movie": "Film",
-            "tv_show": "Série",
-            "no_preference": "Sans Préférence"
-        },
-        "labels": {
-            "popular_genres": "Genres Populaires",
-            "specialized_genres": "Plus de Genres"
-        },
-        "placeholders": {
-            "search_genres": "Rechercher des genres...",
-            "preferences": "Dites-nous en plus sur ce que vous cherchez... (ex: 'Sorti après 2010, avec une héroïne forte')"
-        },
-        "buttons": {
-            "previous": "Précédent",
-            "next": "Suivant",
-            "get_recommendations": "Obtenir des Recommandations"
-        }
-    }
-} 
+	"common": {
+		"app_name": "Watsch",
+		"welcome": "Bienvenue sur Watsch",
+		"get_recommendations": "Obtenir des Recommandations",
+		"loading": "Chargement...",
+		"error": "Une erreur s'est produite"
+	},
+	"home": {
+		"title": "Trouvez Votre Film Parfait",
+		"subtitle": "Découvrez des films et séries personnalisés pour vous",
+		"cta": "Commencer à Explorer"
+	},
+	"recommendations": {
+		"no_results": "Aucune recommandation trouvée",
+		"try_again": "Essayez d'ajuster vos préférences",
+		"error": {
+			"stream": "Impossible d'obtenir la réponse du serveur",
+			"partial": "Un problème est survenu lors de la récupération des recommandations, mais nous continuons avec les résultats disponibles",
+			"details": "Impossible de charger les détails de la recommandation"
+		},
+		"minutes": "min",
+		"original_language": "Original",
+		"read_more": "Lire la suite",
+		"cast": "Distribution",
+		"add_to_watchlist": "Ajouter à Ma Liste",
+		"remove_from_watchlist": "Retirer de Ma Liste",
+		"added_to_watchlist_short": "Ajouté à Ma Liste",
+		"added_to_watchlist": "\"{title}\" a été ajouté à votre liste",
+		"removed_from_watchlist": "\"{title}\" a été retiré de votre liste",
+		"no_details": "Aucun détail disponible pour cette recommandation"
+	},
+	"navigation": {
+		"home": "Accueil",
+		"library": "Bibliothèque",
+		"profile": "Profil",
+		"settings": "Paramètres"
+	},
+	"library": {
+		"saved_items": "Éléments Sauvegardés",
+		"empty_message": "Vos films sauvegardés apparaîtront ici",
+		"remove_item": "Retirer de la bibliothèque"
+	},
+	"form": {
+		"steps": {
+			"1": "Type",
+			"2": "Plateformes",
+			"3": "Genres",
+			"4": "Préférences"
+		},
+		"questions": {
+			"type": "Que voulez-vous regarder ?",
+			"platforms": "Où regardez-vous ?",
+			"genres": "Quels genres vous intéressent ?",
+			"preferences": "Des préférences particulières ?"
+		},
+		"cinema_types": {
+			"movie": "Film",
+			"tv_show": "Série",
+			"no_preference": "Sans Préférence"
+		},
+		"labels": {
+			"popular_genres": "Genres Populaires",
+			"specialized_genres": "Plus de Genres"
+		},
+		"placeholders": {
+			"search_genres": "Rechercher des genres...",
+			"preferences": "Dites-nous en plus sur ce que vous cherchez... (ex: 'Sorti après 2010, avec une héroïne forte')"
+		},
+		"buttons": {
+			"previous": "Précédent",
+			"next": "Suivant",
+			"get_recommendations": "Obtenir des Recommandations"
+		}
+	}
+}
