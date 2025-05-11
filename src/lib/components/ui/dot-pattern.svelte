@@ -19,7 +19,7 @@
 	export let y = 0;
 	export let cx = 1;
 	export let cy = 1;
-	export let cr = 0.5;
+	export let cr = 1;
 	export let className = '';
 
 	const id = nanoid();
@@ -27,20 +27,23 @@
 
 <svg
 	aria-hidden="true"
-	class={cn('pointer-events-none fixed inset-0 h-full w-full fill-white/[0.15]', className)}
+	class={cn(
+		"pointer-events-none fixed inset-0 h-full w-full",
+		className
+	)}
 	{...$$restProps}
 >
 	<defs>
 		<pattern
-			{id}
-			{width}
-			{height}
+			id={id}
+			width={width}
+			height={height}
 			patternUnits="userSpaceOnUse"
 			patternContentUnits="userSpaceOnUse"
-			{x}
-			{y}
+			x={x}
+			y={y}
 		>
-			<circle id="pattern-circle" {cx} {cy} r={cr} />
+			<circle id="pattern-circle" cx={cx} cy={cy} r={cr} class="fill-black/20 dark:fill-white/40" />
 		</pattern>
 	</defs>
 	<rect width="100%" height="100%" stroke-width="0" fill={`url(#${id})`} />
