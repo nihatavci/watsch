@@ -14,9 +14,8 @@ export interface EnvVariables {
 
 // Define our hardcoded fallback values
 const FALLBACK_VALUES = {
-	TMDB_API_KEY: 'd5eec449ee98dc75336ca05b0f2b8133',
-	TMDB_ACCESS_TOKEN:
-		'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkNWVlYzQ0OWVlOThkYzc1MzM2Y2EwNWIwZjJiODEzMyIsIm5iZiI6MTczNzgxNTExNS45NTksInN1YiI6IjY3OTRmNDRiYzVhNTQ1Yjk1MTJhZGRjYSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.s5b0q27_wRXFDJS5KJ2uC7zKYhg6jshFqzOHcB_zQDg',
+	TMDB_API_KEY: '',
+	TMDB_ACCESS_TOKEN: '',
 	OPENAI_API_KEY: '',
 	RAPID_API_KEY: '',
 	YOUTUBE_API_KEY: '',
