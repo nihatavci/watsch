@@ -7,6 +7,7 @@
 	import { isAuthenticated, clearAuth, authStore } from '$lib/stores/auth';
 	import { browser } from '$app/environment';
 	import { savedIconPulse } from '../../../stores/ui';
+	import gsap from 'gsap';
 
 	// Navigation items (matching the main app structure)
 	const navItems = [
@@ -54,9 +55,8 @@
 	<header class="z-50 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80 fixed inset-x-0 top-0">
 		<div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 			<!-- Logo -->
-			<a href="/" class="flex items-center text-xl font-bold">
-				<span class="text-gray-900 dark:text-white">Wat</span>
-				<span class="text-red-500">sch</span>
+			<a href="/" class="flex items-center text-xl font-bold" style="line-height: 0;">
+				<img src="/src/lib/logo/Watch Logo.svg" alt="Watch Logo" class="h-12 w-auto mr-2" />
 			</a>
 			<!-- Desktop Navigation -->
 			<nav class="flex items-center space-x-1">
