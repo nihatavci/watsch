@@ -24,6 +24,7 @@
 	import type { SavedItem } from '../stores/library';
 	import { createEventDispatcher } from 'svelte';
 	import { pulseSavedIcon } from '../stores/ui';
+	import WatchLaterButton from './components/ui/WatchLaterButton.svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -328,13 +329,24 @@
 				type: recommendation.type || 'movie',
 				insights: data.Insights || [],
 				language: data.Language,
-				actors: data.LocalizedData.Actors || data.Actors
+				actors: data.LocalizedData.Actors || data.Actors,
+				version: Date.now() // Add a cache-busting timestamp
 			};
+
+			// Add additional debugging to track what data is being sent
+			console.log('Card data being sent:', {
+				...cardData,
+				posterLength: cardData.poster ? cardData.poster.length : 0,
+				hasInsights: Array.isArray(cardData.insights) && cardData.insights.length > 0,
+				hasStreamingLinks: Array.isArray(cardData.streamingLinks) && cardData.streamingLinks.length > 0,
+			});
 
 			const response = await fetch('/api/generate-movie-card', {
 				method: 'POST',
 				headers: {
-					'Content-Type': 'application/json'
+					'Content-Type': 'application/json',
+					'Cache-Control': 'no-cache',
+					'Pragma': 'no-cache'
 				},
 				body: JSON.stringify(cardData)
 			});
@@ -387,43 +399,98 @@
 			isCopying = false;
 		}
 	}
+
+	function addToLibrary(data: MovieDetails) {
+		if (!data?.Title) {
+			console.error('Missing required fields in media data:', data);
+			return;
+		}
+
+		// Extract year from ReleaseDate if Year is not available
+		const year =
+			data.Year || (data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear().toString() : '');
+
+		// Handle cases where selectedPlatforms might not be an array
+		const platformsArray = Array.isArray(selectedPlatforms) ? selectedPlatforms : [];
+
+		const savedItem: SavedItem = {
+			id: Date.now().toString(),
+			title: data.Title,
+			year: year,
+			poster: data.Poster || null,
+			platforms: platformsArray,
+			rating: data.Rating || null,
+			genre: data.Genre || '',
+			tmdbId: data.tmdbId?.toString() || ''
+		};
+
+		console.log('Adding to saved:', savedItem);
+
+		library.addToSaved(savedItem);
+
+		// Show traditional notification
+		showNotification($i18nStore.t('recommendations.added_to_watchlist', { title: data.Title }));
+
+		// Show toast notification
+		showToast(
+			$i18nStore.t('recommendations.added_to_saved', { title: data.Title }),
+			'success',
+			3000
+		);
+
+		// Trigger pulse animation on the Saved icon in navbar
+		pulseSavedIcon();
+
+		isAdded = true;
+
+		setTimeout(() => {
+			showRemoveButton = true;
+		}, 2000);
+	}
 </script>
 
-<div class="relative rounded-2xl text-white overflow-hidden" in:fade={{ duration: 400 }}>
+<div class="relative rounded-2xl text-white overflow-hidden animate-fadeIn" in:fade={{ duration: 400 }}>
 	{#await promise}
 		<LoadingCard />
 	{:then data}
 		{#if data?.Title && data?.Poster}
-			<Card class="border-0 overflow-hidden">
+			<Card class="border-0 overflow-hidden transform transition-transform hover:scale-[1.01] duration-500">
 				<CardContent class="p-0">
 					<div
-						class="relative flex flex-col sm:flex-row bg-white dark:bg-black shadow-xl rounded-2xl overflow-hidden min-h-[200px] border border-gray-200 dark:border-gray-800"
+						class="relative flex flex-col sm:flex-row bg-gradient-to-br from-black/90 to-gray-900/90 dark:from-black dark:to-gray-900/80 shadow-xl rounded-2xl overflow-hidden min-h-[200px] border border-gray-800/50 dark:border-gray-800/80 backdrop-blur-sm"
 					>
 						<!-- Image container with subtle hover effect -->
 						<div
-							class="w-full sm:w-2/5 relative min-h-[320px] sm:min-h-full transition-transform duration-700 hover:scale-[1.03] overflow-hidden"
+							class="w-full sm:w-2/5 lg:w-1/3 relative min-h-[300px] sm:min-h-full transition-transform duration-700 hover:scale-[1.02] overflow-hidden"
 						>
 							{#if data.Poster}
 								<img
 									src={data.Poster}
 									alt={data.Title}
-									class="absolute inset-0 w-full h-full object-cover transition-transform duration-10000 hover:scale-110"
+									class="absolute inset-0 w-full h-full object-cover transition-transform duration-10000 hover:scale-105"
 									loading="lazy"
-									on:error={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = '/placeholder-movie.png'; }}
+									on:error={(e: Event) => { 
+										const target = e.currentTarget as HTMLImageElement;
+										target.onerror = null; 
+										target.src = '/placeholder-movie.png'; 
+									}}
 								/>
 							{:else}
 								<div class="absolute inset-0 bg-black flex items-center justify-center">
 									<span class="text-gray-500">No image available</span>
 								</div>
 							{/if}
+							
+							<!-- Enhanced gradient overlay for better text contrast -->
 							<div
-								class="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-transparent via-black/40 to-black/90"
+								class="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-black/10 via-black/40 to-black/90"
 							/>
 
 							<!-- Rating badge if exists -->
 							{#if data.Rating}
 								<div
-									class="absolute top-4 left-4 flex items-center justify-center w-14 h-14 rounded-full bg-red-600 border-2 border-gray-800 shadow-lg"
+									class="absolute top-4 left-4 flex items-center justify-center w-16 h-16 rounded-full bg-red-600 backdrop-blur-sm border-2 border-white/20 shadow-lg"
+									in:fade={{ duration: 400, delay: 200 }}
 								>
 									<div class="font-bold text-xl">{data.Rating}%</div>
 								</div>
@@ -431,46 +498,46 @@
 						</div>
 
 						<!-- Content with improved spacing and animations -->
-						<div class="flex-1 p-6 sm:p-8 flex flex-col relative z-10">
+						<div class="flex-1 p-5 sm:p-8 flex flex-col relative z-10">
 							<!-- Dismiss button -->
 							<button
 								on:click={() => dispatch('dismiss')}
-								class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-black border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-950 transition-colors duration-200"
+								class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-colors duration-200"
 							>
 								<X class="w-4 h-4" />
 							</button>
 
 							<!-- Header with better spacing -->
-							<div class="flex items-start justify-between gap-3 mb-5">
+							<div class="flex items-start justify-between gap-3 mb-4">
 								<div class="flex-1 min-w-0">
 									<h2
-										class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2"
+										class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2"
 									>
 										{data.LocalizedData.Title}
 										{#if data.Year || data.ReleaseDate}
-											<span class="text-gray-500 dark:text-gray-400 text-lg sm:text-xl ml-2">
+											<span class="text-red-500 dark:text-red-400 text-lg sm:text-xl ml-2">
 												({data.Year ||
 													(data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear() : '')})
 											</span>
 										{/if}
 									</h2>
 									<div
-										class="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400"
+										class="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
 									>
 										{#if data.Runtime}<span
-												class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E50914] text-white"
-												><Clock class="w-3.5 h-3.5" /> {data.Runtime}</span
+												class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E50914] text-white font-medium"
+												><Clock class="w-3 h-3" /> {data.Runtime}</span
 											>{/if}
 										{#if data.Language}<span
-												class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E50914] text-white"
+												class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E50914] text-white font-medium"
 												><span
-													class="w-3.5 h-3.5 flex items-center justify-center text-xs bg-black rounded-full"
+													class="w-3 h-3 flex items-center justify-center text-xs bg-black/50 rounded-full"
 													>🌐</span
 												>
 												{data.Language}</span
 											>{/if}
 										{#if data.Rated}
-											<Badge variant="default" class="rounded-full px-3 py-1">
+											<Badge variant="default" class="rounded-full px-2.5 py-0.5 font-medium">
 												{data.Rated}
 											</Badge>
 										{/if}
@@ -478,43 +545,39 @@
 								</div>
 							</div>
 
-							<!-- Plot with elegant read more/less -->
-							<div
-								class="mb-5 bg-gray-50 dark:bg-black p-4 rounded-xl border border-gray-200 dark:border-gray-800 shadow-inner"
-							>
+							<!-- Actor tags if available -->
+							{#if data.Actors}
+								<div class="mb-4 flex flex-wrap gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+									{#each data.Actors.split(', ').slice(0, 4) as actor}
+										<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+											{actor}
+										</span>
+									{/each}
+								</div>
+							{/if}
+
+							<!-- Description with show more toggle -->
+							{#if data.LocalizedData.Plot}
+								<div class="relative mb-5">
 								<p
-									class="text-sm text-gray-700 dark:text-gray-300 {showFullDescription
+										class="text-sm sm:text-base text-gray-600 dark:text-gray-300 {showFullDescription
 										? ''
 										: 'line-clamp-3'}"
 								>
 									{data.LocalizedData.Plot}
 								</p>
+									{#if data.LocalizedData.Plot.length > 150}
 								<button
 									on:click={() => (showFullDescription = !showFullDescription)}
-									class="mt-2 text-xs text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 transition-colors duration-300 flex items-center gap-1.5"
+											class="mt-1 text-xs sm:text-sm text-red-500 dark:text-red-400 hover:underline focus:outline-none"
 								>
-									<span
-										>{showFullDescription
-											? $i18nStore.t('recommendations.read_less')
-											: $i18nStore.t('recommendations.read_more')}</span
-									>
-									<svg
-										class="w-3 h-3 transform transition-transform duration-300 {showFullDescription
-											? 'rotate-180'
-											: ''}"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M19 9l-7 7-7-7"
-										/>
-									</svg>
+											{showFullDescription
+												? $i18nStore.t('recommendations.show_less')
+												: $i18nStore.t('recommendations.show_more')}
 								</button>
+									{/if}
 							</div>
+							{/if}
 
 							<!-- Cast with improved styling -->
 							{#if data.LocalizedData.Actors}
@@ -623,6 +686,18 @@
 									{/if}
 								</Button>
 
+								<!-- Add Watch Later button here -->
+								{#if data.tmdbId}
+									<WatchLaterButton 
+										mediaId={data.tmdbId.toString()} 
+										mediaType={(recommendation.type || 'movie') as 'movie' | 'tv'} 
+										title={data.Title} 
+										poster={data.Poster || ''} 
+										year={data.Year ? parseInt(data.Year) : null}
+										simple={true}
+									/>
+								{/if}
+
 								<!-- Share button with improved styling -->
 								<div class="relative flex items-center">
 									<Button
@@ -633,60 +708,75 @@
 										<Share2 class="w-5 h-5" />
 									</Button>
 
-									<!-- Share menu with improved styling -->
+									<!-- Enhanced share menu with improved styling -->
 									{#if showShareMenu}
 										<!-- svelte-ignore a11y-interactive-supports-focus -->
 										<div
 											role="menu"
-											class="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-black rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
+											class="absolute bottom-full right-0 mb-2 w-60 bg-white dark:bg-black rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
 											in:slide={{ duration: 200, axis: 'y' }}
 											on:mouseleave={() => (showShareMenu = false)}
 										>
+											<!-- Primary download button -->
 											<button
-												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+												class="w-full px-4 py-4 flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors duration-200"
 												on:click={() => downloadMovieCard(data)}
 												disabled={isDownloading}
 											>
 												{#if isDownloading}
 													<div
-														class="w-4 h-4 border-2 border-t-transparent border-black rounded-full animate-spin"
+														class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"
 													/>
 												{:else}
-													<Download class="w-4 h-4" />
+													<Download class="w-5 h-5" />
 												{/if}
-												{isDownloading
+												<span>{isDownloading
 													? $i18nStore.t('share.downloading')
-													: $i18nStore.t('share.download_card')}
+													: $i18nStore.t('share.download_card')}</span>
 											</button>
 
+											<!-- Divider -->
+											<div class="w-full h-px bg-gray-200 dark:bg-gray-800"></div>
+											
+											<!-- Share section title -->
+											<div class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">
+												{$i18nStore.t('share.share_via')}
+											</div>
+											
+											<!-- Share options grid -->
+											<div class="grid grid-cols-2 p-2 gap-2">
 											<button
-												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
 												on:click={() => shareOnWhatsApp(data)}
 											>
-												<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+													<svg class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
 													<path
 														d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM15.85 15.85L14.79 16.91C13.31 18.39 10.69 18.39 9.21 16.91L7.15 14.85C5.67 13.37 5.67 10.75 7.15 9.27L8.21 8.21C8.59 7.83 9.16 7.83 9.54 8.21L11.25 9.92C11.63 10.3 11.63 10.87 11.25 11.25L10.54 11.96C10.16 12.34 10.16 12.91 10.54 13.29L11.71 14.46C12.09 14.84 12.66 14.84 13.04 14.46L13.75 13.75C14.13 13.37 14.7 13.37 15.08 13.75L16.79 15.46C17.17 15.84 17.17 16.41 16.79 16.79L15.85 15.85Z"
 													/>
 												</svg>
-												{$i18nStore.t('share.share_whatsapp')}
+													<span>WhatsApp</span>
 											</button>
 
 											<button
-												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
 												on:click={shareOnInstagram}
 											>
-												<Instagram class="w-4 h-4" />
-												{$i18nStore.t('share.share_instagram')}
+													<Instagram class="w-4 h-4 text-purple-500" />
+													<span>Instagram</span>
 											</button>
 
 											<button
-												class="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
 												on:click={copyLink}
 												disabled={isCopying}
 											>
-												<Copy class="w-4 h-4" />
-												{isCopying ? $i18nStore.t('share.copied') : $i18nStore.t('share.copy_link')}
+													<Copy class="w-4 h-4 text-blue-500" />
+													<span>{isCopying ? $i18nStore.t('share.copied') : $i18nStore.t('share.copy_link')}</span>
 											</button>
+												
+												<!-- Spacer for grid alignment -->
+												<div></div>
+											</div>
 										</div>
 									{/if}
 								</div>
@@ -721,5 +811,20 @@
 <style>
 	button {
 		-webkit-tap-highlight-color: transparent;
+	}
+	
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	
+	.animate-fadeIn {
+		animation: fadeIn 0.5s ease-out forwards;
 	}
 </style>

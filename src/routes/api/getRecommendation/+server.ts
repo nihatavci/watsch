@@ -2,6 +2,7 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { TMDB_API_KEY, OPENAI_API_KEY } from '$lib/env-loader';
 import { callOpenAI } from '$lib/api/openai';
+import { canPerformSearch, incrementSearchCount } from '$lib/api/db';
 
 type GenreMap = {
 	[key: string]: number;
@@ -60,8 +61,64 @@ const TV_GENRE_MAP: GenreMap = {
 	Thriller: 80
 };
 
-export const POST: RequestHandler = async ({ request, fetch }) => {
+// Helper function to verify token and extract user info
+function getUserIdFromToken(authHeader: string | null): string | null {
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return null;
+	}
+	
 	try {
+		const token = authHeader.split(' ')[1];
+		// For JWT tokens, extract user info from payload
+		// This is a simplified approach - in production, you'd want to properly validate the token
+		const payloadBase64 = token.split('.')[1];
+		const payload = JSON.parse(atob(payloadBase64));
+		return payload.sub || null; // Auth0 stores user ID in 'sub' claim
+	} catch (error) {
+		console.error('Error extracting user ID from token:', error);
+		return null;
+	}
+}
+
+export const POST: RequestHandler = async ({ request, fetch, getClientAddress }) => {
+	try {
+		// Get the client IP address
+		const ip = getClientAddress();
+		
+		// Check authentication status from request headers
+		const authHeader = request.headers.get('authorization');
+		const userId = getUserIdFromToken(authHeader);
+		const isAuthenticated = !!userId;
+		
+		console.log(`Request from ${isAuthenticated ? 'authenticated user' : 'unauthenticated user'}`);
+		
+		// Check if the user can perform a search
+		const canSearch = await canPerformSearch(ip, isAuthenticated);
+		
+		if (!canSearch) {
+			// If authenticated user, this shouldn't happen, but kept as a failsafe
+			if (isAuthenticated) {
+				console.warn(`Authenticated user ${userId} hit search limit - this should not happen`);
+			} else {
+				console.log(`Search limit reached for IP: ${ip}`);
+			}
+			
+			return json(
+				{
+					error: 'Search limit reached',
+					limit: true,
+					message: 'You have reached your daily search limit. Sign in to get unlimited searches!'
+				},
+				{ status: 429 }
+			);
+		}
+		
+		// If not authenticated, increment search count
+		if (!isAuthenticated) {
+			await incrementSearchCount(ip);
+		}
+		
+		// Proceed with normal search behavior
 		const { searched, preferences } = await request.json();
 		console.log('Received search request:', searched);
 		console.log('User preferences:', preferences);

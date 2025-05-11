@@ -859,7 +859,7 @@
 													{#each recommendations as movie}
 														<div
 															on:click={() => selectMovie(movie)}
-															on:keydown={(event) => handleKeydown(movie, event)}
+															on:keydown={(event: KeyboardEvent) => handleKeydown(movie, event)}
 															class="cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col"
 															tabindex="0"
 															role="button"
@@ -914,7 +914,7 @@
 												{#each searchResults as movie}
 													<div
 														on:click={() => selectMovie(movie)}
-														on:keydown={(event) => handleKeydown(movie, event)}
+														on:keydown={(event: KeyboardEvent) => handleKeydown(movie, event)}
 														class="cursor-pointer p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex items-center gap-3"
 														tabindex="0"
 														role="button"

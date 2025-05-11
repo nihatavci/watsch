@@ -7,6 +7,8 @@
 	import { backOut, elasticOut } from 'svelte/easing';
 	import { i18nStore } from '$lib/i18n';
 	import { onMount } from 'svelte';
+	import SearchLimitIndicator from '$lib/components/ui/SearchLimitIndicator.svelte';
+	import SearchLimitModal from '$lib/components/ui/SearchLimitModal.svelte';
 
 	interface Recommendation {
 		title: string;
@@ -23,6 +25,7 @@
 	let error: string | null = null;
 	let isFormCollapsed = false;
 	let mounted = false;
+	let showLimitModal = false;
 
 	onMount(() => {
 		mounted = true;
@@ -53,9 +56,18 @@
 			error = null;
 			recommendations = [];
 
+			// Get the auth token from localStorage
+			const authToken = localStorage.getItem('auth_token');
+			const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+			
+			// Add authorization header if authenticated
+			if (authToken) {
+				headers['Authorization'] = `Bearer ${authToken}`;
+			}
+
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers,
 				body: JSON.stringify({
 					searched:
 						cinemaType +
@@ -64,6 +76,16 @@
 					preferences: preferences || '' // Pass the user preferences to the API
 				})
 			});
+
+			// Check for search limit reached
+			if (response.status === 429) {
+				const errorData = await response.json();
+				if (errorData.limit) {
+					showLimitModal = true;
+					error = 'Search limit reached. Sign in to get unlimited searches!';
+					throw new Error(error);
+				}
+			}
 
 			if (!response.ok) {
 				const errorData = await response.json();
@@ -111,6 +133,10 @@
 		isFormCollapsed = !isFormCollapsed;
 	}
 
+	function closeLimitModal() {
+		showLimitModal = false;
+	}
+
 	// Generate random animation delays for staggered animations
 	const getRandomDelay = (min = 0, max = 300) => Math.random() * (max - min) + min;
 </script>
@@ -123,11 +149,9 @@
 	/>
 </svelte:head>
 
-<div class="relative min-h-screen pt-16 pb-24 overflow-hidden bg-white dark:bg-black">
-	<!-- Remove gradient circles and use a clean black background -->
-
+<div class="relative min-h-screen pt-16 pb-24 overflow-hidden">
 	<!-- Content -->
-	<div class="relative z-20 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+	<div class="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 		{#if mounted}
 			<div class="space-y-3 sm:space-y-4" in:fly={{ y: -20, duration: 800, easing: backOut }}>
 				<div class="flex items-center gap-2 text-red-500">
@@ -147,6 +171,9 @@
 		{/if}
 
 		<div class="relative mt-6 sm:mt-8">
+			<!-- Search Limit Indicator -->
+			<SearchLimitIndicator />
+			
 			{#if recommendations.length > 0}
 				<button
 					on:click={toggleForm}
@@ -395,6 +422,9 @@
 		{/if}
 	</div>
 </div>
+
+<!-- Search Limit Modal -->
+<SearchLimitModal open={showLimitModal} onClose={closeLimitModal} />
 
 <style>
 	/* Let the theme system handle the background color */

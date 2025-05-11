@@ -1,15 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Waves } from "@/components/ui/wave-background"
+import { cn } from "@/lib/utils"
+import { DotPattern } from "@/components/ui/dot-pattern"
 
 export function WavesDemo() {
   return (
     <div className="relative min-h-screen bg-black">
-      {/* Waves background absolutely positioned */}
-      <div className="absolute inset-0 h-[500px] z-0 pointer-events-none">
-        <Waves />
-      </div>
       {/* Foreground content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-6xl font-bold text-white mb-8">Find Your Perfect Movie</h1>
@@ -21,6 +18,21 @@ export function WavesDemo() {
           <button className="border border-white text-white px-6 py-3 rounded-lg font-semibold">Create Movie Night</button>
         </div>
       </div>
+    </div>
+  )
+}
+
+export function DotPatternDemo() {
+  return (
+    <div className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg border bg-background md:shadow-xl">
+      <p className="z-10 whitespace-pre-wrap text-center text-5xl font-medium tracking-tighter text-black dark:text-white">
+        Dot Pattern
+      </p>
+      <DotPattern
+        className={cn(
+          "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",
+        )}
+      />
     </div>
   )
 }
