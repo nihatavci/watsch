@@ -4,7 +4,6 @@ declare module '$env/static/private' {
     export const YOUTUBE_API_KEY: string;
     export const RAPID_API_KEY: string;
     export const OMDB_API_KEY: string;
-    export const TMDB_API_KEY: string;
 }
 
 export {};

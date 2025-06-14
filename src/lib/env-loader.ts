@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 import { dev } from '$app/environment';
-import { TMDB_API_KEY } from '$env/static/private';
 
-// Use process.env as fallback for build environments where SvelteKit env might not be available
+// Use process.env for all environment variables to ensure compatibility with Vercel
+const TMDB_API_KEY = typeof process !== 'undefined' ? process.env.TMDB_API_KEY || process.env.PRIVATE_TMDB_API_KEY : undefined;
 const PRIVATE_OPENAI_API_KEY = typeof process !== 'undefined' ? process.env.PRIVATE_OPENAI_API_KEY : undefined;
 // ... keep your DEV_PLACEHOLDER_PATTERNS and dynamic loading for other keys ...
 
@@ -28,7 +28,7 @@ export function isPlaceholderKey(key: string | undefined): boolean {
   if (!key) return true;
   return Object.values(DEV_PLACEHOLDER_PATTERNS).some(pattern => key.includes(pattern.split('-')[0]));
 }
-// Only export TMDB_API_KEY for server-side use (static import, always works)
+// Export TMDB_API_KEY for server-side use
 export { TMDB_API_KEY };
 
 console.log('[DEBUG] TMDB_API_KEY:', TMDB_API_KEY ? TMDB_API_KEY.substring(0, 6) + '...' : TMDB_API_KEY);
