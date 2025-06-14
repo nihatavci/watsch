@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { dev } from '$app/environment';
 import { TMDB_API_KEY } from '$env/static/private';
-import { OPENAI_API_KEY as PRIVATE_OPENAI_API_KEY } from '$env/static/private';
+import { PRIVATE_OPENAI_API_KEY } from '$env/static/private';
 // ... keep your DEV_PLACEHOLDER_PATTERNS and dynamic loading for other keys ...
 
 // IMPORTANT: These are NOT real API keys but placeholder patterns
@@ -19,6 +19,12 @@ export const OPENAI_API_KEY = PRIVATE_OPENAI_API_KEY;
 // Export a function for callOpenAI to use
 export function getOpenAIApiKey() {
   return OPENAI_API_KEY;
+}
+
+// Helper function to check if a key is a placeholder
+export function isPlaceholderKey(key: string | undefined): boolean {
+  if (!key) return true;
+  return Object.values(DEV_PLACEHOLDER_PATTERNS).some(pattern => key.includes(pattern.split('-')[0]));
 }
 // Only export TMDB_API_KEY for server-side use (static import, always works)
 export { TMDB_API_KEY };
