@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { PRIVATE_TMDB_API_KEY } from '$env/static/private';
+import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 
 export const GET: RequestHandler = async () => {
 	try {

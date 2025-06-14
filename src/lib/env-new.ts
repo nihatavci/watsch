@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
-import { PRIVATE_TMDB_API_KEY } from '$env/static/private';
+import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 import { callOpenAI } from '$lib/api/openai';
 import { canPerformSearch, incrementSearchCount } from '$lib/api/db';
 

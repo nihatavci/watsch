@@ -1,4 +1,4 @@
-import { PRIVATE_TMDB_API_KEY } from '$env/static/private';
+import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 
 interface RecommendationParams {
   query: string;

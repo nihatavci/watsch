@@ -7,7 +7,7 @@ import {
 	RAPID_API_KEY,
 	OMDB_API_KEY
 } from '$lib/env-loader';
-import { PRIVATE_TMDB_API_KEY } from '$env/static/private';
+import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 
 function maskApiKey(key: string | undefined) {
 	if (!key) return 'NOT SET';
