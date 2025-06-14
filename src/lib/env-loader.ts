@@ -1,7 +1,9 @@
 import { browser } from '$app/environment';
 import { dev } from '$app/environment';
 import { TMDB_API_KEY } from '$env/static/private';
-import { PRIVATE_OPENAI_API_KEY } from '$env/static/private';
+
+// Use process.env as fallback for build environments where SvelteKit env might not be available
+const PRIVATE_OPENAI_API_KEY = typeof process !== 'undefined' ? process.env.PRIVATE_OPENAI_API_KEY : undefined;
 // ... keep your DEV_PLACEHOLDER_PATTERNS and dynamic loading for other keys ...
 
 // IMPORTANT: These are NOT real API keys but placeholder patterns
