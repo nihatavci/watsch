@@ -79,7 +79,7 @@ export const DELETE: RequestHandler = async ({ request, url }) => {
       return json({ error: 'Invalid media information' }, { status: 400 });
     }
     
-    const result = await removeFromWatchLater(userId, mediaId, mediaType);
+    const result = await removeFromWatchLater(userId, mediaId, mediaType as "movie" | "tv");
     return json({ success: result });
   } catch (error) {
     console.error('Error removing from watch later:', error);

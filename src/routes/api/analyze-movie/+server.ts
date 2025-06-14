@@ -1,12 +1,15 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { callOpenAI } from '$lib/api/openai';
-import { OPENAI_API_KEY } from '$lib/env-loader';
+import { getOpenAIApiKey, isPlaceholderKey } from '$lib/env-loader';
+import { dev } from '$app/environment';
 
 export const POST: RequestHandler = async ({ request, fetch }) => {
 	try {
 		// Check if OpenAI API key is available
-		if (!OPENAI_API_KEY) {
+		const apiKey = await getOpenAIApiKey();
+		
+		if (!apiKey) {
 			console.error('OPENAI_API_KEY not available for movie analysis');
 			return json(
 				{
@@ -15,6 +18,34 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 				},
 				{ status: 200 }
 			); // Return 200 to not break the UI
+		}
+		
+		// Check if using a placeholder key in development
+		if (isPlaceholderKey(apiKey)) {
+			if (dev) {
+				console.log('Development mode: Using mock movie insights instead of calling OpenAI API');
+				
+				// Return mock insights for development
+				return json({
+					insights: [
+						'Perfect for movie night',
+						'Thought-provoking story',
+						'Visually stunning',
+						'Emotional rollercoaster'
+					],
+					is_dev_placeholder: true
+				});
+			} else {
+				// In production, we shouldn't use placeholder keys
+				console.error('ERROR: Cannot use placeholder OpenAI API key in production');
+				return json(
+					{
+						insights: [],
+						error: 'API configuration error'
+					},
+					{ status: 200 }
+				);
+			}
 		}
 
 		const { title, overview, genres, rating, language } = await request.json();

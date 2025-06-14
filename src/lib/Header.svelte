@@ -2,6 +2,8 @@
 	import { page } from '$app/stores';
 	import { Film, Users, Trophy, Menu } from 'lucide-svelte';
 	import { sidebar } from '../stores/sidebar';
+	import { i18nStore } from '$lib/i18n';
+	import LanguageSwitcher from '$lib/LanguageSwitcher.svelte';
 
 	export let roomPhase: 'join' | 'nominate' | 'vote' | 'results' | null = null;
 	export let roomCode: string | null = null;
@@ -29,9 +31,14 @@
 						class="flex items-center gap-2 px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors whitespace-nowrap"
 					>
 						<span class="text-xl transform transition-transform group-hover:rotate-12">🎬</span>
-						<span class="text-lg">Movie Night</span>
+						<span class="text-lg">{$i18nStore.t('movie_night.title')}</span>
 					</a>
 				</nav>
+			</div>
+
+			<!-- Elegant Language Switcher -->
+			<div class="hidden md:flex items-center gap-4">
+				<LanguageSwitcher />
 			</div>
 
 			<!-- Room Info -->
@@ -40,7 +47,7 @@
 					<!-- Room Code -->
 					{#if roomCode}
 						<div class="flex items-center gap-2 text-white/70">
-							<span class="text-sm">Room:</span>
+							<span class="text-sm">{$i18nStore.t('movie_night.room')}</span>
 							<code class="bg-white/10 px-2 py-1 rounded text-sm">{roomCode}</code>
 						</div>
 					{/if}
@@ -50,16 +57,16 @@
 						<div class="px-2 py-1 rounded bg-white/10 text-sm capitalize flex items-center gap-1">
 							{#if roomPhase === 'nominate'}
 								<Film size={14} class="transform transition-transform group-hover:rotate-12" />
-								<span>Picking Movies</span>
+								<span>{$i18nStore.t('movie_night.nomination_phase')}</span>
 							{:else if roomPhase === 'vote'}
 								<Trophy size={14} class="transform transition-transform group-hover:rotate-12" />
-								<span>Voting Time</span>
+								<span>{$i18nStore.t('movie_night.voting_phase')}</span>
 							{:else if roomPhase === 'results'}
 								<Trophy
 									size={14}
 									class="text-[#E50914] transform transition-transform group-hover:rotate-12"
 								/>
-								<span>Winner!</span>
+								<span>{$i18nStore.t('movie_night.winner')}</span>
 							{/if}
 						</div>
 					</div>
@@ -68,7 +75,7 @@
 					{#if participants.length > 0}
 						<div class="flex items-center gap-2 text-white/70">
 							<Users size={14} class="transform transition-transform group-hover:rotate-12" />
-							<span class="text-sm">{participants.length} Friends</span>
+							<span class="text-sm">{participants.length} {$i18nStore.t('common.friends', { count: participants.length })}</span>
 						</div>
 					{/if}
 				</div>

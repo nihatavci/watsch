@@ -1,12 +1,10 @@
-declare global {
-	interface BeforeInstallPromptEvent extends Event {
-		readonly platforms: string[];
-		readonly userChoice: Promise<{
-			outcome: 'accepted' | 'dismissed';
-			platform: string;
-		}>;
-		prompt(): Promise<void>;
-	}
+declare module '$env/static/private' {
+    export const PRIVATE_TMDB_API_KEY: string;
+    export const OPENAI_API_KEY: string;
+    export const YOUTUBE_API_KEY: string;
+    export const RAPID_API_KEY: string;
+    export const OMDB_API_KEY: string;
+    export const TMDB_API_KEY: string;
 }
 
 export {};

@@ -4,16 +4,16 @@
 	import Button from './button.svelte';
 	import TextEffect from '../motion-primitives/text-effect.svelte';
 	import AnimatedGroup from '../motion-primitives/animated-group.svelte';
+	import { i18nStore } from '$lib/i18n';
 
-	export let title = 'Find Your Perfect Movie';
+	export let title = $i18nStore.t('home.headline');
 	export let subtitle = {
-		regular: 'Discover and watch movies ',
-		gradient: 'together with friends.'
+		regular: $i18nStore.t('home.subtitle_regular'),
+		gradient: $i18nStore.t('home.subtitle_gradient')
 	};
-	export let description =
-		'Get personalized recommendations and vote for your favorites. Join movie nights and share your experience with others.';
-	export let ctaText = 'Watch Solo';
-	export let secondaryCtaText = 'Create Movie Night';
+	export let description = $i18nStore.t('home.description');
+	export let ctaText = $i18nStore.t('home.cta_solo');
+	export let secondaryCtaText = $i18nStore.t('home.cta_group');
 	export let ctaHref = '/recommendations';
 	export let secondaryCtaHref = '/movie-night';
 	export let className = '';
@@ -59,7 +59,7 @@
 						class="mt-8 max-w-2xl text-balance text-5xl font-medium text-gray-900 dark:text-white md:text-6xl lg:mt-16"
 						per={isMobile ? 'word' : 'character'}
 					>
-						{title}
+						{@html title}
 					</TextEffect>
 					<TextEffect
 						per="line"

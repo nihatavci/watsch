@@ -81,7 +81,7 @@
 
 	{#if isOpen}
 		<div
-			class="absolute top-full right-0 mt-2 py-2 bg-[#1A1A1A]/95 backdrop-blur-sm rounded-lg shadow-lg border border-[#E50914]/20"
+			class="absolute top-full right-0 mt-4 min-w-[140px] py-2 bg-[#1A1A1A]/95 backdrop-blur-sm rounded-lg shadow-lg border border-[#E50914]/20 z-50"
 			transition:fade={{ duration: 150 }}
 		>
 			{#each validLanguages as lang}

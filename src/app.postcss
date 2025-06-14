@@ -127,3 +127,22 @@ body {
 		transition-duration: var(--transition-duration);
 	}
 }
+
+/* Fix for white corners in rounded modals */
+.rounded-xl, .rounded-2xl, .rounded-3xl, .rounded-full {
+	mask-image: radial-gradient(white, black);
+	-webkit-mask-image: -webkit-radial-gradient(white, black);
+	overflow: hidden;
+}
+
+/* Ensure parent containers don't clip the mask */
+[class*="rounded-"] {
+	position: relative;
+	z-index: 1;
+}
+
+/* Fix for modal backdrop */
+[class*="backdrop-blur"] {
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+}

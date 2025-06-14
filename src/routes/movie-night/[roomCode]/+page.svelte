@@ -321,11 +321,12 @@
 			// Get a mix of popular movies and TV shows
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					searched: 'movie, Action, Adventure, Comedy'
+					query: 'movie, Action, Adventure, Comedy',
+					mediaType: 'movie',
+					genres: ['Action', 'Adventure', 'Comedy'],
+					platforms: []
 				})
 			});
 

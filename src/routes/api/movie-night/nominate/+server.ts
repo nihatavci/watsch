@@ -1,6 +1,23 @@
 import { json } from '@sveltejs/kit';
 import { kv } from '$lib/store/kv';
 
+interface Participant {
+	id: string;
+	nickname: string;
+}
+
+interface Nomination {
+	participant: Participant;
+	movie: any; // Define more specifically if movie structure is known
+}
+
+// interface MovieNightRoom {
+//  participants: Participant[];
+//  nominations: Nomination[];
+//  phase: string;
+//  // ... other room properties
+// }
+
 export async function POST({ request }) {
 	try {
 		const { roomCode, nickname, movie } = await request.json();
@@ -12,7 +29,7 @@ export async function POST({ request }) {
 			);
 		}
 
-		const room = await kv.get(`room:${roomCode.toLowerCase()}`);
+		const room = await kv.get(`room:${roomCode.toLowerCase()}`); // room is implicitly any
 
 		if (!room) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
@@ -22,8 +39,8 @@ export async function POST({ request }) {
 			return json({ error: { message: 'Room is not in nomination phase' } }, { status: 400 });
 		}
 
-		const participant = room.participants.find(
-			(p) => p.nickname.toLowerCase() === nickname.toLowerCase()
+		const participant = (room.participants as Participant[]).find(
+			(p: Participant) => p.nickname.toLowerCase() === nickname.toLowerCase()
 		);
 
 		if (!participant) {
@@ -31,11 +48,11 @@ export async function POST({ request }) {
 		}
 
 		// Check if participant has already nominated
-		if (room.nominations.some((n) => n.participant.id === participant.id)) {
+		if ((room.nominations as Nomination[]).some((n: Nomination) => n.participant.id === participant.id)) {
 			return json({ error: { message: 'You have already nominated a movie' } }, { status: 400 });
 		}
 
-		room.nominations.push({
+		(room.nominations as Nomination[]).push({
 			participant,
 			movie
 		});

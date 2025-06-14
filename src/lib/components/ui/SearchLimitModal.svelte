@@ -4,24 +4,38 @@
   
   export let open = false;
   export let onClose = () => {};
+
+  function handleBackdropKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      onClose();
+    }
+  }
 </script>
 
 {#if open}
   <div 
     class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+    role="button" 
+    tabindex="0"
     on:click={onClose}
+    on:keydown={handleBackdropKeydown}
+    aria-label="Close modal"
     transition:fade={{ duration: 200 }}
   >
     <div 
       class="w-full max-w-md bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden"
       on:click|stopPropagation
+      role="dialog"
+      tabindex="-1"
+      aria-modal="true"
+      aria-labelledby="search-limit-modal-title"
       transition:fly={{ y: 20, duration: 300 }}
     >
       <!-- Header -->
       <div class="p-5 bg-red-500 text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
           <AlertTriangle class="w-5 h-5" />
-          <span class="font-semibold text-lg">Search Limit Reached</span>
+          <span class="font-semibold text-lg" id="search-limit-modal-title">Search Limit Reached</span>
         </div>
         <button 
           on:click={onClose}

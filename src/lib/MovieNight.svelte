@@ -290,12 +290,13 @@
 
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					searched: reconstructedPrompt // Use the reconstructed prompt
-				}),
-				headers: {
-					'content-type': 'application/json'
-				}
+					query: reconstructedPrompt,
+					mediaType: cinemaType || 'movie',
+					genres: selectedCategories,
+					platforms: selectedPlatforms
+				})
 			});
 
 			if (!response.ok) {

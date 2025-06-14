@@ -16,7 +16,6 @@
 		Copy,
 		Instagram,
 		ExternalLink,
-		X,
 		Clock,
 		Sparkles,
 		Star
@@ -25,6 +24,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { pulseSavedIcon } from '../stores/ui';
 	import WatchLaterButton from './components/ui/WatchLaterButton.svelte';
+	import { onMount } from 'svelte';
 
 	export let recommendation: Recommendation;
 	export let selectedPlatforms: string[] = [];
@@ -67,10 +67,19 @@
 	let isCopying = false;
 	let isDownloading = false;
 	let pulseEffect = false;
+	let isDark = false;
 
 	const dispatch = createEventDispatcher();
 
+	onMount(() => {
+		isDark = document.documentElement.classList.contains('dark');
+	});
+
 	async function translateWithChatGPT(text: string, targetLanguage: string): Promise<string> {
+		if (!text || !targetLanguage) {
+			console.warn('translateWithChatGPT: Missing text or targetLanguage');
+			return text;
+		}
 		try {
 			const response = await fetch('/api/translate', {
 				method: 'POST',
@@ -84,13 +93,14 @@
 				})
 			});
 
-			if (!response.ok) {
-				console.error('Translation error:', await response.text());
+			const data = await response.json();
+
+			if (!response.ok || data.error) {
+				console.error('Translation error:', data.error || await response.text());
 				return text; // Fallback to original text
 			}
 
-			const data = await response.json();
-			return data.translatedText || text;
+			return data.translation || text;
 		} catch (error) {
 			console.error('Translation error:', error);
 			return text; // Fallback to original text
@@ -449,7 +459,7 @@
 	}
 </script>
 
-<div class="relative rounded-2xl text-white overflow-hidden animate-fadeIn" in:fade={{ duration: 400 }}>
+<div class="relative rounded-2xl overflow-hidden animate-fadeIn">
 	{#await promise}
 		<LoadingCard />
 	{:then data}
@@ -457,7 +467,7 @@
 			<Card class="border-0 overflow-hidden transform transition-transform hover:scale-[1.01] duration-500">
 				<CardContent class="p-0">
 					<div
-						class="relative flex flex-col sm:flex-row bg-gradient-to-br from-black/90 to-gray-900/90 dark:from-black dark:to-gray-900/80 shadow-xl rounded-2xl overflow-hidden min-h-[200px] border border-gray-800/50 dark:border-gray-800/80 backdrop-blur-sm"
+						class="relative flex flex-col sm:flex-row min-h-[200px]  dark:bg-gradient-to-br dark:from-black/90 dark:to-gray-900/90 dark:backdrop-blur-sm dark:border dark:border-gray-800/80 dark:shadow-xl rounded-2xl overflow-hidden"
 					>
 						<!-- Image container with subtle hover effect -->
 						<div
@@ -499,14 +509,6 @@
 
 						<!-- Content with improved spacing and animations -->
 						<div class="flex-1 p-5 sm:p-8 flex flex-col relative z-10">
-							<!-- Dismiss button -->
-							<button
-								on:click={() => dispatch('dismiss')}
-								class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:bg-white/20 transition-colors duration-200"
-							>
-								<X class="w-4 h-4" />
-							</button>
-
 							<!-- Header with better spacing -->
 							<div class="flex items-start justify-between gap-3 mb-4">
 								<div class="flex-1 min-w-0">
@@ -559,11 +561,7 @@
 							<!-- Description with show more toggle -->
 							{#if data.LocalizedData.Plot}
 								<div class="relative mb-5">
-								<p
-										class="text-sm sm:text-base text-gray-600 dark:text-gray-300 {showFullDescription
-										? ''
-										: 'line-clamp-3'}"
-								>
+									<p class="text-sm sm:text-base {showFullDescription ? '' : 'line-clamp-3'}">
 									{data.LocalizedData.Plot}
 								</p>
 									{#if data.LocalizedData.Plot.length > 150}
@@ -571,9 +569,7 @@
 									on:click={() => (showFullDescription = !showFullDescription)}
 											class="mt-1 text-xs sm:text-sm text-red-500 dark:text-red-400 hover:underline focus:outline-none"
 								>
-											{showFullDescription
-												? $i18nStore.t('recommendations.show_less')
-												: $i18nStore.t('recommendations.show_more')}
+											{showFullDescription ? 'Show less' : 'Show more'}
 								</button>
 									{/if}
 							</div>
@@ -787,21 +783,16 @@
 			</Card>
 		{:else}
 			<div
-				class="p-6 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-gray-800"
+				class="p-6 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-black rounded-2xl"
 			>
 				{$i18nStore.t('recommendations.no_details')}
 			</div>
 		{/if}
 	{:catch error}
 		<div
-			class="p-6 text-center text-red-600 dark:text-red-400 bg-white dark:bg-black rounded-2xl border border-red-200 dark:border-red-500/20"
+			class="p-6 text-center text-red-600 dark:text-red-400 bg-white dark:bg-black rounded-2xl"
 		>
 			<div class="flex flex-col items-center gap-3">
-				<div
-					class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/20 flex items-center justify-center"
-				>
-					<X class="w-5 h-5 text-red-600 dark:text-red-400" />
-				</div>
 				<p>{$i18nStore.t('recommendations.error.details')}</p>
 			</div>
 		</div>

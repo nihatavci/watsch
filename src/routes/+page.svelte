@@ -1,19 +1,20 @@
 <script lang="ts">
 	import HeroSection from '$lib/components/ui/hero-section.svelte';
+	import { i18nStore } from '$lib/i18n';
 	// Removed onMount, onDestroy, and reactRoot as they are now in the layout
 </script>
 
 <!-- Main hero content. Background is now handled by +layout.svelte -->
 <div class="relative z-10">
 <HeroSection
-	title="Find Your Perfect Movie"
+	title={$i18nStore.t('home.headline')}
 	subtitle={{
-		regular: 'Discover and watch movies ',
-		gradient: 'together with friends.'
+		regular: $i18nStore.t('home.subtitle_regular'),
+		gradient: $i18nStore.t('home.subtitle_gradient')
 	}}
-	description="Get personalized recommendations and vote for your favorites. Join movie nights and share your experience with others."
-	ctaText="Watch Solo"
-	secondaryCtaText="Create Movie Night"
+	description={$i18nStore.t('home.description')}
+	ctaText={$i18nStore.t('home.cta_solo')}
+	secondaryCtaText={$i18nStore.t('home.cta_group')}
 	ctaHref="/recommendations"
 	secondaryCtaHref="/movie-night"
 	className="min-h-screen"

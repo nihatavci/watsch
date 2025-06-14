@@ -1,3 +1,81 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.pnpm-store
+package-lock.json
+yarn.lock
+!yarn.lock # include yarn.lock if it's meant to be committed
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.vercel
+
+# Build output
+/build
+/dist
+/.svelte-kit
+/package
+.output
+.vercel_build_output
+
+# Platforms
+/android/**/build/
+/android/.gradle
+/android/captures/
+/android/local.properties
+/android/keystore.properties
+/android/.idea
+/android/.DS_Store
+/android/app/release
+
+# Editors and IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.sublime-workspace
+
+# Testing
+/coverage
+/.nyc_output
+
+# Temporary files
+/tmp
+/temp
+
+# Cache
+.cache
+.parcel-cache
+.eslintcache
+.stylelintcache
+.rpt2_cache/
+.rts2_cache*/
+.history
+
+# Miscellaneous
+*.tsbuildinfo
+*.tgz
+.npm
+.eslintcache
+
 .env
 .vercel
 node_modules

@@ -15,7 +15,14 @@
 		"solo_title": "Kişisel Öneriler",
 		"solo_description": "Tercihlerinize göre size özel film ve dizi önerileri alın",
 		"group_title": "Film Gecesi",
-		"group_description": "Arkadaşlarınızla film gecesi düzenleyin ve birlikte ne izleyeceğinize karar verin"
+		"group_description": "Arkadaşlarınızla film gecesi düzenleyin ve birlikte ne izleyeceğinize karar verin",
+		"ai_powered": "YAPAY ZEKA DESTEKLİ ÖNERİLER",
+		"headline": "Bir <span class='text-red-500'>sonraki favorini</span> keşfet",
+		"description": "Yapay zekamız zevkini anlar ve sana özel en iyi film ve dizileri bulur.",
+		"cta_solo": "Tek başıma izle",
+		"cta_group": "Film gecesi başlat",
+		"subtitle_regular": "Filmleri keşfet ve izle ",
+		"subtitle_gradient": "arkadaşlarınla birlikte."
 	},
 	"movie_night": {
 		"title": "Film Gecesi",
@@ -71,6 +78,8 @@
 	},
 	"navigation": {
 		"home": "Ana Sayfa",
+		"recommendations": "Öneriler",
+		"saved": "Kaydedilenler",
 		"library": "Kütüphanem",
 		"profile": "Profilim",
 		"settings": "Ayarlar",
@@ -132,5 +141,8 @@
 		"copied": "Kopyalandı!",
 		"share_whatsapp": "WhatsApp'ta Paylaş",
 		"share_instagram": "Instagram'da Paylaş"
+	},
+	"login": {
+		"logout": "Çıkış yap"
 	}
 }

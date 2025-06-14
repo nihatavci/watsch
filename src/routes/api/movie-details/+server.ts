@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getEnvVariables } from '$lib/env';
+import { getDetails } from '$lib/api/tmdb';
 
 export const GET: RequestHandler = async ({ url }) => {
 	try {
@@ -12,31 +12,10 @@ export const GET: RequestHandler = async ({ url }) => {
 			return json({ error: 'Missing id or type parameter' }, { status: 400 });
 		}
 
-		const env = await getEnvVariables();
+		console.log(`Fetching details for ${type} ${id}`);
 
-		if (!env.TMDB_API_KEY) {
-			console.error('TMDB API key not found');
-			return json({ error: 'TMDB API key not configured' }, { status: 500 });
-		}
-
-		const response = await fetch(
-			`https://api.themoviedb.org/3/${type}/${id}?api_key=${env.TMDB_API_KEY}&language=${language}&append_to_response=credits`,
-			{
-				headers: {
-					accept: 'application/json'
-				}
-			}
-		);
-
-		const data = await response.json();
-
-		if (!response.ok) {
-			console.error('TMDB API Error:', data);
-			return json(
-				{ error: data.status_message || 'Failed to fetch from TMDB' },
-				{ status: response.status }
-			);
-		}
+		// Use the centralized TMDB API utility with credits
+		const data = await getDetails(id, type as 'movie' | 'tv', language, 'credits');
 
 		return json({
 			id: data.id,

@@ -1,8 +1,8 @@
-import { OPENAI_API_KEY } from '$lib/env-loader';
+import { OPENAI_API_KEY, isPlaceholderKey, getOpenAIApiKey } from '$lib/env-loader';
+import { dev } from '$app/environment';
 
 // OpenAI API configuration
 const config = {
-	apiKey: OPENAI_API_KEY,
 	baseURL: 'https://api.openai.com/v1'
 };
 
@@ -25,10 +25,34 @@ export async function callOpenAI(endpoint: string, payload: any, fetch: typeof g
 			throw new Error(`Unsupported OpenAI endpoint: ${endpoint}`);
 		}
 
+		// Get API key using the new function
+		const apiKey = await getOpenAIApiKey();
+
 		// If the API key is missing, return an error
-		if (!OPENAI_API_KEY) {
+		if (!apiKey) {
 			console.error('ERROR: OPENAI_API_KEY is not defined in environment variables!');
 			throw new Error('OpenAI API key is not configured on the server');
+		}
+
+		// Check if we're using a placeholder key
+		if (isPlaceholderKey(apiKey)) {
+			if (dev) {
+				console.warn('Using placeholder OpenAI API key - actual API request will be skipped in development');
+				
+				// For development purposes, return a mock response
+				return {
+					choices: [
+						{
+							message: {
+								content: 'This is a development placeholder response. In production, this would be a real OpenAI response.'
+							}
+						}
+					]
+				};
+			} else {
+				// In production, we don't allow placeholder keys
+				throw new Error('Cannot use placeholder OpenAI API key in production');
+			}
 		}
 
 		// Make direct OpenAI API call using the API key from environment
@@ -36,7 +60,7 @@ export async function callOpenAI(endpoint: string, payload: any, fetch: typeof g
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
-				Authorization: `Bearer ${OPENAI_API_KEY}`
+				Authorization: `Bearer ${apiKey}`
 			},
 			body: JSON.stringify(payload)
 		});

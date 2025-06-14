@@ -9,7 +9,8 @@
 	"home": {
 		"title": "Trouvez Votre Film Parfait",
 		"subtitle": "Découvrez des films et séries personnalisés pour vous",
-		"cta": "Commencer à Explorer"
+		"cta": "Commencer à Explorer",
+		"headline": "Trouvez votre <span class='text-red-500'>favori</span>"
 	},
 	"recommendations": {
 		"no_results": "Aucune recommandation trouvée",
@@ -72,5 +73,85 @@
 			"next": "Suivant",
 			"get_recommendations": "Obtenir des Recommandations"
 		}
+	},
+	"genres": {
+		"action": "Action",
+		"adventure": "Aventure",
+		"animation": "Animation",
+		"biography": "Biographie",
+		"comedy": "Comédie",
+		"crime": "Crime",
+		"documentary": "Documentaire",
+		"drama": "Drame",
+		"family": "Famille",
+		"fantasy": "Fantastique",
+		"film_noir": "Film noir",
+		"history": "Histoire",
+		"horror": "Horreur",
+		"musical": "Comédie musicale",
+		"mystery": "Mystère",
+		"romance": "Romance",
+		"scifi": "Science-fiction",
+		"sport": "Sport",
+		"thriller": "Thriller",
+		"war": "Guerre",
+		"western": "Western",
+		"art_house": "Film d'auteur",
+		"black_comedy": "Comédie noire",
+		"chick_flick": "Film pour filles",
+		"cult_classic": "Classique culte",
+		"dark_comedy": "Comédie sombre",
+		"epic": "Épique",
+		"erotic": "Érotique",
+		"experimental": "Expérimental",
+		"fairy_tale": "Conte de fées",
+		"film_within_a_film": "Film dans un film",
+		"futuristic": "Futuriste",
+		"gangster": "Gangster",
+		"heist": "Braquage",
+		"historical": "Historique",
+		"holiday": "Vacances",
+		"indie": "Indépendant",
+		"juvenile": "Juvenile",
+		"melodrama": "Mélodrame",
+		"monster": "Monstre",
+		"political": "Politique",
+		"psychological": "Psychologique",
+		"road_movie": "Road movie",
+		"satire": "Satire",
+		"science_fiction": "Science-fiction",
+		"slapstick": "Burlesque",
+		"social_issue": "Problème social",
+		"superhero": "Super-héros",
+		"surreal": "Surréaliste",
+		"teen": "Adolescent",
+		"vampire": "Vampire",
+		"zombie": "Zombie"
+	},
+	"platforms": {
+		"netflix": "Netflix",
+		"prime": "Prime Video",
+		"disney": "Disney+",
+		"hbo": "HBO Max",
+		"apple": "Apple TV+",
+		"hulu": "Hulu"
+	},
+	"ui": {
+		"add_to_watchlist": "Ajouter à Ma Liste",
+		"remove_from_watchlist": "Retirer de Ma Liste",
+		"added_to_watchlist": "Ajouté à Ma Liste",
+		"download": "Télécharger",
+		"download_complete": "Téléchargement terminé",
+		"download_failed": "Échec du téléchargement",
+		"copy_link": "Copier le lien",
+		"copied": "Copié !",
+		"share_whatsapp": "Partager sur WhatsApp",
+		"share_instagram": "Partager sur Instagram"
+	},
+	"login": {
+		"logout": "Déconnexion"
+	},
+	"search_limit": {
+		"reached": "Limite de recherches atteinte pour aujourd'hui"
 	}
 }

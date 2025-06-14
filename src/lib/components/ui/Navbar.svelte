@@ -8,24 +8,14 @@
 	import { browser } from '$app/environment';
 	import { savedIconPulse } from '../../../stores/ui';
 	import gsap from 'gsap';
+	import { i18nStore } from '$lib/i18n';
+	import LanguageSwitcher from '$lib/LanguageSwitcher.svelte';
 
 	// Navigation items (matching the main app structure)
 	const navItems = [
-		{
-			name: 'Home',
-			url: '/',
-			icon: Home
-		},
-		{
-			name: 'Recommendations',
-			url: '/recommendations',
-			icon: Star
-		},
-		{
-			name: 'Saved',
-			url: '/saved',
-			icon: Bookmark
-		}
+		{ key: 'navigation.home', url: '/', icon: Home },
+		{ key: 'navigation.recommendations', url: '/recommendations', icon: Star },
+		{ key: 'navigation.saved', url: '/saved', icon: Bookmark }
 	];
 
 	let currentPath: string;
@@ -56,7 +46,8 @@
 		<div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 			<!-- Logo -->
 			<a href="/" class="flex items-center text-xl font-bold" style="line-height: 0;">
-				<img src="/src/lib/logo/Watch Logo.svg" alt="Watch Logo" class="h-12 w-auto mr-2" />
+				<img src="/Watch-logo-black.svg" alt="Watch Logo" class="h-12 w-auto mr-2 block dark:hidden" />
+				<img src="/Watch-logo-white.svg" alt="Watch Logo White" class="h-12 w-auto mr-2 hidden dark:block" />
 			</a>
 			<!-- Desktop Navigation -->
 			<nav class="flex items-center space-x-1">
@@ -67,9 +58,9 @@
 							currentPath === item.url
 								? 'text-red-500'
 								: 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-						} ${item.name === 'Saved' && pulseSaved ? 'saved-pulse' : ''}`}
+						} ${item.key === 'navigation.saved' && pulseSaved ? 'saved-pulse' : ''}`}
 					>
-						{#if item.name === 'Saved' && pulseSaved}
+						{#if item.key === 'navigation.saved' && pulseSaved}
 							<div class="relative">
 								<svelte:component this={item.icon} class="w-4 h-4" />
 								<span class="absolute -top-1 -right-1 flex h-3 w-3">
@@ -82,11 +73,11 @@
 						{:else}
 							<svelte:component this={item.icon} class="w-4 h-4" />
 						{/if}
-						<span>{item.name}</span>
+						<span>{$i18nStore.t(item.key)}</span>
 					</a>
 				{/each}
 			</nav>
-			<!-- Theme toggle and Login button -->
+			<!-- Theme toggle, Login/Logout, LanguageSwitcher -->
 			<div class="flex items-center gap-2">
 				<button
 					on:click={toggleTheme}
@@ -105,16 +96,20 @@
 						on:click={handleLogout}
 						class="px-3 py-1 rounded-full text-sm font-medium transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-black dark:hover:bg-gray-950 text-gray-700 dark:text-white/70 dark:hover:text-white"
 					>
-						Logout
+						{$i18nStore.t('login.logout', 'Logout')}
 					</button>
 				{:else}
 					<a
 						href="/login"
 						class="rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 sm:inline-block"
 					>
-						Sign In
+						{$i18nStore.t('login.sign_in', 'Sign In')}
 					</a>
 				{/if}
+				<!-- Language Switcher elegantly spaced -->
+				<div class="ml-2">
+					<LanguageSwitcher />
+				</div>
 			</div>
 		</div>
 	</header>
@@ -127,10 +122,10 @@
 				href={item.url}
 				class={`flex flex-col items-center p-2 ${
 					currentPath === item.url ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'
-				} ${item.name === 'Saved' && pulseSaved ? 'saved-pulse' : ''}`}
+				} ${item.key === 'navigation.saved' && pulseSaved ? 'saved-pulse' : ''}`}
 			>
 				<div class="relative">
-					{#if item.name === 'Saved' && pulseSaved}
+					{#if item.key === 'navigation.saved' && pulseSaved}
 						<div class="relative">
 							<svelte:component this={item.icon} class="w-5 h-5" />
 							<span class="absolute -top-1 -right-1 flex h-3 w-3">
@@ -144,7 +139,7 @@
 						<svelte:component this={item.icon} class="w-5 h-5" />
 					{/if}
 				</div>
-				<span class="text-xs mt-1">{item.name}</span>
+				<span class="text-xs mt-1">{item.key}</span>
 			</a>
 		{/each}
 	</div>

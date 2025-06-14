@@ -1,8 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
+import { OPENAI_API_KEY } from '$lib/env-loader';
 
-const OPENAI_API_KEY = env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 
 export const POST: RequestHandler = async ({ request }) => {

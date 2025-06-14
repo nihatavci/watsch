@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { cn } from '$lib/utils';
+	import { sanitizeHTML } from '$lib/utils/sanitize';
 
 	// Props
 	export let preset: 'fade-in-blur' | 'fade-in' | 'slide-up' = 'fade-in-blur';
@@ -17,30 +18,43 @@
 	let elements: HTMLElement[] = [];
 	let mounted = false;
 
-	// Wrap text elements with spans
+	// Helper to escape text for HTML
+	function escapeHTML(str: string): string {
+		return str.replace(/[&<>'"]/g, (c) => ({
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			"'": '&#39;',
+			'"': '&quot;'
+		}[c] || c));
+	}
+
 	onMount(() => {
 		if (!containerRef) return;
 
-		const text = containerRef.innerHTML.replace(/<!---->/g, '');
+		// Sanitize and extract only text content from the slot
+		const raw = containerRef.innerHTML;
+		const sanitized = sanitizeHTML(raw);
+		// Create a temporary element to extract only text (strip any tags)
+		const temp = document.createElement('div');
+		temp.innerHTML = sanitized;
+		const text = temp.textContent || '';
 		let html = '';
 
 		if (per === 'character') {
-			// Wrap each character (including spaces) with a span
 			html = text
 				.split('')
-				.map((char) => `<span class="inline-block opacity-0">${char === ' ' ? '&nbsp;' : char}</span>`)
+				.map((char) => `<span class="inline-block opacity-0">${char === ' ' ? '&nbsp;' : escapeHTML(char)}</span>`)
 				.join('');
 		} else if (per === 'word') {
-			// Wrap each word with a span
 			html = text
 				.split(' ')
-				.map((word) => `<span class="inline-block opacity-0">${word}</span>`)
+				.map((word) => `<span class="inline-block opacity-0">${escapeHTML(word)}</span>`)
 				.join(' ');
 		} else if (per === 'line') {
-			// Wrap each line with a span (assumes line breaks)
 			html = text
 				.split('\n')
-				.map((line) => `<span class="block opacity-0">${line}</span>`)
+				.map((line) => `<span class="block opacity-0">${escapeHTML(line)}</span>`)
 				.join('');
 		}
 

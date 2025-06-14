@@ -1,25 +1,19 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { getEnvVariables } from '$lib/env';
+import { getStreamingProviders } from '$lib/api/tmdb';
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const { tmdbId, type } = await request.json();
-		const env = await getEnvVariables();
 
 		if (!tmdbId || !type) {
 			return json({ error: 'Missing required parameters' }, { status: 400 });
 		}
 
-		const response = await fetch(
-			`https://api.themoviedb.org/3/${type}/${tmdbId}/watch/providers?api_key=${env.TMDB_API_KEY}`
-		);
-
-		if (!response.ok) {
-			throw new Error('Failed to fetch streaming providers');
-		}
-
-		const data = await response.json();
+		console.log(`Fetching streaming availability for ${type} ${tmdbId}`);
+		
+		// Use the centralized TMDB API utility
+		const data = await getStreamingProviders(tmdbId, type as 'movie' | 'tv');
 		const results = data.results?.US;
 
 		if (!results) {

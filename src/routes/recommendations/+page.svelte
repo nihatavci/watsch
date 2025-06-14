@@ -6,14 +6,24 @@
 	import { fade, slide, fly } from 'svelte/transition';
 	import { backOut, elasticOut } from 'svelte/easing';
 	import { i18nStore } from '$lib/i18n';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import SearchLimitIndicator from '$lib/components/ui/SearchLimitIndicator.svelte';
 	import SearchLimitModal from '$lib/components/ui/SearchLimitModal.svelte';
+	import { authStore } from '$lib/stores/auth';
+	import { recommendationsStore } from '../../stores/recommendations';
 
 	interface Recommendation {
 		title: string;
 		description: string;
 		type: 'movie' | 'tv';
+		id: number;
+		year: number | null;
+		rating: number;
+		poster_path: string | null;
+		backdrop_path: string | null;
+		popularity: number;
+		genre_ids: number[];
+		original_language: string;
 	}
 
 	let cinemaType: 'movie' | 'tv' | null = null;
@@ -26,9 +36,18 @@
 	let isFormCollapsed = false;
 	let mounted = false;
 	let showLimitModal = false;
+	let unsubscribeRecommendations: () => void;
 
 	onMount(() => {
 		mounted = true;
+		unsubscribeRecommendations = recommendationsStore.subscribe((val) => {
+			recommendations = val;
+		});
+	});
+
+	// Unsubscribe on destroy
+	onDestroy(() => {
+		if (unsubscribeRecommendations) unsubscribeRecommendations();
 	});
 
 	const genres = [
@@ -50,63 +69,114 @@
 
 	const platforms = ['Netflix', 'Prime Video', 'Disney+', 'HBO Max', 'Apple TV+', 'Hulu'];
 
-	async function getRecommendations() {
-		try {
-			loading = true;
-			error = null;
-			recommendations = [];
+	async function getRecommendations(query: string) {
+		console.log('[Client Debug] ====== Starting Recommendation Request ======');
+		const startTime = Date.now();
 
-			// Get the auth token from localStorage
-			const authToken = localStorage.getItem('auth_token');
-			const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+		try {
+			// Get current auth state
+			let token: string | null = null;
+			let isAuthenticated = false;
 			
-			// Add authorization header if authenticated
-			if (authToken) {
-				headers['Authorization'] = `Bearer ${authToken}`;
+			const unsubscribe = authStore.subscribe(($auth) => {
+				token = $auth.token;
+				isAuthenticated = $auth.isAuthenticated;
+				console.log('[Auth Debug] Auth state:', {
+					isAuthenticated: $auth.isAuthenticated,
+					hasToken: !!$auth.token,
+					tokenExpiry: $auth.tokenExpiry ? new Date($auth.tokenExpiry).toISOString() : null,
+					user: $auth.user ? { 
+						email: $auth.user.email,
+						userId: $auth.user.userId
+					} : null
+				});
+			});
+			unsubscribe();
+
+			if (!query || query.trim().length === 0) {
+				console.warn('[Validation Debug] Empty query detected');
+				throw new Error('Please enter some preferences or select genres');
 			}
+
+			console.log('[Request Debug] Preparing request:', {
+				query,
+				mediaType: cinemaType || 'movie',
+				genres: selectedGenres,
+				platforms: selectedPlatforms,
+				isAuthenticated,
+				hasToken: !!token
+			});
+
+			const headers: Record<string, string> = {
+				'Content-Type': 'application/json'
+			};
+
+			if (token) {
+				headers['Authorization'] = `Bearer ${token}`;
+				console.log('[Auth Debug] Added authorization header');
+			} else {
+				console.log('[Auth Debug] No token available for request');
+			}
+
+			console.log('[Request Debug] Sending request with headers:', headers);
 
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
-					searched:
-						cinemaType +
-						(selectedGenres.length > 0 ? `, ${selectedGenres.join(', ')}` : '') +
-						(selectedPlatforms.length > 0 ? ` on ${selectedPlatforms.join(', ')}` : ''),
-					preferences: preferences || '' // Pass the user preferences to the API
+					query,
+					mediaType: cinemaType || 'movie',
+					genres: selectedGenres,
+					platforms: selectedPlatforms
 				})
 			});
 
-			// Check for search limit reached
-			if (response.status === 429) {
-				const errorData = await response.json();
-				if (errorData.limit) {
-					showLimitModal = true;
-					error = 'Search limit reached. Sign in to get unlimited searches!';
-					throw new Error(error);
-				}
-			}
-
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error || 'Failed to get recommendations');
-			}
+			console.log('[Response Debug] Status:', response.status);
+			console.log('[Response Debug] Headers:', Object.fromEntries(response.headers.entries()));
 
 			const data = await response.json();
-			if (!Array.isArray(data) || data.length === 0) {
-				throw new Error('No recommendations found');
+			console.log('[Response Debug] Response data:', data);
+
+			if (!response.ok) {
+				if (response.status === 429) {
+					console.warn('[Error Debug] Search limit reached:', {
+						isAuthenticated,
+						data
+					});
+					showLimitModal = true;
+					throw new Error(data.message || 'Search limit reached');
+				}
+				console.error('[Error Debug] Request failed:', {
+					status: response.status,
+					data
+				});
+				throw new Error(data.error || 'Failed to get recommendations');
 			}
 
-			recommendations = data.map((item) => ({
-				...item,
-				type: cinemaType // Ensure we use the selected type
-			}));
-			isFormCollapsed = true;
-		} catch (error: unknown) {
-			console.error('Error getting recommendations:', error);
-			error = error instanceof Error ? error.message : 'Failed to get recommendations';
-		} finally {
-			loading = false;
+			if (!data.results || data.results.length === 0) {
+				console.warn('[Response Debug] No recommendations found');
+				throw new Error('No recommendations found matching your criteria. Try broadening your search.');
+			}
+
+			const duration = Date.now() - startTime;
+			console.log(`[Performance Debug] Request completed in ${duration}ms`);
+			console.log('[Response Debug] Found recommendations:', data.results.length);
+
+			if (duration < 3000) {
+				await delay(3000 - duration);
+			}
+
+			return data.results;
+		} catch (error) {
+			console.error('[Error Debug] ====== Error Details ======');
+			console.error('[Error Debug] Error:', error);
+			console.error('[Error Debug] Stack:', error instanceof Error ? error.stack : 'No stack available');
+			console.error('[Error Debug] Request duration:', Date.now() - startTime, 'ms');
+
+			if (error instanceof Error) {
+				throw error;
+			}
+			throw new Error('Failed to get recommendations');
 		}
 	}
 
@@ -114,19 +184,59 @@
 		recommendations = recommendations.filter((_, i) => i !== index);
 	}
 
-	function handleSubmit() {
-		if (!cinemaType) return;
+	async function handleSubmit() {
+		console.log('[Form Debug] ====== Form Submission Started ======');
+		const startTime = Date.now();
 
-		// Trim preferences and ensure it's properly formatted
-		preferences = preferences.trim();
-
-		// Add context to the preferences if empty to encourage sharing specific preferences
-		if (preferences.length === 0) {
-			// We don't add default preferences, just ensure it's an empty string
-			preferences = '';
+		if (!cinemaType) {
+			console.warn('[Validation Debug] No cinema type selected');
+			error = 'Please select a type (Movie or TV Show)';
+			return;
 		}
 
-		getRecommendations();
+		try {
+			loading = true;
+			error = null;
+			recommendations = [];
+
+			console.log('[Form Debug] Form state:', {
+				cinemaType,
+				selectedGenres,
+				selectedPlatforms,
+				preferences: preferences.trim()
+			});
+
+			// Trim preferences and ensure it's properly formatted
+			preferences = preferences.trim();
+
+			// Get recommendations
+			const results = await getRecommendations(preferences || 'any');
+			
+			console.log('[Response Debug] Processing results:', results.length);
+
+			// Update recommendations with the correct type
+			recommendations = results.map((item: Recommendation) => ({
+				...item,
+				type: cinemaType
+			}));
+
+			console.log('[UI Debug] Updated recommendations:', recommendations.length);
+
+			// Collapse form after successful search
+			isFormCollapsed = true;
+
+			const duration = Date.now() - startTime;
+			console.log(`[Performance Debug] Form submission completed in ${duration}ms`);
+
+			recommendationsStore.set(recommendations);
+		} catch (err) {
+			console.error('[Error Debug] Form submission error:', err);
+			error = err instanceof Error ? err.message : 'Failed to get recommendations';
+			recommendations = [];
+		} finally {
+			loading = false;
+			console.log('[Form Debug] Form submission completed');
+		}
 	}
 
 	function toggleForm() {
@@ -139,6 +249,18 @@
 
 	// Generate random animation delays for staggered animations
 	const getRandomDelay = (min = 0, max = 300) => Math.random() * (max - min) + min;
+
+	function delay(ms: number) {
+		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	function resetSearch() {
+		recommendations = [];
+		recommendationsStore.set([]);
+		error = null;
+		preferences = '';
+		isFormCollapsed = false;
+	}
 </script>
 
 <svelte:head>
@@ -156,16 +278,15 @@
 			<div class="space-y-3 sm:space-y-4" in:fly={{ y: -20, duration: 800, easing: backOut }}>
 				<div class="flex items-center gap-2 text-red-500">
 					<Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
-					<span class="text-xs sm:text-sm font-medium uppercase tracking-wider"
-						>AI-POWERED RECOMMENDATIONS</span
-					>
+					<span class="text-xs sm:text-sm font-medium uppercase tracking-wider">
+						{$i18nStore.t('home.ai_powered', 'AI-POWERED RECOMMENDATIONS')}
+					</span>
 				</div>
 				<h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
-					Discover Your Next <span class="text-red-500">Favorite</span>
+					{@html $i18nStore.t('home.headline')}
 				</h1>
 				<p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 py-3 sm:py-5 max-w-2xl">
-					Our AI understands your taste and finds the perfect movies and shows tailored just for
-					you.
+					{$i18nStore.t('home.description', 'Our AI understands your taste and finds the perfect movies and shows tailored just for you.')}
 				</p>
 			</div>
 		{/if}
@@ -175,27 +296,20 @@
 			<SearchLimitIndicator />
 			
 			{#if recommendations.length > 0}
-				<button
-					on:click={toggleForm}
-					class="mb-4 sm:mb-6 px-4 sm:px-5 py-2.5 rounded-lg bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto justify-center sm:justify-start"
-				>
-					<span>{isFormCollapsed ? 'Show Filters' : 'Hide Filters'}</span>
-					<svg
-						class="w-4 h-4 transform transition-transform duration-300 {isFormCollapsed
-							? ''
-							: 'rotate-180'}"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
+				<div class="flex gap-2 mb-4 sm:mb-6">
+					<button
+						on:click={toggleForm}
+						class="px-4 sm:px-5 py-2.5 rounded-lg bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base"
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M19 9l-7 7-7-7"
-						/>
-					</svg>
-				</button>
+						<span>{isFormCollapsed ? $i18nStore.t('recommendations.show_filters', 'Show Filters') : $i18nStore.t('recommendations.hide_filters', 'Hide Filters')}</span>
+					</button>
+					<button
+						on:click={resetSearch}
+						class="px-4 sm:px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm sm:text-base transition-all duration-300 flex items-center gap-2"
+					>
+						<span>{$i18nStore.t('recommendations.find_another', 'Find Another')}</span>
+					</button>
+				</div>
 			{/if}
 
 			{#if !isFormCollapsed || recommendations.length === 0}
@@ -209,7 +323,7 @@
 								<label
 									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300"
 								>
-									What are you looking for?
+									{$i18nStore.t('form.what_looking_for', 'What are you looking for?')}
 								</label>
 								<div class="grid grid-cols-2 gap-3 sm:gap-4">
 									<button
@@ -231,7 +345,7 @@
 										<span
 											class="text-base sm:text-lg font-medium {cinemaType === 'movie'
 												? 'text-red-500'
-												: 'text-gray-700 dark:text-gray-300'}">Movie</span
+												: 'text-gray-700 dark:text-gray-300'}">{$i18nStore.t('form.movie', 'Movie')}</span
 										>
 									</button>
 									<button
@@ -253,7 +367,7 @@
 										<span
 											class="text-base sm:text-lg font-medium {cinemaType === 'tv'
 												? 'text-red-500'
-												: 'text-gray-700 dark:text-gray-300'}">TV Show</span
+												: 'text-gray-700 dark:text-gray-300'}">{$i18nStore.t('form.tv_show', 'TV Show')}</span
 										>
 									</button>
 								</div>
@@ -265,7 +379,7 @@
 									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
 								>
 									<ThumbsUp class="w-4 h-4" />
-									Choose genres (optional)
+									{$i18nStore.t('form.choose_genres', 'Choose genres (optional)')}
 								</label>
 								<div class="flex flex-wrap gap-2 sm:gap-3">
 									{#each genres as genre, i}
@@ -291,7 +405,7 @@
 													}
 												}}
 											>
-												{genre}
+												{$i18nStore.t('genres.' + genre.toLowerCase().replace(/[^a-z0-9]/g, '_'), genre)}
 											</button>
 										{/if}
 									{/each}
@@ -304,7 +418,7 @@
 									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
 								>
 									<Star class="w-4 h-4" />
-									Available on (optional)
+									{$i18nStore.t('form.available_on', 'Available on (optional)')}
 								</label>
 								<div class="flex flex-wrap gap-2 sm:gap-3">
 									{#each platforms as platform, i}
@@ -330,7 +444,7 @@
 													}
 												}}
 											>
-												{platform}
+												{$i18nStore.t('platforms.' + platform.toLowerCase().replace(/[^a-z0-9]/g, '_'), platform)}
 											</button>
 										{/if}
 									{/each}
@@ -344,7 +458,7 @@
 								>
 									<Brain class="w-4 h-4 text-red-500" />
 									<span class="flex items-center gap-1.5">
-										AI-Enhanced Preferences
+										{$i18nStore.t('form.ai_preferences', 'AI-Enhanced Preferences')}
 										<span
 											class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
 										>
@@ -356,15 +470,14 @@
 									<input
 										type="text"
 										bind:value={preferences}
-										placeholder="e.g., 'with strong female lead', 'from 1990s', '8+ rating'"
+										placeholder={$i18nStore.t('form.preferences_placeholder', "e.g., 'with strong female lead', 'from 1990s', '8+ rating'")}
 										class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-colors text-sm"
 									/>
 									<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-start gap-2">
 										<Sparkles class="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-										<span
-											>Our AI will analyze your preferences to enhance your recommendations. Try
-											phrases like "with Tom Hanks", "feel-good comedies", or "mind-bending plots".</span
-										>
+										<span>
+											{$i18nStore.t('recommendations.ai_hint', 'Our AI will analyze your preferences to enhance your recommendations. Try phrases like "with Tom Hanks", "feel-good comedies", or "mind-bending plots".')}
+										</span>
 									</div>
 								</div>
 							</div>
@@ -379,10 +492,10 @@
 									<div
 										class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
 									/>
-									<span>AI Analysis in Progress...</span>
+									<span>{$i18nStore.t('recommendations.ai_analysis', 'AI Analysis in Progress...')}</span>
 								{:else}
 									<Brain class="w-5 h-5" />
-									<span>Get Smart Recommendations</span>
+									<span>{$i18nStore.t('recommendations.get_smart', 'Get Smart Recommendations')}</span>
 								{/if}
 							</button>
 						</form>
@@ -426,7 +539,7 @@
 <!-- Search Limit Modal -->
 <SearchLimitModal open={showLimitModal} onClose={closeLimitModal} />
 
-<style>
+<style lang="postcss">
 	/* Let the theme system handle the background color */
 	:global(body) {
 		@apply transition-colors duration-300;

@@ -7,9 +7,16 @@
 		"error": "Etwas ist schiefgelaufen"
 	},
 	"home": {
+		"ai_powered": "KI-GESTÜTZTE EMPFEHLUNGEN",
+		"headline": "Entdecke deinen <span class='text-red-500'>nächsten Favoriten</span>",
+		"description": "Unsere KI versteht deinen Geschmack und findet die perfekten Filme und Serien für dich.",
 		"title": "Finde Deinen Perfekten Film",
 		"subtitle": "Entdecke Filme und Serien, die perfekt zu dir passen",
-		"cta": "Starte die Entdeckung"
+		"cta": "Starte die Entdeckung",
+		"cta_solo": "Alleine schauen",
+		"cta_group": "Filmabend starten",
+		"subtitle_regular": "Entdecke und schaue Filme ",
+		"subtitle_gradient": "gemeinsam mit Freunden."
 	},
 	"recommendations": {
 		"no_results": "Keine Empfehlungen gefunden",
@@ -32,6 +39,8 @@
 	},
 	"navigation": {
 		"home": "Start",
+		"recommendations": "Empfehlungen",
+		"saved": "Gespeichert",
 		"library": "Bibliothek",
 		"profile": "Profil",
 		"settings": "Einstellungen"
@@ -71,6 +80,97 @@
 			"previous": "Zurück",
 			"next": "Weiter",
 			"get_recommendations": "Empfehlungen erhalten"
-		}
+		},
+		"what_looking_for": "Wonach suchst du?",
+		"movie": "Film",
+		"tv_show": "Serie",
+		"choose_genres": "Wähle Genres (optional)",
+		"available_on": "Verfügbar auf (optional)",
+		"ai_preferences": "KI-Verbesserte Präferenzen",
+		"sign_in": "Anmelden",
+		"preferences": "Spezielle Wünsche? (optional)",
+		"preferences_placeholder": "z.B. 'mit starker Frauenrolle', 'veröffentlicht nach 2010', 'Wohlfühlfilme'",
+		"finding_movies": "Filme werden gesucht...",
+		"find_movies": "Filme finden"
+	},
+	"login": {
+		"logout": "Abmelden"
+	},
+	"search_limit": {
+		"reached": "Suchlimit für heute erreicht"
+	},
+	"genres": {
+		"action": "Action",
+		"adventure": "Abenteuer",
+		"animation": "Animation",
+		"biography": "Biografie",
+		"comedy": "Komödie",
+		"crime": "Krimi",
+		"documentary": "Dokumentarfilm",
+		"drama": "Drama",
+		"family": "Familie",
+		"fantasy": "Fantasie",
+		"film_noir": "Film Noir",
+		"history": "Geschichte",
+		"horror": "Horror",
+		"musical": "Musical",
+		"mystery": "Mystery",
+		"romance": "Romanze",
+		"scifi": "Science-Fiction",
+		"sport": "Sport",
+		"thriller": "Thriller",
+		"war": "Krieg",
+		"western": "Western",
+		"art_house": "Kunstfilm",
+		"black_comedy": "Schwarze Komödie",
+		"chick_flick": "Frauenfilm",
+		"cult_classic": "Kultfilm",
+		"dark_comedy": "Schwarzer Humor",
+		"epic": "Epos",
+		"erotic": "Erotik",
+		"experimental": "Experimentell",
+		"fairy_tale": "Märchen",
+		"film_within_a_film": "Film im Film",
+		"futuristic": "Futuristisch",
+		"gangster": "Gangster",
+		"heist": "Heist",
+		"historical": "Historisch",
+		"holiday": "Urlaub",
+		"indie": "Independent",
+		"juvenile": "Jugend",
+		"melodrama": "Melodrama",
+		"monster": "Monster",
+		"political": "Politisch",
+		"psychological": "Psychologisch",
+		"road_movie": "Roadmovie",
+		"satire": "Satire",
+		"science_fiction": "Science-Fiction",
+		"slapstick": "Slapstick",
+		"social_issue": "Soziales Drama",
+		"superhero": "Superheld",
+		"surreal": "Surreal",
+		"teen": "Teenager",
+		"vampire": "Vampir",
+		"zombie": "Zombie"
+	},
+	"platforms": {
+		"netflix": "Netflix",
+		"prime": "Prime Video",
+		"disney": "Disney+",
+		"hbo": "HBO Max",
+		"apple": "Apple TV+",
+		"hulu": "Hulu"
+	},
+	"ui": {
+		"add_to_watchlist": "Zur Merkliste hinzufügen",
+		"remove_from_watchlist": "Von Merkliste entfernen",
+		"added_to_watchlist": "Zur Merkliste hinzugefügt",
+		"download": "Herunterladen",
+		"download_complete": "Download abgeschlossen",
+		"download_failed": "Download fehlgeschlagen",
+		"copy_link": "Link kopieren",
+		"copied": "Kopiert!",
+		"share_whatsapp": "Auf WhatsApp teilen",
+		"share_instagram": "Auf Instagram teilen"
 	}
 }

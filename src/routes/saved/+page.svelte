@@ -5,6 +5,7 @@
 	import { watchLaterItems, watchLater } from '$lib/stores/watchLater';
 	import { authStore } from '$lib/stores/auth';
 	import { onMount } from 'svelte';
+	import { i18nStore } from '$lib/i18n';
 
 	$: savedMovies = $library.saved;
 	$: watchLaterMovies = $watchLaterItems;
@@ -195,9 +196,9 @@
 		<div class="space-y-3 sm:space-y-4">
 			<div class="flex items-center gap-2 text-red-500">
 				<Bookmark class="w-5 h-5" />
-				<span class="text-sm font-medium">Your Collection</span>
+				<span class="text-sm font-medium">{$i18nStore.t('saved.collection', 'Your Collection')}</span>
 			</div>
-			<h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-red-500">Saved Movies & Shows</h1>
+			<h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-red-500">{$i18nStore.t('saved.title', 'Saved Movies & Shows')}</h1>
 		</div>
 
 		<!-- Tabs -->
@@ -214,7 +215,7 @@
 					>
 						<div class="flex items-center gap-2">
 							<Bookmark class="w-4 h-4" />
-							<span>Saved</span>
+							<span>{$i18nStore.t('saved.tab_saved', 'Saved')}</span>
 						</div>
 					</button>
 					<button
@@ -227,7 +228,7 @@
 					>
 						<div class="flex items-center gap-2">
 							<Clock class="w-4 h-4" />
-							<span>Watch Later</span>
+							<span>{$i18nStore.t('saved.tab_watch_later', 'Watch Later')}</span>
 						</div>
 					</button>
 				</div>
@@ -242,10 +243,10 @@
 				>
 					<Sparkles class="w-6 h-6 text-red-500 mx-auto mb-2" />
 					<p class="text-gray-600 dark:text-gray-300">
-						Start saving movies and shows you want to watch later!
+						{$i18nStore.t('saved.empty', 'Start saving movies and shows you want to watch later!')}
 					</p>
 					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-						Tap the bookmark icon on any movie to save it here
+						{$i18nStore.t('saved.helper', 'Tap the bookmark icon on any movie to save it here')}
 					</p>
 				</div>
 			{:else}
@@ -299,7 +300,7 @@
 				</div>
 				<!-- Mobile helper text -->
 				<p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-4 sm:hidden">
-					Tap and hold to see movie details
+					{$i18nStore.t('saved.mobile_helper', 'Tap and hold to see movie details')}
 				</p>
 			{/if}
 		{:else if activeTab === 'watchLater'}
@@ -310,10 +311,10 @@
 				>
 					<Clock class="w-6 h-6 text-red-500 mx-auto mb-2" />
 					<p class="text-gray-600 dark:text-gray-300">
-						Your Watch Later list is empty!
+						{$i18nStore.t('saved.watch_later_empty', 'Your Watch Later list is empty!')}
 					</p>
 					<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-						Click the clock icon on any movie or show to add it here
+						{$i18nStore.t('saved.watch_later_helper', 'Click the clock icon on any movie or show to add it here')}
 					</p>
 				</div>
 			{:else}
@@ -350,7 +351,7 @@
 									<div class="flex justify-between items-center">
 										<span class="text-xs text-gray-300">{item.year || 'Unknown'}</span>
 										<span class="text-xs bg-red-500 text-white px-2 py-0.5 rounded">
-											{item.mediaType === 'movie' ? 'Movie' : 'TV Show'}
+											{item.mediaType === 'movie' ? $i18nStore.t('form.movie', 'Movie') : $i18nStore.t('form.tv_show', 'TV Show')}
 										</span>
 									</div>
 								</div>

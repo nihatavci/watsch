@@ -3,10 +3,10 @@
 	export const incomingStream = false;
 </script>
 
-<div
-	class="relative flex flex-col md:flex-row bg-white dark:bg-black shadow-md p-6 rounded-xl animate-pulse"
->
-	<div class="w-full h-[250px] bg-gray-100 dark:bg-gray-900/50 rounded-lg" />
+<div class="rounded-2xl p-6 w-full h-64 flex flex-col gap-4 animate-pulse bg-gradient-to-br from-[#232526] to-[#414345]">
+	<div class="h-32 rounded-xl bg-gradient-to-r from-[#232526] via-[#414345] to-[#232526] opacity-80"></div>
+	<div class="h-6 rounded bg-gradient-to-r from-[#414345] via-[#232526] to-[#414345] w-3/4 opacity-80"></div>
+	<div class="h-4 rounded bg-gradient-to-r from-[#414345] via-[#232526] to-[#414345] w-1/2 opacity-80"></div>
 </div>
 
 <style>

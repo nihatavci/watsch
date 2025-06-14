@@ -1,5 +1,6 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { error, json } from '@sveltejs/kit';
+import { TMDB_API_KEY, PRIVATE_TMDB_API_KEY } from '$env/static/private';
 
 // Get environment variables - this works in SvelteKit server routes
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
@@ -10,6 +11,9 @@ const AUTH0_CLIENT_SECRET = process.env.AUTH0_CLIENT_SECRET;
 if (!AUTH0_DOMAIN || !AUTH0_CLIENT_ID || !AUTH0_CLIENT_SECRET) {
 	console.error('Missing AUTH0 environment variables');
 }
+
+console.log('TMDB_API_KEY:', TMDB_API_KEY);
+console.log('PRIVATE_TMDB_API_KEY:', PRIVATE_TMDB_API_KEY ? 'Present (first 5 chars: ' + PRIVATE_TMDB_API_KEY.substring(0, 5) + '...)' : 'NOT FOUND');
 
 // POST /api/auth (login or register)
 export const POST: RequestHandler = async ({ request }) => {
@@ -167,3 +171,9 @@ export const PATCH: RequestHandler = async ({ request }) => {
 		return json({ error: 'Password reset failed' }, { status: 500 });
 	}
 };
+
+export function GET() {
+	return json({
+		authenticated: true
+	});
+}

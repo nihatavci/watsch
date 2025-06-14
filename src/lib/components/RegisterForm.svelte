@@ -73,7 +73,7 @@
 	<meta name="description" content="Create a new Watsch account to discover great movies." />
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center p-4 bg-white dark:bg-black">
+<div class="h-screen flex flex-col justify-center items-center p-4">
 	<div class="w-full max-w-md">
 		<!-- Logo and title -->
 		<div class="text-center mb-8">

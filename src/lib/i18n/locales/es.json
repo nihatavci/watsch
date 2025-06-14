@@ -9,7 +9,8 @@
 	"home": {
 		"title": "Encuentra Tu Película Perfecta",
 		"subtitle": "Descubre películas y series personalizadas para ti",
-		"cta": "Comenzar a Explorar"
+		"cta": "Comenzar a Explorar",
+		"headline": "Encuentra tu <span class='text-red-500'>favorito</span>"
 	},
 	"recommendations": {
 		"no_results": "No se encontraron recomendaciones",
@@ -72,5 +73,85 @@
 			"next": "Siguiente",
 			"get_recommendations": "Obtener Recomendaciones"
 		}
+	},
+	"genres": {
+		"action": "Acción",
+		"adventure": "Aventura",
+		"animation": "Animación",
+		"biography": "Biografía",
+		"comedy": "Comedia",
+		"crime": "Crimen",
+		"documentary": "Documental",
+		"drama": "Drama",
+		"family": "Familiar",
+		"fantasy": "Fantasía",
+		"film_noir": "Cine negro",
+		"history": "Historia",
+		"horror": "Terror",
+		"musical": "Musical",
+		"mystery": "Misterio",
+		"romance": "Romance",
+		"scifi": "Ciencia ficción",
+		"sport": "Deporte",
+		"thriller": "Suspense",
+		"war": "Guerra",
+		"western": "Western",
+		"art_house": "Cine de autor",
+		"black_comedy": "Comedia negra",
+		"chick_flick": "Película para chicas",
+		"cult_classic": "Clásico de culto",
+		"dark_comedy": "Comedia oscura",
+		"epic": "Épico",
+		"erotic": "Erótico",
+		"experimental": "Experimental",
+		"fairy_tale": "Cuento de hadas",
+		"film_within_a_film": "Película dentro de una película",
+		"futuristic": "Futurista",
+		"gangster": "Gánster",
+		"heist": "Atraco",
+		"historical": "Histórico",
+		"holiday": "Vacaciones",
+		"indie": "Independiente",
+		"juvenile": "Juvenil",
+		"melodrama": "Melodrama",
+		"monster": "Monstruo",
+		"political": "Político",
+		"psychological": "Psicológico",
+		"road_movie": "Película de carretera",
+		"satire": "Sátira",
+		"science_fiction": "Ciencia ficción",
+		"slapstick": "Slapstick",
+		"social_issue": "Problema social",
+		"superhero": "Superhéroe",
+		"surreal": "Surrealista",
+		"teen": "Adolescente",
+		"vampire": "Vampiro",
+		"zombie": "Zombi"
+	},
+	"platforms": {
+		"netflix": "Netflix",
+		"prime": "Prime Video",
+		"disney": "Disney+",
+		"hbo": "HBO Max",
+		"apple": "Apple TV+",
+		"hulu": "Hulu"
+	},
+	"ui": {
+		"add_to_watchlist": "Agregar a Mi Lista",
+		"remove_from_watchlist": "Quitar de Mi Lista",
+		"added_to_watchlist": "Agregado a Mi Lista",
+		"download": "Descargar",
+		"download_complete": "Descarga completa",
+		"download_failed": "Descarga fallida",
+		"copy_link": "Copiar enlace",
+		"copied": "¡Copiado!",
+		"share_whatsapp": "Compartir en WhatsApp",
+		"share_instagram": "Compartir en Instagram"
+	},
+	"login": {
+		"logout": "Cerrar sesión"
+	},
+	"search_limit": {
+		"reached": "Límite de búsquedas alcanzado por hoy"
 	}
 }

@@ -58,12 +58,13 @@
 		try {
 			const response = await fetch('/api/getRecommendation', {
 				method: 'POST',
+				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({
-					searched: prompt
-				}),
-				headers: {
-					'content-type': 'application/json'
-				}
+					query: prompt,
+					mediaType: cinemaType || 'movie',
+					genres: selectedCategories,
+					platforms: selectedPlatforms
+				})
 			});
 
 			if (!response.ok) {
@@ -86,7 +87,7 @@
 	<div class="space-y-2">
 		<fieldset>
 			<legend class="block text-sm font-medium text-gray-700 dark:text-white/80">
-				What would you like to watch?
+				{$i18nStore.t('form.what_looking_for', 'What would you like to watch?')}
 			</legend>
 			<div class="flex gap-2">
 				<button
@@ -97,7 +98,7 @@
 					on:click={() => (cinemaType = 'movie')}
 				>
 					<Film size={20} />
-					Movie
+					{$i18nStore.t('form.movie', 'Movie')}
 				</button>
 				<button
 					type="button"
@@ -107,7 +108,7 @@
 					on:click={() => (cinemaType = 'tv')}
 				>
 					<Tv size={20} />
-					TV Show
+					{$i18nStore.t('form.tv_show', 'TV Show')}
 				</button>
 			</div>
 		</fieldset>
@@ -117,7 +118,7 @@
 	<div class="space-y-2">
 		<fieldset>
 			<legend class="block text-sm font-medium text-gray-700 dark:text-white/80">
-				Choose genres (optional)
+				{$i18nStore.t('form.choose_genres', 'Choose genres (optional)')}
 			</legend>
 			<div class="flex flex-wrap gap-2">
 				{#each categories as category}
@@ -134,7 +135,7 @@
 							}
 						}}
 					>
-						{category}
+						{$i18nStore.t('genres.' + category.toLowerCase().replace(/[^a-z0-9]/g, '_'), category)}
 					</button>
 				{/each}
 			</div>
@@ -145,7 +146,7 @@
 	<div class="space-y-2">
 		<fieldset>
 			<legend class="block text-sm font-medium text-gray-700 dark:text-white/80">
-				Available on (optional)
+				{$i18nStore.t('form.available_on', 'Available on (optional)')}
 			</legend>
 			<div class="flex flex-wrap gap-2">
 				{#each platforms as platform}
@@ -162,7 +163,7 @@
 							}
 						}}
 					>
-						{platform}
+						{$i18nStore.t('platforms.' + platform.toLowerCase().replace(/[^a-z0-9]/g, '_'), platform)}
 					</button>
 				{/each}
 			</div>
@@ -172,14 +173,14 @@
 	<!-- Additional Preferences -->
 	<div class="space-y-2">
 		<label for="descriptors" class="block text-sm font-medium text-gray-700 dark:text-white/80">
-			Any specific preferences? (optional)
+			{$i18nStore.t('form.preferences', 'Any specific preferences? (optional)')}
 		</label>
 		<input
 			type="text"
 			id="descriptors"
 			bind:value={specificDescriptors}
 			class="w-full px-4 py-2 rounded-lg bg-white dark:bg-black/30 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:focus:ring-white/20"
-			placeholder="e.g., 'with strong female lead', 'released after 2010', 'feel-good movies'"
+			placeholder={$i18nStore.t('form.preferences_placeholder', "e.g., 'with strong female lead', 'released after 2010', 'feel-good movies'")}
 		/>
 	</div>
 
@@ -195,6 +196,6 @@
 		{:else}
 			<Search size={20} />
 		{/if}
-		{isSubmitting ? 'Finding movies...' : 'Find Movies'}
+		{isSubmitting ? $i18nStore.t('form.finding_movies', 'Finding movies...') : $i18nStore.t('form.find_movies', 'Find Movies')}
 	</Button>
 </form>

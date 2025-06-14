@@ -9,10 +9,11 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 public class EnvPlugin extends Plugin {
     @PluginMethod
     public void getEnvVariables(PluginCall call) {
+        // DO NOT hardcode API keys here. Load them securely at runtime.
         call.resolve(
             new com.getcapacitor.JSObject()
-                .put("TMDB_API_KEY", "41fc3d91a9d40ec6ff07b82fae717127")
-                .put("OPENAI_API_KEY", "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")
+                .put("TMDB_API_KEY", "REPLACE_WITH_SECURE_RUNTIME_VALUE")
+                .put("OPENAI_API_KEY", "REPLACE_WITH_SECURE_RUNTIME_VALUE")
         );
     }
 } 
