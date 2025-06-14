@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 // Use the direct import for TMDB_API_KEY for clarity and reliability
-import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
+import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY, OPENAI_API_KEY, YOUTUBE_API_KEY, RAPID_API_KEY, OMDB_API_KEY } from '$lib/env-loader';
 import { callOpenAI } from '$lib/api/openai';
 import { canPerformSearch, incrementSearchCount } from '$lib/api/db';
 type GenreMap = {
@@ -140,7 +140,16 @@ details: error instanceof Error ? error.stack : undefined
 // Export a clean interface for environment variables
 export const env = {
   TMDB_API_KEY: PRIVATE_TMDB_API_KEY,
+  OPENAI_API_KEY,
+  YOUTUBE_API_KEY,
+  RAPID_API_KEY,
+  OMDB_API_KEY,
 } as const;
+
+// Compatibility helper for legacy code
+export function getEnvVariables() {
+  return env;
+}
 
 // Type-safe getter for environment variables
 export function getEnvVar(key: keyof typeof env): string {
