@@ -29,6 +29,7 @@
 	let cinemaType: 'movie' | 'tv' | null = null;
 	let selectedGenres: string[] = [];
 	let selectedPlatforms: string[] = [];
+	let minRating: number = 0;
 	let preferences = '';
 	let loading = false;
 	let recommendations: Recommendation[] = [];
@@ -103,12 +104,16 @@
 				mediaType: cinemaType || 'movie',
 				genres: selectedGenres,
 				platforms: selectedPlatforms,
+				minRating: minRating > 0 ? minRating : undefined,
 				isAuthenticated,
 				hasToken: !!token
 			});
 
 			const headers: Record<string, string> = {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				'Cache-Control': 'no-cache, no-store, must-revalidate',
+				'Pragma': 'no-cache',
+				'Expires': '0'
 			};
 
 			if (token) {
@@ -120,14 +125,18 @@
 
 			console.log('[Request Debug] Sending request with headers:', headers);
 
-			const response = await fetch('/api/getRecommendation', {
+			// Add cache busting parameter
+			const timestamp = Date.now();
+			const response = await fetch(`/api/getRecommendation?t=${timestamp}`, {
 				method: 'POST',
 				headers,
 				body: JSON.stringify({
 					query,
 					mediaType: cinemaType || 'movie',
 					genres: selectedGenres,
-					platforms: selectedPlatforms
+					platforms: selectedPlatforms,
+					minRating: minRating > 0 ? minRating : undefined,
+					timestamp
 				})
 			});
 
@@ -153,20 +162,43 @@
 				throw new Error(data.error || 'Failed to get recommendations');
 			}
 
-			if (!data.results || data.results.length === 0) {
+			// Handle wrapped API response structure with more robust parsing
+			console.log('[Response Debug] Raw data structure:', JSON.stringify(data, null, 2));
+			
+			let actualResults = [];
+			
+			// Try multiple parsing approaches
+			if (data.data?.data?.results) {
+				actualResults = data.data.data.results;
+				console.log('[Response Debug] Using data.data.data.results');
+			} else if (data.data?.results) {
+				actualResults = data.data.results;
+				console.log('[Response Debug] Using data.data.results');
+			} else if (data.results) {
+				actualResults = data.results;
+				console.log('[Response Debug] Using data.results');
+			} else if (Array.isArray(data)) {
+				actualResults = data;
+				console.log('[Response Debug] Using data as array');
+			}
+			
+			console.log('[Response Debug] Parsed results:', actualResults?.length || 0, 'items');
+			
+			if (!actualResults || actualResults.length === 0) {
 				console.warn('[Response Debug] No recommendations found');
+				console.warn('[Response Debug] Full response structure:', data);
 				throw new Error('No recommendations found matching your criteria. Try broadening your search.');
 			}
 
 			const duration = Date.now() - startTime;
 			console.log(`[Performance Debug] Request completed in ${duration}ms`);
-			console.log('[Response Debug] Found recommendations:', data.results.length);
+			console.log('[Response Debug] Found recommendations:', actualResults.length);
 
 			if (duration < 3000) {
 				await delay(3000 - duration);
 			}
 
-			return data.results;
+			return actualResults;
 		} catch (error) {
 			console.error('[Error Debug] ====== Error Details ======');
 			console.error('[Error Debug] Error:', error);
@@ -203,6 +235,7 @@
 				cinemaType,
 				selectedGenres,
 				selectedPlatforms,
+				minRating,
 				preferences: preferences.trim()
 			});
 
@@ -222,8 +255,13 @@
 
 			console.log('[UI Debug] Updated recommendations:', recommendations.length);
 
-			// Collapse form after successful search
-			isFormCollapsed = true;
+			// Check if no recommendations were found
+			if (recommendations.length === 0) {
+				error = $i18nStore.t('recommendations.error.no_results', 'No recommendations found matching your criteria. Try broadening your search.');
+			} else {
+				// Collapse form after successful search
+				isFormCollapsed = true;
+			}
 
 			const duration = Date.now() - startTime;
 			console.log(`[Performance Debug] Form submission completed in ${duration}ms`);
@@ -231,7 +269,7 @@
 			recommendationsStore.set(recommendations);
 		} catch (err) {
 			console.error('[Error Debug] Form submission error:', err);
-			error = err instanceof Error ? err.message : 'Failed to get recommendations';
+			error = $i18nStore.t('recommendations.error.general', 'Failed to get recommendations. Please try again.');
 			recommendations = [];
 		} finally {
 			loading = false;
@@ -451,6 +489,82 @@
 								</div>
 							</div>
 
+							<!-- Rating Filter -->
+							<div class="space-y-4">
+								<label
+									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
+								>
+									<Star class="w-4 h-4 text-yellow-500" />
+									{$i18nStore.t('form.minimum_rating', 'Minimum Rating (optional)')}
+								</label>
+								
+								<!-- Clean Rating Slider -->
+								<div class="space-y-4">
+									<!-- Current value display -->
+									{#if minRating > 0}
+										<div class="flex items-center justify-center">
+											<div class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-full">
+												<div class="flex items-center">
+													{#each Array(5) as _, i}
+														<svg 
+															class="w-4 h-4 {i < Math.ceil(minRating/2) ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}" 
+															fill="currentColor" 
+															viewBox="0 0 20 20"
+														>
+															<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+														</svg>
+													{/each}
+												</div>
+												<span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">
+													{minRating}/10
+												</span>
+											</div>
+										</div>
+									{/if}
+									
+									<!-- Slider container -->
+									<div class="relative px-1">
+										<input
+											type="range"
+											min="0"
+											max="10"
+											step="0.5"
+											bind:value={minRating}
+											class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer rating-slider"
+										/>
+										
+										<!-- Rating markers -->
+										<div class="flex justify-between mt-2 px-1">
+											{#each [0, 2, 4, 6, 8, 10] as rating}
+												<button
+													type="button"
+													on:click={() => minRating = rating}
+													class="flex flex-col items-center group"
+												>
+													<div class="w-1 h-3 {minRating >= rating ? 'bg-yellow-500' : 'bg-gray-300 dark:bg-gray-600'} rounded-full transition-colors"></div>
+													<span class="text-xs text-gray-500 dark:text-gray-400 mt-1 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+														{rating}
+													</span>
+												</button>
+											{/each}
+										</div>
+									</div>
+									
+									<!-- Reset button -->
+									{#if minRating > 0}
+										<div class="flex justify-center">
+											<button
+												type="button"
+												on:click={() => minRating = 0}
+												class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline transition-colors"
+											>
+												Clear rating filter
+											</button>
+										</div>
+									{/if}
+								</div>
+							</div>
+
 							<!-- Preferences -->
 							<div class="space-y-2">
 								<label
@@ -543,5 +657,71 @@
 	/* Let the theme system handle the background color */
 	:global(body) {
 		@apply transition-colors duration-300;
+	}
+
+	/* Clean rating slider styling */
+	.rating-slider::-webkit-slider-thumb {
+		appearance: none;
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+		cursor: pointer;
+		box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+		border: 2px solid white;
+		transition: all 0.2s ease;
+	}
+
+	.rating-slider::-moz-range-thumb {
+		height: 20px;
+		width: 20px;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+		cursor: pointer;
+		border: 2px solid white;
+		box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+		transition: all 0.2s ease;
+	}
+
+	.rating-slider:hover::-webkit-slider-thumb {
+		transform: scale(1.1);
+		box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+	}
+
+	.rating-slider:hover::-moz-range-thumb {
+		transform: scale(1.1);
+		box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+	}
+
+	.rating-slider::-webkit-slider-track {
+		height: 8px;
+		border-radius: 4px;
+		background: #e5e7eb;
+		transition: background 0.2s ease;
+	}
+
+	.rating-slider::-moz-range-track {
+		height: 8px;
+		border-radius: 4px;
+		background: #e5e7eb;
+		border: none;
+		transition: background 0.2s ease;
+	}
+
+	/* Dark mode */
+	:global(.dark) .rating-slider::-webkit-slider-thumb {
+		border-color: #111827;
+	}
+
+	:global(.dark) .rating-slider::-moz-range-thumb {
+		border-color: #111827;
+	}
+
+	:global(.dark) .rating-slider::-webkit-slider-track {
+		background: #374151;
+	}
+
+	:global(.dark) .rating-slider::-moz-range-track {
+		background: #374151;
 	}
 </style>

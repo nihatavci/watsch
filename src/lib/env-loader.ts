@@ -34,4 +34,7 @@ export function isPlaceholderKey(key: string | undefined): boolean {
 // Export all API keys for server-side use
 export { TMDB_API_KEY, YOUTUBE_API_KEY, RAPID_API_KEY, OMDB_API_KEY };
 
-console.log('[DEBUG] TMDB_API_KEY:', TMDB_API_KEY ? TMDB_API_KEY.substring(0, 6) + '...' : TMDB_API_KEY);
+// Only log in development mode and when keys are actually configured
+if (dev && TMDB_API_KEY) {
+  console.log('[ENV] TMDB API key loaded successfully');
+}

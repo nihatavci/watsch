@@ -15,12 +15,7 @@ export async function GET({ url }) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
-		return json({
-			participants: room.participants,
-			phase: room.phase,
-			nominations: room.nominations,
-			votes: room.votes
-		});
+		return json(room);
 	} catch (error) {
 		console.error('Error getting room status:', error);
 		return json({ error: { message: 'Failed to get room status' } }, { status: 500 });

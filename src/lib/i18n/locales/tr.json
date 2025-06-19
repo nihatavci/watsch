@@ -123,7 +123,14 @@
 		},
 		"submit": "Önerileri Göster",
 		"back": "Geri",
-		"next": "İleri"
+		"next": "İleri",
+		"minimum_rating": "Minimum Puan (isteğe bağlı)",
+		"rating_guide": "Puan Rehberi",
+		"rating_1_3": "Kötü kalite, büyük eksiklikler",
+		"rating_4_5": "Ortalamanın altı, izlenebilir",
+		"rating_6_7": "İyi kalite, izlemeye değer",
+		"rating_8_9": "Mükemmel, çok tavsiye edilen",
+		"rating_95_10": "Başyapıt, mutlaka izlenmeli"
 	},
 	"settings": {
 		"language": "Dil Seçimi",

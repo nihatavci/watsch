@@ -1,67 +1,39 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { searchTMDB } from '$lib/api/tmdb';
+import { api } from '$lib/api';
 
 export const GET: RequestHandler = async ({ url }) => {
 	try {
-		const title = url.searchParams.get('title');
-		const type = url.searchParams.get('type')?.toLowerCase() || 'movie';
-		const language = url.searchParams.get('language') || 'en-US';
-
-		if (!title) {
-			return json({ error: 'Missing title parameter' }, { status: 400 });
+		const query = url.searchParams.get('query');
+		const type = url.searchParams.get('type') || 'movie';
+		const page = parseInt(url.searchParams.get('page') || '1');
+		
+		if (!query) {
+			return json({ error: 'Query parameter is required' }, { status: 400 });
 		}
 
-		console.log('TMDB Search:', { title, type }); // Debug log
-
-		// Use the centralized TMDB API utility
-		let data = await searchTMDB(title, type as 'movie' | 'tv', language);
-
-		// If no results found and searching for a movie, try TV shows and vice versa
-		if ((!data.results || data.results.length === 0) && type === 'movie') {
-			console.log('No movie results found, trying TV shows');
-			data = await searchTMDB(title, 'tv', language);
-			if (data.results?.length > 0) {
-				data.results = data.results.map((item: any) => ({
-					...item,
-					media_type: 'tv'
-				}));
-			}
-		} else if ((!data.results || data.results.length === 0) && type === 'tv') {
-			console.log('No TV results found, trying movies');
-			data = await searchTMDB(title, 'movie', language);
-			if (data.results?.length > 0) {
-				data.results = data.results.map((item: any) => ({
-					...item,
-					media_type: 'movie'
-				}));
-			}
+		const apiManager = api.getInstance();
+		
+		let result;
+		if (type === 'tv') {
+			result = await apiManager.searchTV(query, page);
+		} else {
+			result = await apiManager.searchMovies(query, page);
 		}
 
-		// Debug log
-		console.log('TMDB Response:', {
-			resultCount: data.results?.length || 0,
-			firstResult: data.results?.[0]
+		return json({
+			success: true,
+			data: result,
+			timestamp: new Date().toISOString()
 		});
-
-		// Add media_type to results if not present
-		if (data.results) {
-			data.results = data.results.map((item: any) => ({
-				...item,
-				media_type: item.media_type || type
-			}));
-		}
-
-		return json(data);
 	} catch (error) {
-		console.error('Search error:', error);
-		return new Response(
-			JSON.stringify({
-				error: error instanceof Error ? error.message : 'Internal server error'
-			}),
-			{
-				status: 500
-			}
+		console.error('TMDB search error:', error);
+		return json(
+			{ 
+				error: 'TMDB search failed',
+				details: error instanceof Error ? error.message : 'Unknown error'
+			}, 
+			{ status: 500 }
 		);
 	}
 };

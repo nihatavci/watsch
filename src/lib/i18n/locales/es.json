@@ -72,7 +72,14 @@
 			"previous": "Anterior",
 			"next": "Siguiente",
 			"get_recommendations": "Obtener Recomendaciones"
-		}
+		},
+		"minimum_rating": "Puntuación Mínima (opcional)",
+		"rating_guide": "Guía de Puntuación",
+		"rating_1_3": "Mala calidad, defectos importantes",
+		"rating_4_5": "Por debajo del promedio, visionable",
+		"rating_6_7": "Buena calidad, vale la pena ver",
+		"rating_8_9": "Excelente, muy recomendable",
+		"rating_95_10": "Obra maestra, imprescindible"
 	},
 	"genres": {
 		"action": "Acción",

@@ -18,6 +18,7 @@
 	import RecommendationCard from './RecommendationCard.svelte';
 	import { library } from '../stores/library';
 	import { sidebar } from '../stores/sidebar';
+	import { browser } from '$app/environment';
 
 	interface Participant {
 		id: string;
@@ -53,6 +54,7 @@
 	let selectedCategories: string[] = [];
 	let selectedPlatforms: string[] = [];
 	let specificDescriptors = '';
+	let winner: any = null;
 
 	$: console.log('Current state:', { roomPhase, isHost, participants });
 
@@ -306,64 +308,30 @@
 			const data = await response.json();
 			console.log('Recommendations response:', data);
 
-			// Process recommendations and fetch movie details
-			const recommendationsWithDetails = await Promise.all(
-				data.recommendations.map(async (rec: string) => {
-					const match = rec.match(/\d+\.\s*(.*?):\s*(.*)/);
-					if (!match) return null;
-					const [, title, description] = match;
+			// Check if we have results
+			if (!data.data?.data?.results || data.data.data.results.length === 0) {
+				showNotification($i18nStore.t('recommendations.error.no_results', 'No recommendations found. Try different preferences.'));
+				loading = false;
+				return;
+			}
 
-					try {
-						// Fetch movie details from TMDB
-						const searchResponse = await fetch(`/api/tmdb/search`, {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json'
-							},
-							body: JSON.stringify({
-								title: title.trim(),
-								type: 'movie'
-							})
-						});
+			// Use the actual results from the recommendation engine
+			const results = data.data.data.results;
+			
+			// Map the results to the format expected by the UI
+			recommendations = results.map((movie: any) => ({
+				id: movie.id.toString(),
+				title: movie.title,
+				description: movie.description,
+				poster_path: movie.poster_path,
+				release_date: movie.year ? `${movie.year}-01-01` : null,
+				vote_average: movie.rating / 10 // Convert from 0-100 to 0-10
+			}));
 
-						const searchData = await searchResponse.json();
-						const movieResult = searchData.results?.[0];
-
-						if (!movieResult) {
-							return {
-								id: Date.now().toString(),
-								title,
-								description,
-								poster_path: null,
-								release_date: null
-							};
-						}
-
-						return {
-							id: movieResult.id.toString(),
-							title,
-							description,
-							poster_path: movieResult.poster_path,
-							release_date: movieResult.release_date
-						};
-					} catch (error) {
-						console.error('Error fetching movie details:', error);
-						return {
-							id: Date.now().toString(),
-							title,
-							description,
-							poster_path: null,
-							release_date: null
-						};
-					}
-				})
-			);
-
-			recommendations = recommendationsWithDetails.filter((rec): rec is Movie => rec !== null);
 			console.log('Processed recommendations:', recommendations);
 		} catch (error) {
 			console.error('Error getting recommendations:', error);
-			showNotification($i18nStore.t('recommendations.error.partial'));
+			showNotification($i18nStore.t('recommendations.error.general', 'Failed to get recommendations. Please try again.'));
 		} finally {
 			loading = false;
 		}
@@ -395,7 +363,7 @@
 			showNotification($i18nStore.t('movie_night.nominated', { title: movie.title }));
 		} catch (error) {
 			console.error('Error nominating movie:', error);
-			showNotification($i18nStore.t('movie_night.nomination_failed'), 'error');
+			showNotification($i18nStore.t('movie_night.nomination_failed', 'Failed to nominate movie'));
 		} finally {
 			loading = false;
 		}
@@ -646,11 +614,20 @@
 									</button>
 								</div>
 								<Form
-									on:submit={getRecommendations}
+									on:submit={(e) => {
+										// The Form component already made the API call, but we need to handle it differently for MovieNight
+										// Let's reconstruct and call our own handler
+										getRecommendations('');
+									}}
 									on:close={() => {
 										showRecommendationForm = false;
 										recommendations = [];
 									}}
+									bind:cinemaType
+									bind:selectedCategories
+									bind:specificDescriptors
+									bind:selectedPlatforms
+									loading={loading}
 								/>
 							</div>
 						{/if}

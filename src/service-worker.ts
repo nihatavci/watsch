@@ -61,7 +61,8 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 			// if we're offline, fetch can return a value that is not a Response
 			// instead of throwing - and we can't pass this non-Response to cache.put
 			if (response instanceof Response) {
-				if (response.status === 200) {
+				// Only cache GET requests with successful responses
+				if (response.status === 200 && event.request.method === 'GET') {
 					cache.put(event.request, response.clone());
 				}
 				return response;

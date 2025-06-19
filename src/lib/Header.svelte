@@ -5,7 +5,7 @@
 	import { i18nStore } from '$lib/i18n';
 	import LanguageSwitcher from '$lib/LanguageSwitcher.svelte';
 
-	export let roomPhase: 'join' | 'nominate' | 'vote' | 'results' | null = null;
+	export let roomPhase: 'join' | 'waiting' | 'nominating' | 'nominate' | 'voting' | 'vote' | 'complete' | 'results' | null = null;
 	export let roomCode: string | null = null;
 	export let participants: Array<{ id: string; nickname: string }> = [];
 
@@ -55,13 +55,16 @@
 					<!-- Phase Indicator -->
 					<div class="flex items-center gap-2 text-white/70">
 						<div class="px-2 py-1 rounded bg-white/10 text-sm capitalize flex items-center gap-1">
-							{#if roomPhase === 'nominate'}
+							{#if roomPhase === 'waiting'}
+								<Users size={14} class="transform transition-transform group-hover:rotate-12" />
+								<span>{$i18nStore.t('movie_night.waiting')}</span>
+							{:else if roomPhase === 'nominating' || roomPhase === 'nominate'}
 								<Film size={14} class="transform transition-transform group-hover:rotate-12" />
 								<span>{$i18nStore.t('movie_night.nomination_phase')}</span>
-							{:else if roomPhase === 'vote'}
+							{:else if roomPhase === 'voting' || roomPhase === 'vote'}
 								<Trophy size={14} class="transform transition-transform group-hover:rotate-12" />
 								<span>{$i18nStore.t('movie_night.voting_phase')}</span>
-							{:else if roomPhase === 'results'}
+							{:else if roomPhase === 'complete' || roomPhase === 'results'}
 								<Trophy
 									size={14}
 									class="text-[#E50914] transform transition-transform group-hover:rotate-12"

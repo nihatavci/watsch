@@ -1,9 +1,10 @@
 import { json } from '@sveltejs/kit';
-import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
+import type { RequestHandler } from './$types';
 
-export function GET() {
-	return json({
-		tmdbKeyAvailable: !!PRIVATE_TMDB_API_KEY,
-		tmdbKeyFirstFive: PRIVATE_TMDB_API_KEY ? PRIVATE_TMDB_API_KEY.substring(0, 5) : null
-	});
-} 
+// Security: This endpoint has been disabled to prevent API key information leakage
+export const GET: RequestHandler = async () => {
+	return json({ 
+		error: 'This endpoint has been disabled for security reasons',
+		status: 'Environment information is not publicly accessible'
+	}, { status: 403 });
+}; 

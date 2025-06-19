@@ -1,52 +1,78 @@
 import { json } from '@sveltejs/kit';
 import { nanoid } from 'nanoid';
 import { kv } from '$lib/store/kv';
+import { broadcastToRoom } from '../events/+server';
 
 interface Participant {
 	id: string;
 	nickname: string;
-	// Add other participant properties if any
+	isHost: boolean;
+	isReady: boolean;
+	hasNominated: boolean;
+	hasVoted: boolean;
+	joinedAt: number;
 }
 
-// We can also define a basic Room type here if needed, based on usage
-// interface MovieNightRoom {
-// 	participants: Participant[];
-// 	phase: string; // Or a more specific enum/type
-// 	nominations: any[]; // Define Nomination type if known
-// 	// Add other room properties if any
-// }
+interface MovieNightRoom {
+	code: string;
+	hostId: string;
+	phase: 'waiting' | 'nominating' | 'voting' | 'reveal' | 'complete';
+	participants: Participant[];
+	nominations: any[];
+	winner: any;
+	createdAt: number;
+	updatedAt: number;
+}
 
 export async function POST({ request }) {
 	try {
-		const { roomCode, nickname } = await request.json();
+		const { roomCode, userId, nickname, isHost } = await request.json();
 
 		if (!roomCode || !nickname) {
 			return json({ error: { message: 'Room code and nickname are required' } }, { status: 400 });
 		}
 
-		const room = await kv.get(`room:${roomCode.toLowerCase()}`);
+		const room = await kv.get(`room:${roomCode.toLowerCase()}`) as MovieNightRoom;
 
 		if (!room) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
-		// Assuming room.participants is an array of Participant objects
-		// and room has a participants property of type Participant[]
-		if ((room.participants as Participant[]).some((p: Participant) => p.nickname.toLowerCase() === nickname.toLowerCase())) {
-			return json({ error: { message: 'Nickname already taken' } }, { status: 400 });
+		// Check if user already exists (by userId)
+		const existingParticipant = room.participants.find(p => p.id === userId);
+		if (existingParticipant) {
+			// User rejoining, update their info
+			existingParticipant.nickname = nickname;
+			existingParticipant.joinedAt = Date.now();
+		} else {
+			// Check if nickname is taken
+			if (room.participants.some(p => p.nickname.toLowerCase() === nickname.toLowerCase())) {
+				return json({ error: { message: 'Nickname already taken' } }, { status: 400 });
+			}
+
+			// Add new participant
+			const participant: Participant = {
+				id: userId || nanoid(),
+				nickname,
+				isHost: isHost || false,
+				isReady: false,
+				hasNominated: false,
+				hasVoted: false,
+				joinedAt: Date.now()
+			};
+			room.participants.push(participant);
 		}
 
-		const participantId = nanoid();
-		(room.participants as Participant[]).push({ id: participantId, nickname });
+		room.updatedAt = Date.now();
+		await kv.set(`room:${roomCode.toLowerCase()}`, room);
 
-		await kv.set(`room:${roomCode}`, room);
-
-		return json({
-			participantId,
-			participants: room.participants,
-			phase: room.phase,
-			nominations: room.nominations
+		// Broadcast participant joined event
+		broadcastToRoom(roomCode, {
+			type: 'participant_joined',
+			participant: room.participants.find(p => p.id === userId || p.nickname === nickname)
 		});
+
+		return json(room);
 	} catch (error) {
 		console.error('Error joining room:', error);
 		return json({ error: { message: 'Failed to join room' } }, { status: 500 });

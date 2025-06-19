@@ -317,6 +317,7 @@
 		try {
 			loadingRecommendations = true;
 			showRecommendations = true;
+			error = ''; // Clear any previous errors
 
 			// Get a mix of popular movies and TV shows
 			const response = await fetch('/api/getRecommendation', {
@@ -326,18 +327,21 @@
 					query: 'movie, Action, Adventure, Comedy',
 					mediaType: 'movie',
 					genres: ['Action', 'Adventure', 'Comedy'],
-					platforms: []
+					platforms: [],
+					count: 6 // Limit recommendations for better UX
 				})
 			});
 
 			if (!response.ok) {
-				throw new Error('Failed to get recommendations');
+				const errorData = await response.json();
+				throw new Error(errorData.error || 'Failed to get recommendations');
 			}
 
 			recommendations = await response.json();
 		} catch (err) {
 			console.error('Error getting recommendations:', err);
-			error = err instanceof Error ? err.message : 'Failed to get recommendations';
+			recommendations = [];
+			error = err instanceof Error ? err.message : 'Failed to get recommendations. Please try searching instead.';
 		} finally {
 			loadingRecommendations = false;
 		}
@@ -359,24 +363,40 @@
 		searchTimeout = setTimeout(async () => {
 			try {
 				loadingSearch = true;
+				error = ''; // Clear any previous errors
 
 				const response = await fetch(
-					`/api/tmdb/search?title=${encodeURIComponent(searchQuery)}&type=movie`
+					`/api/tmdb/search?query=${encodeURIComponent(searchQuery)}&type=movie`
 				);
 
 				if (!response.ok) {
-					throw new Error('Failed to search movies');
+					const errorData = await response.json();
+					throw new Error(errorData.error || 'Failed to search movies');
 				}
 
 				const data = await response.json();
-				searchResults = data.results || [];
+				
+				// Handle different possible response structures
+				if (data.success && data.data && data.data.data && data.data.data.results) {
+					searchResults = data.data.data.results;
+				} else if (data.data && data.data.results) {
+					searchResults = data.data.results;
+				} else if (data.results) {
+					searchResults = data.results;
+				} else {
+					searchResults = [];
+				}
+				
+				// Limit to max 10 results for better performance
+				searchResults = searchResults.slice(0, 10);
 			} catch (err) {
 				console.error('Error searching movies:', err);
-				error = err instanceof Error ? err.message : 'Failed to search movies';
+				searchResults = [];
+				error = err instanceof Error ? err.message : 'Failed to search movies. Please try again.';
 			} finally {
 				loadingSearch = false;
 			}
-		}, 500);
+		}, 300); // Reduced timeout for better responsiveness
 	}
 
 	// Function to select a movie for nomination
@@ -440,6 +460,10 @@
 	// Watch searchQuery for changes
 	$: if (searchQuery) {
 		searchMovies();
+	} else {
+		// Clear results and errors when search query is empty
+		searchResults = [];
+		error = '';
 	}
 </script>
 
@@ -974,19 +998,26 @@
 												Searching for "{searchQuery}"...
 											</p>
 										</div>
-									{:else if searchQuery && !loadingSearch && searchResults.length === 0}
-										<div class="text-center py-8">
-											<p class="text-gray-500 dark:text-gray-400">
-												No results found for "{searchQuery}".
-											</p>
-											<button
-												on:click={getRecommendations}
-												class="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium hover:shadow-lg transition-all duration-200"
-											>
-												<Sparkles class="w-4 h-4 inline-block mr-1" />
-												Try recommendations instead
-											</button>
-										</div>
+														{:else if searchQuery && !loadingSearch && searchResults.length === 0}
+						<div class="text-center py-8">
+							{#if error}
+								<div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+									<p class="text-red-600 dark:text-red-400 text-sm">
+										{error}
+									</p>
+								</div>
+							{/if}
+							<p class="text-gray-500 dark:text-gray-400">
+								No results found for "{searchQuery}".
+							</p>
+							<button
+								on:click={getRecommendations}
+								class="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium hover:shadow-lg transition-all duration-200"
+							>
+								<Sparkles class="w-4 h-4 inline-block mr-1" />
+								Try recommendations instead
+							</button>
+						</div>
 									{:else}
 										<div class="text-center py-8">
 											<PlayCircle class="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />

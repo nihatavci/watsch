@@ -45,7 +45,7 @@
 >
 	<Navbar />
 	<ToastContainer />
-	<div class="min-h-screen overflow-y-auto pb-20 md:pb-16">
+	<div class="min-h-screen overflow-y-auto pt-14 pb-20 md:pb-16">
 		<main class="relative z-10">
 			<slot />
 		</main>

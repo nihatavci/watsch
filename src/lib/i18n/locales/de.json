@@ -91,10 +91,23 @@
 		"preferences": "Spezielle Wünsche? (optional)",
 		"preferences_placeholder": "z.B. 'mit starker Frauenrolle', 'veröffentlicht nach 2010', 'Wohlfühlfilme'",
 		"finding_movies": "Filme werden gesucht...",
-		"find_movies": "Filme finden"
+		"find_movies": "Filme finden",
+		"minimum_rating": "Mindestbewertung (optional)",
+		"rating_guide": "Bewertungshilfe",
+		"rating_1_3": "Schlechte Qualität, große Mängel",
+		"rating_4_5": "Unterdurchschnittlich, schaubar",
+		"rating_6_7": "Gute Qualität, sehenswert",
+		"rating_8_9": "Ausgezeichnet, sehr empfehlenswert",
+		"rating_95_10": "Meisterwerk, unbedingt anschauen"
 	},
 	"login": {
-		"logout": "Abmelden"
+		"logout": "Abmelden",
+		"sign_in": "Anmelden",
+		"title": "Willkommen zurück",
+		"subtitle": "Melden Sie sich an, um fortzufahren",
+		"invalid_credentials": "Ungültige E-Mail oder Passwort",
+		"server_error": "Serverfehler. Bitte versuchen Sie es später erneut.",
+		"signing_in": "Anmeldung läuft..."
 	},
 	"search_limit": {
 		"reached": "Suchlimit für heute erreicht"

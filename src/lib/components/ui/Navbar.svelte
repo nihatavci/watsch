@@ -45,9 +45,15 @@
 	<header class="z-50 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80 fixed inset-x-0 top-0">
 		<div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 			<!-- Logo -->
-			<a href="/" class="flex items-center text-xl font-bold" style="line-height: 0;">
-				<img src="/Watch-logo-black.svg" alt="Watch Logo" class="h-12 w-auto mr-2 block dark:hidden" />
-				<img src="/Watch-logo-white.svg" alt="Watch Logo White" class="h-12 w-auto mr-2 hidden dark:block" />
+			<a href="/" class="flex items-center gap-2 group">
+				<svg class="h-8 w-8" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<rect x="8" y="8" width="24" height="24" rx="4" fill="#EF4444" class="group-hover:fill-red-600 transition-colors"/>
+					<path d="M20 14L24 20L20 26L16 20L20 14Z" fill="white"/>
+				</svg>
+				<span class="text-xl font-bold">
+					<span class="text-gray-900 dark:text-white">Wat</span>
+					<span class="text-red-500">sch</span>
+				</span>
 			</a>
 			<!-- Desktop Navigation -->
 			<nav class="flex items-center space-x-1">
@@ -73,7 +79,7 @@
 						{:else}
 							<svelte:component this={item.icon} class="w-4 h-4" />
 						{/if}
-						<span>{$i18nStore.t(item.key)}</span>
+						<span class="text-xs mt-1">{$i18nStore.t(item.key)}</span>
 					</a>
 				{/each}
 			</nav>
@@ -139,7 +145,7 @@
 						<svelte:component this={item.icon} class="w-5 h-5" />
 					{/if}
 				</div>
-				<span class="text-xs mt-1">{item.key}</span>
+				<span class="text-xs mt-1">{$i18nStore.t(item.key)}</span>
 			</a>
 		{/each}
 	</div>

@@ -11,6 +11,7 @@
 	let error = '';
 	let loading = false;
 	let rememberMe = false;
+	let isDevMode = false;
 
 	async function handleLogin() {
 		if (!email || !password) return;
@@ -21,12 +22,16 @@
 			const res = await fetch('/api/auth', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email, password })
+				body: JSON.stringify({ email, password, action: 'login' })
 			});
 			const data = await res.json();
 			if (!res.ok) {
 				error = data.error || $i18nStore.t('login.invalid_credentials');
 			} else {
+				// Check if in mock mode
+				if (data.mockMode) {
+					isDevMode = true;
+				}
 				// Use the enhanced auth store
 				setAuth(data.access_token, data.expires_in, data.user || { email });
 				goto('/');
@@ -65,6 +70,13 @@
 		<div
 			class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-800 p-8"
 		>
+			<!-- Dev Mode Notice -->
+			<div class="mb-6 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50">
+				<p class="text-sm text-blue-800 dark:text-blue-300">
+					<strong>Development Mode:</strong> Auth0 is not configured. You can use any email/password to sign in.
+				</p>
+			</div>
+
 			<form on:submit|preventDefault={handleLogin} class="space-y-6">
 				{#if error}
 					<div

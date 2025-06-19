@@ -15,12 +15,21 @@ export async function POST({ request }) {
 
 		const room = {
 			code: roomCode,
-			phase: 'nominate',
-			host: hostId,
-			participants: [{ id: hostId, nickname: hostNickname }],
+			hostId: hostId,
+			phase: 'waiting' as const,
+			participants: [{
+				id: hostId,
+				nickname: hostNickname,
+				isHost: true,
+				isReady: true, // Host is always ready
+				hasNominated: false,
+				hasVoted: false,
+				joinedAt: Date.now()
+			}],
 			nominations: [],
-			votes: {},
-			createdAt: Date.now()
+			winner: null,
+			createdAt: Date.now(),
+			updatedAt: Date.now()
 		};
 
 		await kv.set(`room:${roomCode}`, room, { ex: 7200 }); // Expires in 2 hours

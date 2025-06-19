@@ -72,7 +72,14 @@
 			"previous": "Précédent",
 			"next": "Suivant",
 			"get_recommendations": "Obtenir des Recommandations"
-		}
+		},
+		"minimum_rating": "Note Minimale (optionnel)",
+		"rating_guide": "Guide des Notes",
+		"rating_1_3": "Mauvaise qualité, défauts majeurs",
+		"rating_4_5": "En dessous de la moyenne, regardable",
+		"rating_6_7": "Bonne qualité, vaut le détour",
+		"rating_8_9": "Excellent, fortement recommandé",
+		"rating_95_10": "Chef-d'œuvre, incontournable"
 	},
 	"genres": {
 		"action": "Action",

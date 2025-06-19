@@ -6,26 +6,24 @@ import {
 	YOUTUBE_API_KEY,
 	RAPID_API_KEY,
 	OMDB_API_KEY
-} from '$lib/env-loader';
+} from '$env/static/private';
 import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 
-function maskApiKey(key: string | undefined) {
-	if (!key) return 'NOT SET';
-	return key.substring(0, 4) + '...' + key.substring(key.length - 4);
+// Security: Only return boolean status, no partial key exposure
+function hasApiKey(key: string | undefined): boolean {
+	return !!(key && key.length > 10 && !key.includes('placeholder'));
 }
 
 export const GET: RequestHandler = async () => {
-	try {
-		const envInfo = {
-			openai: maskApiKey(OPENAI_API_KEY),
-			tmdb: maskApiKey(PRIVATE_TMDB_API_KEY),
-			youtube: maskApiKey(YOUTUBE_API_KEY),
-			rapidApi: maskApiKey(RAPID_API_KEY),
-			omdb: maskApiKey(OMDB_API_KEY)
-		};
-		return json({ message: 'Environment check', variables: envInfo });
-	} catch (error) {
-		console.error('Error checking env variables:', error);
-		return json({ error: 'Failed to check environment variables' }, { status: 500 });
-	}
+	return json({
+		status: 'Environment check complete',
+		services: {
+			openai: hasApiKey(OPENAI_API_KEY),
+			tmdb: hasApiKey(PRIVATE_TMDB_API_KEY),
+			youtube: hasApiKey(YOUTUBE_API_KEY),
+			rapidApi: hasApiKey(RAPID_API_KEY),
+			omdb: hasApiKey(OMDB_API_KEY)
+		},
+		timestamp: new Date().toISOString()
+	});
 };

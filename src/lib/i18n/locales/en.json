@@ -44,7 +44,9 @@
 		"watch_on": "Watch on {platform}",
 		"nominate_error": "Failed to nominate movie",
 		"vote_error": "Failed to submit votes",
-		"start_voting_error": "Failed to start voting"
+		"start_voting_error": "Failed to start voting",
+		"nominated": "{title} has been nominated!",
+		"nomination_failed": "Failed to nominate movie. Please try again."
 	},
 	"recommendations": {
 		"no_results": "No recommendations found",
@@ -127,7 +129,14 @@
 		"preferences": "Any specific preferences? (optional)",
 		"preferences_placeholder": "e.g., 'with strong female lead', 'released after 2010', 'feel-good movies'",
 		"finding_movies": "Finding movies...",
-		"find_movies": "Find Movies"
+		"find_movies": "Find Movies",
+		"minimum_rating": "Minimum Rating (optional)",
+		"rating_guide": "Rating Guide",
+		"rating_1_3": "Poor quality, major flaws",
+		"rating_4_5": "Below average, watchable",
+		"rating_6_7": "Good quality, worth watching",
+		"rating_8_9": "Excellent, highly recommended",
+		"rating_95_10": "Masterpiece, must-watch"
 	},
 	"share": {
 		"download_card": "Download Card",
@@ -140,7 +149,13 @@
 		"share_instagram": "Share on Instagram"
 	},
 	"login": {
-		"logout": "Logout"
+		"logout": "Logout",
+		"sign_in": "Sign In",
+		"title": "Welcome back",
+		"subtitle": "Sign in to your account to continue",
+		"invalid_credentials": "Invalid email or password",
+		"server_error": "Server error. Please try again later.",
+		"signing_in": "Signing in..."
 	},
 	"search_limit": {
 		"reached": "Search limit reached for today"
@@ -218,5 +233,13 @@
 		"copied": "Copied!",
 		"share_whatsapp": "Share on WhatsApp",
 		"share_instagram": "Share on Instagram"
-	}
+	},
+	"error": {
+		"generic": "Something went wrong. Please try again.",
+		"partial": "Some recommendations could not be loaded",
+		"loading": "Failed to load recommendations",
+		"no_results": "No recommendations found matching your criteria. Try broadening your search.",
+		"general": "Failed to get recommendations. Please try again."
+	},
+	"loading": "Loading recommendations..."
 }

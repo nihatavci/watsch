@@ -56,6 +56,33 @@
 			url: string;
 			type: string;
 		}>;
+		// Enhanced TMDB data
+		vote_average?: number;
+		vote_count?: number;
+		imdb_id?: string;
+		budget?: number;
+		revenue?: number;
+		credits?: {
+			crew: Array<{
+				id: number;
+				name: string;
+				job: string;
+				department: string;
+				profile_path?: string;
+			}>;
+			cast: Array<{
+				id: number;
+				name: string;
+				character: string;
+				profile_path?: string;
+			}>;
+		};
+		production_companies?: Array<{
+			id: number;
+			name: string;
+			logo_path?: string;
+			origin_country: string;
+		}>;
 	}
 
 	const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
@@ -112,23 +139,52 @@
 			const currentLang = $i18nStore.language;
 			const cleanTitle = recommendation.title.replace(/\s*\([^)]*\)\s*$/, '').trim();
 
-			console.log('Fetching details for:', cleanTitle, 'in', currentLang);
+			console.log('[RecommendationCard] Fetching details for:', cleanTitle, 'in', currentLang);
+			console.log('[RecommendationCard] Full recommendation object:', recommendation);
 
 			// First search for the movie/show
 			const searchResponse = await fetch(
-				`/api/tmdb/search?title=${encodeURIComponent(cleanTitle)}&type=${encodeURIComponent(
+				`/api/tmdb/search?query=${encodeURIComponent(cleanTitle)}&type=${encodeURIComponent(
 					recommendation.type || 'movie'
 				)}&language=${encodeURIComponent(currentLang)}`
 			);
 
 			const searchData = await searchResponse.json();
 
-			if (!searchResponse.ok || !searchData.results?.[0]) {
-				console.error('No results found for:', cleanTitle);
-				return null;
+			if (!searchResponse.ok || !searchData.data?.data?.results?.[0]) {
+				console.error('[RecommendationCard] No TMDB results found for:', cleanTitle);
+				console.error('[RecommendationCard] Search response structure:', searchData);
+				console.error('[RecommendationCard] Search response status:', searchResponse.status);
+				console.error('[RecommendationCard] Will use basic fallback data');
+				
+				// Return basic data from recommendation instead of null
+				return {
+					Title: recommendation.title,
+					Year: recommendation.year?.toString() || '',
+					Poster: recommendation.poster_path 
+						? `${TMDB_IMAGE_BASE_URL}${recommendation.poster_path}` 
+						: null,
+					Plot: recommendation.description || 'No description available',
+					Rated: 'Not Rated',
+					Actors: '',
+					Genre: '',
+					Rating: recommendation.rating ? Math.round(recommendation.rating * 10) : null,
+					Runtime: null,
+					ReleaseDate: '',
+					Insights: [],
+					Language: recommendation.original_language?.toUpperCase() || 'EN',
+					tmdbId: recommendation.id || null,
+					LocalizedData: {
+						Title: recommendation.title,
+						Plot: recommendation.description || 'No description available',
+						Actors: '',
+						Genre: ''
+					},
+					streamingLinks: []
+				};
 			}
 
-			const firstResult = searchData.results[0];
+			const firstResult = searchData.data.data.results[0];
 
 			// Get both original and localized details in parallel
 			const [originalResponse, localResponse] = await Promise.all([
@@ -144,7 +200,7 @@
 				)
 			]);
 
-			const [originalData, localData] = await Promise.all([
+			const [originalResult, localResult] = await Promise.all([
 				originalResponse.json(),
 				localResponse.json()
 			]);
@@ -153,6 +209,9 @@
 				console.error('Failed to fetch details');
 				return null;
 			}
+
+			const originalData = originalResult.data.data;
+			const localData = localResult.data.data;
 
 			// Debug log for date fields
 			console.log('Date fields:', {
@@ -175,39 +234,15 @@
 				localData.overview = translatedOverview;
 			}
 
-			// Get AI-generated insights in the current language
-			const insightsResponse = await fetch('/api/analyze-movie', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					title: localData.title || localData.name,
-					overview: localData.overview,
-					genres: localData.genres?.map((g: { name: string }) => g.name) || [],
-					rating: localData.adult ? 'R' : 'PG-13',
-					language: currentLang
-				})
-			});
+			// Skip additional API calls that are causing errors for now
+			// Focus on core TMDB data which is working well
+			console.log('[RecommendationCard] Using core TMDB data without additional services');
+			console.log('[RecommendationCard] Original data structure:', originalData);
+			console.log('[RecommendationCard] Local data structure:', localData);
 
-			const insights = await insightsResponse.json();
-
-			const streamingResponse = await fetch('/api/streaming-availability', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					tmdbId: firstResult.id,
-					type: recommendation.type || 'movie'
-				})
-			});
-
-			const streamingData = await streamingResponse.json();
-
-			// Construct the movie details with both original and localized data
+			// Construct the movie details with proper localization priority
 			const details: MovieDetails = {
-				Title: originalData.title || originalData.name,
+				Title: localData.title || localData.name || originalData.title || originalData.name,
 				Year: originalData.release_date
 					? new Date(originalData.release_date).getFullYear().toString()
 					: originalData.first_air_date
@@ -222,33 +257,86 @@
 					localData.credits?.cast
 						?.slice(0, 4)
 						.map((actor: { name: string }) => actor.name)
+						.join(', ') || 
+					originalData.credits?.cast
+						?.slice(0, 4)
+						.map((actor: { name: string }) => actor.name)
 						.join(', ') || '',
-				Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || '',
+				Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || 
+					   originalData.genres?.map((genre: { name: string }) => genre.name).join(', ') || '',
 				Rating: originalData.vote_average ? Math.round(originalData.vote_average * 10) : null,
 				Runtime: originalData.runtime
 					? `${originalData.runtime} ${$i18nStore.t('recommendations.minutes')}`
 					: null,
 				ReleaseDate: originalData.release_date || originalData.first_air_date,
-				Insights: insights.insights || [],
+				Insights: [],
 				Language: originalData.original_language?.toUpperCase() || null,
 				tmdbId: firstResult.id,
 				LocalizedData: {
-					Title: localData.title || localData.name,
+					Title: localData.title || localData.name || originalData.title || originalData.name,
 					Plot: localData.overview || originalData.overview,
 					Actors:
 						localData.credits?.cast
 							?.slice(0, 4)
 							.map((actor: { name: string }) => actor.name)
+							.join(', ') || 
+						originalData.credits?.cast
+							?.slice(0, 4)
+							.map((actor: { name: string }) => actor.name)
 							.join(', ') || '',
-					Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || ''
+					Genre: localData.genres?.map((genre: { name: string }) => genre.name).join(', ') || 
+						   originalData.genres?.map((genre: { name: string }) => genre.name).join(', ') || ''
 				},
-				streamingLinks: streamingData.streamingLinks || []
+				streamingLinks: [],
+				// Enhanced TMDB data
+				vote_average: originalData.vote_average,
+				vote_count: originalData.vote_count,
+				imdb_id: originalData.imdb_id,
+				budget: originalData.budget,
+				revenue: originalData.revenue,
+				credits: originalData.credits,
+				production_companies: originalData.production_companies
 			};
+
+			console.log('[RecommendationCard] Final constructed details:', {
+				Title: details.Title,
+				Plot: details.Plot,
+				LocalizedPlot: details.LocalizedData.Plot,
+				Rating: details.vote_average,
+				Director: details.credits?.crew?.find((c: any) => c.job === 'Director')?.name
+			});
 
 			return details;
 		} catch (error) {
 			console.error('Error fetching movie details:', error);
-			return null; // Return null on error
+			
+			// Fallback: create basic details from recommendation data
+			const fallbackDetails: MovieDetails = {
+				Title: recommendation.title,
+				Year: recommendation.year?.toString() || '',
+				Poster: recommendation.poster_path 
+					? `${TMDB_IMAGE_BASE_URL}${recommendation.poster_path}` 
+					: null,
+				Plot: recommendation.description || 'No description available',
+				Rated: 'PG-13',
+				Actors: '',
+				Genre: '',
+				Rating: recommendation.rating ? Math.round(recommendation.rating * 10) : null,
+				Runtime: null,
+				ReleaseDate: '',
+				Insights: [],
+				Language: recommendation.original_language?.toUpperCase() || 'EN',
+				tmdbId: recommendation.id || null,
+				LocalizedData: {
+					Title: recommendation.title,
+					Plot: recommendation.description || 'No description available',
+					Actors: '',
+					Genre: ''
+				},
+				streamingLinks: []
+			};
+			
+			return fallbackDetails;
 		}
 	}
 
@@ -496,13 +584,24 @@
 								class="absolute inset-0 bg-gradient-to-b sm:bg-gradient-to-r from-black/10 via-black/40 to-black/90"
 							/>
 
-							<!-- Rating badge if exists -->
-							{#if data.Rating}
+							<!-- Enhanced Star Rating with Swipe Reveal -->
+							{#if data.vote_average}
 								<div
-									class="absolute top-4 left-4 flex items-center justify-center w-16 h-16 rounded-full bg-red-600 backdrop-blur-sm border-2 border-white/20 shadow-lg"
-									in:fade={{ duration: 400, delay: 200 }}
+									class="absolute top-3 left-3 group overflow-hidden rounded-full bg-gradient-to-r from-yellow-500 to-yellow-600 backdrop-blur-sm border border-white/20 shadow-sm transition-all duration-300 hover:scale-105"
 								>
-									<div class="font-bold text-xl">{data.Rating}%</div>
+									<!-- Star Icon (Always Visible) -->
+									<div class="flex items-center justify-center w-10 h-10 relative">
+										<svg class="w-5 h-5 text-white drop-shadow" fill="currentColor" viewBox="0 0 20 20">
+											<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+										</svg>
+									</div>
+									
+									<!-- Rating Text (Revealed on Hover/Touch) -->
+									<div class="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-yellow-500 to-yellow-600 flex items-center justify-center transform translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out">
+										<span class="text-white font-bold text-xs whitespace-nowrap px-2">
+											{data.vote_average.toFixed(1)}/10
+										</span>
+									</div>
 								</div>
 							{/if}
 						</div>
@@ -547,24 +646,64 @@
 								</div>
 							</div>
 
-							<!-- Actor tags if available -->
-							{#if data.Actors}
-								<div class="mb-4 flex flex-wrap gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-									{#each data.Actors.split(', ').slice(0, 4) as actor}
-										<span class="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
-											{actor}
-										</span>
-									{/each}
+															<!-- Key metadata section - simplified for users -->
+								<div class="mb-4 space-y-3">
+									<!-- Most important info: Rating + Director -->
+									<div class="flex flex-wrap items-center gap-3 text-sm">
+										{#if data.vote_average}
+											<span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium">
+												<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+													<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+												</svg>
+												{data.vote_average?.toFixed(1)}/10
+											</span>
+										{/if}
+										
+										{#if data.credits?.crew}
+											{@const director = data.credits.crew.find(person => person.job === 'Director')}
+											{#if director}
+												<span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+													</svg>
+													{director.name}
+												</span>
+											{/if}
+										{/if}
+										
+										{#if data.imdb_id}
+											<a 
+												href="https://www.imdb.com/title/{data.imdb_id}" 
+												target="_blank" 
+												rel="noopener noreferrer"
+												class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+											>
+												<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+												</svg>
+												IMDb
+											</a>
+										{/if}
+									</div>
+
+									<!-- Main cast - only show if available -->
+									{#if data.Actors}
+										<div class="flex flex-wrap gap-2 text-sm">
+											<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Cast:</span>
+											<span class="text-gray-600 dark:text-gray-400">
+												{data.Actors.split(', ').slice(0, 3).join(', ')}
+											</span>
+										</div>
+									{/if}
 								</div>
-							{/if}
 
 							<!-- Description with show more toggle -->
-							{#if data.LocalizedData.Plot}
+							{#if data.LocalizedData.Plot || data.Plot}
 								<div class="relative mb-5">
 									<p class="text-sm sm:text-base {showFullDescription ? '' : 'line-clamp-3'}">
-									{data.LocalizedData.Plot}
+									{data.LocalizedData.Plot || data.Plot || 'No description available'}
 								</p>
-									{#if data.LocalizedData.Plot.length > 150}
+									{#if (data.LocalizedData.Plot || data.Plot || '').length > 150}
 								<button
 									on:click={() => (showFullDescription = !showFullDescription)}
 											class="mt-1 text-xs sm:text-sm text-red-500 dark:text-red-400 hover:underline focus:outline-none"
