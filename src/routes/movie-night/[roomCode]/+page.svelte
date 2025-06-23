@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
+	import confetti from 'canvas-confetti';
 	import {
 		Loader2,
 		Users,
@@ -32,7 +34,6 @@
 	let finishingVoting = false;
 	let searchQuery = '';
 	let participantsList: Array<{ id: string; nickname: string }> = [];
-	let refreshInterval: ReturnType<typeof setInterval>;
 
 	// New variables for recommendations
 	let showRecommendations = false;
@@ -43,6 +44,9 @@
 	let searchTimeout: ReturnType<typeof setTimeout>;
 	let selectedMovie: any = null;
 	let nominatingMovie = false;
+
+	// Store previous search query to preserve it during updates
+	let previousSearchQuery = '';
 
 	// Helper function for handling keydown events
 	function handleKeydown(movie: any, event: KeyboardEvent): void {
@@ -65,21 +69,47 @@
 		const storedRoomCode = localStorage.getItem('movie_night_room');
 		participantId = storedHostId || '';
 
+		console.log('🔍 Host Detection Debug:', {
+			username,
+			roomCode,
+			storedHostId,
+			storedRoomCode,
+			participantId,
+			isHostCheck: storedRoomCode === roomCode && storedHostId
+		});
+
 		if (storedRoomCode === roomCode && storedHostId) {
 			isHost = true;
+			console.log('✅ User detected as HOST');
+		} else {
+			console.log('❌ User detected as PARTICIPANT');
 		}
 
 		// Fetch room status and possibly join the room
 		initRoom();
 
-		// Setup auto-refresh for room status every 5 seconds
-		refreshInterval = setInterval(fetchRoomStatus, 5000);
+		// Set up gentle polling every 10 seconds instead of aggressive 5 seconds
+		// This reduces the refresh frequency significantly
+		const pollInterval = setInterval(() => {
+			// Only fetch if user is not actively typing
+			if (searchQuery === previousSearchQuery) {
+				fetchRoomStatus();
+			}
+			previousSearchQuery = searchQuery;
+		}, 10000); // Increased from 5000 to 10000ms
 
 		// Cleanup on component unmount
 		return () => {
-			if (refreshInterval) clearInterval(refreshInterval);
+			if (pollInterval) clearInterval(pollInterval);
 		};
 	});
+
+	// Handle search input changes more gracefully
+	function handleSearchInput(event: Event) {
+		const target = event.target as HTMLInputElement;
+		searchQuery = target.value;
+		searchMovies();
+	}
 
 	async function initRoom() {
 		try {
@@ -154,6 +184,12 @@
 	// Host starts the voting phase
 	async function startVoting() {
 		if (!isHost) return;
+		
+		console.log('Starting voting - Current room status:', {
+			phase: roomStatus?.phase,
+			nominations: roomStatus?.nominations?.length || 0,
+			participantCount: roomStatus?.participants?.length || 0
+		});
 
 		try {
 			startingVoting = true;
@@ -172,6 +208,9 @@
 				const errorData = await response.json();
 				throw new Error(errorData.error?.message || 'Failed to start voting');
 			}
+
+			const data = await response.json();
+			console.log('Voting started successfully:', data);
 
 			await fetchRoomStatus(); // Refresh room status after starting voting
 		} catch (err) {
@@ -202,6 +241,11 @@
 			if (!response.ok) {
 				const errorData = await response.json();
 				throw new Error(errorData.error?.message || 'Failed to finish voting');
+			}
+
+			// Trigger confetti animation
+			if (browser) {
+				triggerConfetti();
 			}
 
 			await fetchRoomStatus(); // Refresh room status after finishing voting
@@ -253,35 +297,60 @@
 
 	async function fetchRoomStatus() {
 		try {
-			loading = true;
-			// Add cache-busting parameter to avoid browser caching
-			const response = await fetch(`/api/movie-night/room-status?code=${roomCode}&t=${Date.now()}`);
+			const response = await fetch(`/api/movie-night/room-status?roomCode=${roomCode}`);
 
 			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.error?.message || 'Room not found');
+				if (response.status === 404) {
+					error = 'Room not found. Please check the room code.';
+				} else {
+					const errorData = await response.json();
+					error = errorData.error?.message || 'Failed to get room status';
+				}
+				loading = false;
+				return;
 			}
 
 			const data = await response.json();
-			roomStatus = data;
+			roomStatus = data.room;
+			loading = false;
+			error = '';
 
-			// Extract participants into its own variable for easy access
-			participantsList = data.participants || [];
+			// Additional host detection logic - check if we're the host based on room data
+			const storedHostId = localStorage.getItem('movie_night_host_id');
+			if (storedHostId && roomStatus?.hostId && storedHostId === roomStatus.hostId) {
+				isHost = true;
+				console.log('✅ Host status confirmed via room data');
+			} else if (storedHostId && roomStatus?.participants) {
+				// Check if our stored host ID matches any participant marked as host
+				const hostParticipant = roomStatus.participants.find((p: any) => p.isHost);
+				if (hostParticipant && hostParticipant.id === storedHostId) {
+					isHost = true;
+					console.log('✅ Host status confirmed via participant data');
+				}
+			}
 
-			// Ensure loading is set to false after at least 500ms to avoid flickering
-			setTimeout(() => {
-				loading = false;
-			}, 500);
+			console.log('📊 Room Status Update:', {
+				phase: roomStatus?.phase,
+				nominationsCount: roomStatus?.nominations?.length || 0,
+				participantsCount: roomStatus?.participants?.length || 0,
+				isHost,
+				showingHostControls: isHost,
+				hostIdInRoom: roomStatus?.hostId,
+				storedHostId,
+				participants: roomStatus?.participants?.map((p: any) => ({ id: p.id, nickname: p.nickname, isHost: p.isHost }))
+			});
+
+			// Update participants list for UI display
+			if (roomStatus.participants) {
+				participantsList = roomStatus.participants.map((p: any) => ({
+					id: p.id,
+					nickname: p.nickname
+				}));
+			}
 		} catch (err) {
 			console.error('Error fetching room status:', err);
-			error = err instanceof Error ? err.message : 'Failed to load room';
+			error = 'Failed to connect to room';
 			loading = false;
-
-			// Only redirect on serious errors, not temporary connection issues
-			if (err instanceof Error && !err.message.includes('Failed to fetch')) {
-				// Redirect to movie night page with error
-				goto('/movie-night?error=' + encodeURIComponent(error));
-			}
 		}
 	}
 
@@ -359,7 +428,7 @@
 			return;
 		}
 
-		// Set a timeout to avoid making too many requests
+		// Set a longer timeout to avoid making too many requests while typing
 		searchTimeout = setTimeout(async () => {
 			try {
 				loadingSearch = true;
@@ -387,8 +456,8 @@
 					searchResults = [];
 				}
 				
-				// Limit to max 10 results for better performance
-				searchResults = searchResults.slice(0, 10);
+				// Limit to max 8 results for better performance and less UI disruption
+				searchResults = searchResults.slice(0, 8);
 			} catch (err) {
 				console.error('Error searching movies:', err);
 				searchResults = [];
@@ -396,7 +465,7 @@
 			} finally {
 				loadingSearch = false;
 			}
-		}, 300); // Reduced timeout for better responsiveness
+		}, 500); // Increased timeout from 300ms to 500ms for less API calls while typing
 	}
 
 	// Function to select a movie for nomination
@@ -455,6 +524,159 @@
 		} finally {
 			nominatingMovie = false;
 		}
+	}
+
+	// Function to vote for a movie
+	async function voteForMovie(nomination: any) {
+		try {
+			// Get the current participant ID more reliably
+			let currentParticipantId = participantId;
+			if (!currentParticipantId) {
+				currentParticipantId = localStorage.getItem('movie_night_host_id') || '';
+			}
+			
+			// If still no participant ID, find by nickname
+			if (!currentParticipantId && roomStatus?.participants) {
+				const foundParticipant = roomStatus.participants.find(
+					(p: any) => p.nickname.toLowerCase() === username.toLowerCase()
+				);
+				if (foundParticipant) {
+					currentParticipantId = foundParticipant.id;
+				}
+			}
+
+			const response = await fetch('/api/movie-night/vote', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					roomCode,
+					movieId: nomination.movie.id.toString(),
+					participantId: currentParticipantId,
+					nickname: username
+				})
+			});
+
+			const responseData = await response.json();
+
+			if (!response.ok) {
+				throw new Error(responseData.error?.message || 'Failed to vote');
+			}
+
+			// Show success message
+			console.log('Vote successful:', responseData.message);
+			
+			// Refresh room status to show updated votes
+			await fetchRoomStatus();
+			
+			// Clear any previous errors
+			error = '';
+			
+		} catch (err) {
+			console.error('Error voting for movie:', err);
+			error = err instanceof Error ? err.message : 'Failed to vote for movie';
+		}
+	}
+
+	// Function to draw winner directly without voting
+	async function drawWinnerDirectly() {
+		if (!isHost || !roomStatus?.nominations) return;
+
+		try {
+			finishingVoting = true;
+
+			// Pick a random nomination as the winner
+			const randomIndex = Math.floor(Math.random() * roomStatus.nominations.length);
+			const winningNomination = roomStatus.nominations[randomIndex];
+
+			// Create winner object
+			const winner = {
+				...winningNomination.movie,
+				nominatedByNickname: winningNomination.participant?.nickname || 'Unknown',
+				voteCount: 0,
+				randomlySelected: true
+			};
+
+			// Update room to complete phase with winner
+			const response = await fetch('/api/movie-night/finish-voting', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					roomCode,
+					forceWinner: winner
+				})
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.error?.message || 'Failed to draw winner');
+			}
+
+			// Trigger confetti animation
+			if (browser) {
+				triggerConfetti();
+			}
+
+			// Refresh room status to show winner
+			await fetchRoomStatus();
+			
+		} catch (err) {
+			console.error('Error drawing winner:', err);
+			error = err instanceof Error ? err.message : 'Failed to draw winner';
+		} finally {
+			finishingVoting = false;
+		}
+	}
+
+	// Confetti animation function
+	function triggerConfetti() {
+		if (!browser) return;
+
+		// Create multiple bursts for dramatic effect
+		const duration = 3000;
+		const colors = ['#dc2626', '#7c3aed', '#059669', '#ea580c', '#0891b2'];
+
+		// First burst from left
+		confetti({
+			particleCount: 100,
+			spread: 70,
+			origin: { x: 0.2, y: 0.6 },
+			colors: colors
+		});
+
+		// Second burst from right
+		setTimeout(() => {
+			confetti({
+				particleCount: 100,
+				spread: 70,
+				origin: { x: 0.8, y: 0.6 },
+				colors: colors
+			});
+		}, 250);
+
+		// Center burst
+		setTimeout(() => {
+			confetti({
+				particleCount: 150,
+				spread: 100,
+				origin: { x: 0.5, y: 0.5 },
+				colors: colors
+			});
+		}, 500);
+
+		// Final shower
+		setTimeout(() => {
+			confetti({
+				particleCount: 200,
+				spread: 120,
+				origin: { x: 0.5, y: 0.3 },
+				colors: colors,
+				gravity: 0.8
+			});
+		}, 750);
 	}
 
 	// Watch searchQuery for changes
@@ -689,38 +911,67 @@
 										{/if}
 									</button>
 								{:else if roomStatus.phase === 'nominate'}
-									<button
-										on:click={startVoting}
-										disabled={startingVoting ||
-											(roomStatus.nominations && roomStatus.nominations.length < 2)}
-										class="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
-									>
-										{#if startingVoting}
-											<Loader2 class="w-6 h-6 animate-spin" />
-											<span>Starting Voting...</span>
-										{:else}
-											<ThumbsUp class="w-6 h-6" />
-											<span
-												>Start Voting{roomStatus.nominations && roomStatus.nominations.length < 2
-													? ' (Need more nominations)'
-													: ''}</span
+									<div class="flex flex-col sm:flex-row gap-4">
+										<button
+											on:click={startVoting}
+											disabled={startingVoting ||
+												!roomStatus.nominations || 
+												roomStatus.nominations.length === 0}
+											class="px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
+										>
+											{#if startingVoting}
+												<Loader2 class="w-6 h-6 animate-spin" />
+												<span>Starting Voting...</span>
+											{:else}
+												<ThumbsUp class="w-6 h-6" />
+												<span>
+													{#if !roomStatus.nominations || roomStatus.nominations.length === 0}
+														Start Voting (Need nominations)
+													{:else}
+														Start Voting ({roomStatus.nominations.length} nominations)
+													{/if}
+												</span>
+											{/if}
+										</button>
+										
+										<!-- Skip voting and draw winner directly -->
+										{#if roomStatus.nominations && roomStatus.nominations.length > 0}
+											<button
+												on:click={drawWinnerDirectly}
+												disabled={finishingVoting}
+												class="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
 											>
+												<Sparkles class="w-6 h-6" />
+												<span>Skip Voting - Draw Winner!</span>
+											</button>
 										{/if}
-									</button>
-								{:else if roomStatus.phase === 'vote'}
-									<button
-										on:click={finishVoting}
-										disabled={finishingVoting}
-										class="px-8 py-4 rounded-2xl bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
-									>
-										{#if finishingVoting}
-											<Loader2 class="w-6 h-6 animate-spin" />
-											<span>Finalizing Results...</span>
-										{:else}
-											<PartyPopper class="w-6 h-6" />
-											<span>Finish Voting</span>
-										{/if}
-									</button>
+									</div>
+								{:else if roomStatus.phase === 'vote' || roomStatus.phase === 'voting'}
+									<div class="flex gap-4">
+										<button
+											on:click={finishVoting}
+											disabled={finishingVoting}
+											class="px-8 py-4 rounded-2xl bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
+										>
+											{#if finishingVoting}
+												<Loader2 class="w-6 h-6 animate-spin" />
+												<span>Finalizing Results...</span>
+											{:else}
+												<PartyPopper class="w-6 h-6" />
+												<span>Finish Voting & Reveal Winner</span>
+											{/if}
+										</button>
+										
+										<!-- Skip voting and draw winner directly -->
+										<button
+											on:click={drawWinnerDirectly}
+											disabled={finishingVoting}
+											class="px-6 py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:hover:transform-none disabled:hover:shadow-lg flex items-center gap-2"
+										>
+											<Sparkles class="w-6 h-6" />
+											<span>Draw Winner Now!</span>
+										</button>
+									</div>
 								{/if}
 							</div>
 						</div>
@@ -751,7 +1002,7 @@
 								<div class="flex justify-center py-8">
 									<Loader2 class="w-10 h-10 text-red-500 animate-spin" />
 								</div>
-							{:else if roomStatus.phase === 'nominate'}
+							{:else if roomStatus.phase === 'nominating' || roomStatus.phase === 'nominate'}
 								<div class="space-y-6">
 									<!-- Movie search and recommendations controls -->
 									<div class="flex flex-col sm:flex-row gap-4">
@@ -763,7 +1014,8 @@
 											</div>
 											<input
 												type="text"
-												bind:value={searchQuery}
+												value={searchQuery}
+												on:input={handleSearchInput}
 												placeholder="Search for a movie to nominate..."
 												class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
 											/>
@@ -1032,6 +1284,255 @@
 												<Sparkles class="w-5 h-5 inline-block mr-2" />
 												Get Movie Recommendations
 											</button>
+										</div>
+									{/if}
+
+									<!-- NOMINATIONS DISPLAY SECTION -->
+									{#if roomStatus.nominations && roomStatus.nominations.length > 0}
+										<div class="mt-8">
+											<div class="flex items-center justify-between mb-4">
+												<h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+													<Film class="w-6 h-6 text-red-500" />
+													Current Nominations ({roomStatus.nominations.length})
+												</h3>
+												<div class="text-sm text-gray-600 dark:text-gray-400">
+													{roomStatus.nominations.length >= 2 ? 'Ready to vote!' : 'Need more nominations'}
+												</div>
+											</div>
+											
+											<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+												{#each roomStatus.nominations as nomination}
+													<div class="p-4 rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border border-red-200 dark:border-red-800 shadow-sm">
+														<div class="flex gap-4">
+															{#if nomination.movie?.poster_path}
+																<img
+																	src={nomination.movie.poster_path.startsWith('http') 
+																		? nomination.movie.poster_path 
+																		: `https://image.tmdb.org/t/p/w200${nomination.movie.poster_path}`}
+																	alt={nomination.movie.title}
+																	class="w-16 h-24 object-cover rounded-lg flex-shrink-0"
+																/>
+															{:else}
+																<div class="w-16 h-24 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+																	<Film class="w-6 h-6 text-gray-400" />
+																</div>
+															{/if}
+															
+															<div class="flex-grow">
+																<h4 class="font-bold text-gray-900 dark:text-white text-lg">
+																	{nomination.movie?.title || 'Unknown Movie'}
+																</h4>
+																
+																{#if nomination.movie?.release_date}
+																	<p class="text-gray-600 dark:text-gray-400 text-sm">
+																		{new Date(nomination.movie.release_date).getFullYear()}
+																	</p>
+																{/if}
+																
+																{#if nomination.movie?.vote_average}
+																	<div class="flex items-center gap-1 mt-1">
+																		<span class="text-yellow-500">★</span>
+																		<span class="text-sm text-gray-600 dark:text-gray-400">
+																			{nomination.movie.vote_average.toFixed(1)}
+																		</span>
+																	</div>
+																{/if}
+																
+																<div class="mt-2 flex items-center gap-2">
+																	<Crown class="w-4 h-4 text-purple-500" />
+																	<span class="text-sm font-medium text-purple-700 dark:text-purple-300">
+																		Nominated by {nomination.participant?.nickname || 'Unknown'}
+																	</span>
+																</div>
+															</div>
+														</div>
+													</div>
+												{/each}
+											</div>
+										</div>
+									{:else}
+										<div class="mt-8 text-center py-6 bg-gray-50 dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600">
+											<Film class="w-12 h-12 mx-auto text-gray-400 mb-3" />
+											<p class="text-gray-600 dark:text-gray-400 font-medium">No nominations yet</p>
+											<p class="text-gray-500 dark:text-gray-500 text-sm">Be the first to nominate a movie!</p>
+										</div>
+									{/if}
+								</div>
+							{:else if roomStatus.phase === 'voting' || roomStatus.phase === 'vote'}
+								<div class="space-y-6">
+									<div class="text-center">
+										<h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+											Vote for Your Favorite Movie!
+										</h3>
+										<p class="text-gray-600 dark:text-gray-400">
+											Choose the movie you'd most like to watch tonight
+										</p>
+									</div>
+
+									<!-- Show error if present -->
+									{#if error}
+										<div class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300">
+											<div class="flex items-center gap-2">
+												<AlertCircle class="w-5 h-5" />
+												<span class="font-medium">Error:</span>
+											</div>
+											<p class="mt-1">{error}</p>
+										</div>
+									{/if}
+
+									{#if roomStatus.nominations && roomStatus.nominations.length > 0}
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+											{#each roomStatus.nominations as nomination}
+												<div class="p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 shadow-sm hover:shadow-md transition-shadow">
+													<div class="flex gap-4">
+														{#if nomination.movie?.poster_path}
+															<img
+																src={nomination.movie.poster_path.startsWith('http') 
+																	? nomination.movie.poster_path 
+																	: `https://image.tmdb.org/t/p/w200${nomination.movie.poster_path}`}
+																alt={nomination.movie.title}
+																class="w-20 h-30 object-cover rounded-lg flex-shrink-0"
+															/>
+														{:else}
+															<div class="w-20 h-30 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+																<Film class="w-8 h-8 text-gray-400" />
+															</div>
+														{/if}
+														
+														<div class="flex-grow">
+															<h4 class="font-bold text-gray-900 dark:text-white text-xl">
+																{nomination.movie?.title || 'Unknown Movie'}
+															</h4>
+															
+															{#if nomination.movie?.overview}
+																<p class="text-gray-700 dark:text-gray-300 text-sm mt-1 line-clamp-2">
+																	{nomination.movie.overview}
+																</p>
+															{/if}
+															
+															<div class="mt-3 flex items-center justify-between">
+																<div class="flex items-center gap-2">
+																	<Crown class="w-4 h-4 text-purple-500" />
+																	<span class="text-sm text-purple-700 dark:text-purple-300">
+																		{nomination.participant?.nickname || 'Unknown'}
+																	</span>
+																</div>
+																
+																{#if nomination.movie?.vote_average}
+																	<div class="flex items-center gap-1">
+																		<span class="text-yellow-500">★</span>
+																		<span class="text-sm text-gray-600 dark:text-gray-400">
+																			{nomination.movie.vote_average.toFixed(1)}
+																		</span>
+																	</div>
+																{/if}
+															</div>
+
+															<!-- Check if user has already voted for this movie -->
+															{#if roomStatus.votes && Object.values(roomStatus.votes).some((voteArray: unknown) => 
+																Array.isArray(voteArray) && voteArray.some((vote: any) => 
+																	vote.nickname?.toLowerCase() === username.toLowerCase() && 
+																	vote.movieId === nomination.movie.id.toString()
+																)
+															)}
+																<div class="mt-3 w-full px-4 py-2 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 font-medium text-center flex items-center justify-center gap-2">
+																	<ThumbsUp class="w-4 h-4" />
+																	You voted for this!
+																</div>
+															{:else if roomStatus.votes && Object.values(roomStatus.votes).some((voteArray: unknown) => 
+																Array.isArray(voteArray) && voteArray.some((vote: any) => vote.nickname?.toLowerCase() === username.toLowerCase())
+															)}
+																<div class="mt-3 w-full px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium text-center">
+																	You've already voted
+																</div>
+															{:else}
+																<button
+																	on:click={() => voteForMovie(nomination)}
+																	class="mt-3 w-full px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+																>
+																	<ThumbsUp class="w-4 h-4" />
+																	Vote for This Movie
+																</button>
+															{/if}
+														</div>
+													</div>
+												</div>
+											{/each}
+										</div>
+									{:else}
+										<div class="text-center py-8">
+											<AlertCircle class="w-16 h-16 mx-auto text-gray-400 mb-4" />
+											<p class="text-gray-600 dark:text-gray-400">
+												No nominations available for voting
+											</p>
+										</div>
+									{/if}
+								</div>
+							{:else if roomStatus.phase === 'complete'}
+								<div class="text-center py-8 relative">
+									<!-- Confetti will be triggered by the finish voting function -->
+									
+									<div class="mb-6">
+										<PartyPopper class="w-20 h-20 mx-auto text-yellow-500 mb-4 animate-bounce" />
+										<Crown class="w-12 h-12 mx-auto text-yellow-500 -mt-6 mb-4" />
+									</div>
+									
+									<h3 class="text-3xl font-bold text-gray-900 dark:text-white mb-4 animate-pulse">
+										🎉 Winner Announced! 🎉
+									</h3>
+									
+									{#if roomStatus.winner}
+										<div class="max-w-md mx-auto mt-6 p-8 rounded-3xl bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-2 border-yellow-300 dark:border-yellow-700 shadow-2xl transform hover:scale-105 transition-transform duration-300">
+											{#if roomStatus.winner.poster_path}
+												<div class="relative mb-6">
+													<img
+														src={roomStatus.winner.poster_path.startsWith('http') 
+															? roomStatus.winner.poster_path 
+															: `https://image.tmdb.org/t/p/w300${roomStatus.winner.poster_path}`}
+														alt={roomStatus.winner.title}
+														class="w-40 h-60 object-cover rounded-xl mx-auto shadow-lg"
+													/>
+													<div class="absolute -top-2 -right-2 bg-yellow-400 text-black p-2 rounded-full shadow-lg">
+														<Crown class="w-6 h-6" />
+													</div>
+												</div>
+											{/if}
+											
+											<h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+												{roomStatus.winner.title}
+											</h4>
+											
+											<p class="text-yellow-700 dark:text-yellow-300 mb-3 font-medium">
+												Nominated by {roomStatus.winner.nominatedByNickname}
+											</p>
+											
+											{#if roomStatus.winner.randomlySelected}
+												<div class="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full text-sm font-medium mb-3">
+													<Sparkles class="w-4 h-4" />
+													Randomly Selected by Host!
+												</div>
+											{:else if roomStatus.winner.voteCount > 0}
+												<div class="inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-medium mb-3">
+													<ThumbsUp class="w-4 h-4" />
+													Won with {roomStatus.winner.voteCount} vote{roomStatus.winner.voteCount !== 1 ? 's' : ''}!
+												</div>
+											{:else}
+												<div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium mb-3">
+													<Crown class="w-4 h-4" />
+													Default Winner (No Votes)
+												</div>
+											{/if}
+											
+											<div class="text-lg font-semibold text-gray-900 dark:text-white mt-4">
+												🍿 Enjoy your movie night! 🍿
+											</div>
+										</div>
+									{:else}
+										<div class="p-6 rounded-xl bg-gray-100 dark:bg-gray-800">
+											<Loader2 class="w-8 h-8 mx-auto animate-spin text-yellow-500 mb-2" />
+											<p class="text-gray-600 dark:text-gray-400">
+												Calculating results...
+											</p>
 										</div>
 									{/if}
 								</div>

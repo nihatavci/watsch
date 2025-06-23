@@ -15,8 +15,8 @@ export async function POST({ request }) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
-		// Update room phase to nominate
-		room.phase = 'nominate';
+		// Update room phase to nominating
+		room.phase = 'nominating';
 		await kv.set(`room:${roomCode}`, room);
 
 		return json({

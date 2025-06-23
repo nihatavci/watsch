@@ -1,12 +1,7 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { dev } from '$app/environment';
 import { api } from '$lib/api';
-import { 
-  TMDB_API_KEY, 
-  PRIVATE_TMDB_API_KEY, 
-  OPENAI_API_KEY, 
-  PRIVATE_OPENAI_API_KEY 
-} from '$env/static/private';
+// Environment variables handled safely in the initialization function
 
 // Initialize API system
 let apiInitialized = false;
@@ -20,8 +15,8 @@ async function initializeApi() {
   try {
     // Get environment variables safely
     const envVars = {
-      TMDB_API_KEY: TMDB_API_KEY || PRIVATE_TMDB_API_KEY || process.env.TMDB_API_KEY || process.env.PRIVATE_TMDB_API_KEY,
-      OPENAI_API_KEY: OPENAI_API_KEY || PRIVATE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.PRIVATE_OPENAI_API_KEY,
+      TMDB_API_KEY: process.env.TMDB_API_KEY || process.env.PRIVATE_TMDB_API_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY || process.env.PRIVATE_OPENAI_API_KEY,
     };
 
     console.log('Server-side environment check: TMDB API configured');
@@ -83,8 +78,31 @@ const handleSecurity = async ({ event, resolve }) => {
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Unsafe eval needed for some TMDB/API functionality
+    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+    "font-src 'self' fonts.gstatic.com",
+    "img-src 'self' data: blob: image.tmdb.org *.tmdb.org",
+    "connect-src 'self' api.themoviedb.org *.themoviedb.org api.openai.com *.openai.com",
+    "media-src 'self' blob:",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; ');
+  
+  response.headers.set('Content-Security-Policy', csp);
+  
+  // Additional security headers
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  response.headers.set('Cross-Origin-Resource-Policy', 'same-site');
+  
   if (!dev) {
-    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   }
 
   return response;

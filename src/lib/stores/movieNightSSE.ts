@@ -129,18 +129,24 @@ function createMovieNightStore() {
       }, 3000);
     };
 
-    // Also poll for updates as fallback (every 2 seconds)
+    // Also poll for updates as fallback (every 8 seconds to reduce disruption)
     pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`/api/movie-night/room-status?code=${roomCode}`);
         if (response.ok) {
           const roomData = await response.json();
-          update(state => ({ ...state, room: roomData }));
+          // Only update if data has actually changed
+          update(state => {
+            if (!state.room || JSON.stringify(state.room) !== JSON.stringify(roomData)) {
+              return { ...state, room: roomData };
+            }
+            return state;
+          });
         }
       } catch (err) {
         console.error('Polling error:', err);
       }
-    }, 2000);
+    }, 8000); // Increased from 2000ms to 8000ms to reduce polling frequency
   }
 
   function disconnect() {

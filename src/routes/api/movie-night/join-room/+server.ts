@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
 import { nanoid } from 'nanoid';
 import { kv } from '$lib/store/kv';
-import { broadcastToRoom } from '../events/+server';
+import { broadcastToRoom } from '$lib/utils/movie-night-sse';
 
 interface Participant {
 	id: string;

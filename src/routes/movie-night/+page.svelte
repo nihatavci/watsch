@@ -64,9 +64,16 @@
 				throw new Error('Invalid response from server');
 			}
 
-			// Save room data to localStorage
-			localStorage.setItem('movie_night_room', roomData.roomCode);
-			localStorage.setItem('movie_night_host_id', roomData.hostId);
+					// Save room data to localStorage
+		localStorage.setItem('movie_night_room', roomData.roomCode);
+		localStorage.setItem('movie_night_host_id', roomData.hostId);
+		localStorage.setItem('movie_night_username', username);
+		
+		console.log('🎬 Room created successfully:', {
+			roomCode: roomData.roomCode,
+			hostId: roomData.hostId,
+			username: username
+		});
 
 			// Navigate to the room page with a properly formed URL
 			goto(`/movie-night/${roomData.roomCode}`);

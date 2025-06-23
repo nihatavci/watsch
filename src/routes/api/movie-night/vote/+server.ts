@@ -6,71 +6,92 @@ interface Participant {
 	nickname: string;
 }
 
-// CSRF protection helper
-function getCsrfTokenFromCookie(cookieHeader: string | null): string | null {
-	if (!cookieHeader) return null;
-	const match = cookieHeader.match(/csrf_token=([^;]+)/);
-	return match ? match[1] : null;
+interface Vote {
+	movieId: string;
+	participantId: string;
+	nickname: string;
+	timestamp: number;
 }
 
-// Consider defining a more complete MovieNightRoom interface here or in a shared types file
-// interface MovieNightRoom {
-//  participants: Participant[];
-//  votes: Record<string, any[]>; // Or more specific type for votes
-//  phase: string;
-//  // ... other room properties
-// }
+interface MovieNightRoom {
+	participants: Participant[];
+	votes: Record<string, Vote[]>;
+	phase: string;
+	nominations: any[];
+}
 
-export async function POST({ request, cookies, headers }) {
-	// --- CSRF Protection ---
-	const csrfCookie = cookies.get('csrf_token') || getCsrfTokenFromCookie(request.headers.get('cookie'));
-	const csrfHeader = headers.get('x-csrf-token');
-	if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-		return json({ error: { message: 'CSRF token missing or invalid' } }, { status: 403 });
-	}
-	// --- End CSRF Protection ---
+export async function POST({ request }) {
 
 	try {
-		const { roomCode, nickname, votes: selectedVotes } = await request.json();
+		const { roomCode, movieId, participantId, nickname, votes: selectedVotes } = await request.json();
 
-		if (!roomCode || !nickname || !selectedVotes) {
+		if (!roomCode || !nickname) {
 			return json(
-				{ error: { message: 'Room code, nickname, and votes are required' } },
+				{ error: { message: 'Room code and nickname are required' } },
 				{ status: 400 }
 			);
 		}
 
-		const room = await kv.get(`room:${roomCode.toLowerCase()}`); // room is implicitly any
+		// Handle both vote formats: single movieId or votes array
+		let votesToSubmit: string[] = [];
+		if (movieId) {
+			votesToSubmit = [movieId];
+		} else if (selectedVotes && Array.isArray(selectedVotes)) {
+			votesToSubmit = selectedVotes;
+		} else {
+			return json(
+				{ error: { message: 'Movie selection is required' } },
+				{ status: 400 }
+			);
+		}
+
+		const room = await kv.get(`room:${roomCode.toLowerCase()}`) as MovieNightRoom;
 
 		if (!room) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
-		if (room.phase !== 'vote' && room.phase !== 'results') {
+		// Allow voting in 'voting', 'vote', and 'results' phases
+		if (room.phase !== 'voting' && room.phase !== 'vote' && room.phase !== 'results') {
 			return json(
-				{ error: { message: 'Room is not in voting or results phase' } },
+				{ error: { message: 'Room is not in voting phase' } },
 				{ status: 400 }
 			);
 		}
 
+		// Find participant by nickname (more reliable than ID)
 		const participant = (room.participants as Participant[]).find(
 			(p: Participant) => p.nickname.toLowerCase() === nickname.toLowerCase()
 		);
 
 		if (!participant) {
-			return json({ error: { message: 'Participant not found' } }, { status: 404 });
+			return json({ error: { message: 'You are not a participant in this room' } }, { status: 404 });
 		}
 
-		// Update votes - only allow one vote
-		// Assuming room.votes is an object where keys are participant.id
-		if (!room.votes) room.votes = {}; // Initialize if not present
-		room.votes[participant.id] = selectedVotes.slice(0, 1);
+		// Initialize votes object if not present
+		if (!room.votes) room.votes = {};
 
-		await kv.set(`room:${roomCode}`, room);
+		// Store vote with detailed information
+		const voteData: Vote = {
+			movieId: votesToSubmit[0], // Only allow one vote per participant
+			participantId: participant.id,
+			nickname: participant.nickname,
+			timestamp: Date.now()
+		};
+
+		// Store the vote
+		room.votes[participant.id] = [voteData];
+
+		// Update room in storage
+		await kv.set(`room:${roomCode.toLowerCase()}`, room);
+
+		console.log(`Vote recorded: ${participant.nickname} voted for movie ${votesToSubmit[0]} in room ${roomCode}`);
 
 		return json({
+			success: true,
 			votes: room.votes,
-			phase: room.phase
+			phase: room.phase,
+			message: 'Vote recorded successfully'
 		});
 	} catch (error) {
 		console.error('Error submitting votes:', error);

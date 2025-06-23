@@ -78,6 +78,7 @@
 	"navigation": {
 		"home": "Home",
 		"recommendations": "Recommendations",
+		"movie_night": "Movie Night",
 		"saved": "Saved",
 		"library": "Library",
 		"profile": "Profile",

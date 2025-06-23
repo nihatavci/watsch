@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Home, Star, Bookmark, Moon, Sun } from 'lucide-svelte';
+	import { Home, Star, Bookmark, Moon, Sun, Film, Settings, User, LogOut } from 'lucide-svelte';
 	import { theme, toggleTheme } from '$lib/stores/theme';
 	import { isAuthenticated, clearAuth, authStore } from '$lib/stores/auth';
 	import { browser } from '$app/environment';
@@ -15,11 +15,18 @@
 	const navItems = [
 		{ key: 'navigation.home', url: '/', icon: Home },
 		{ key: 'navigation.recommendations', url: '/recommendations', icon: Star },
+		{ key: 'navigation.movie_night', url: '/movie-night', icon: Film },
 		{ key: 'navigation.saved', url: '/saved', icon: Bookmark }
+	];
+
+	// Mobile-specific items that appear in overflow menu
+	const mobileMenuItems = [
+		{ key: 'navigation.settings', url: '/settings', icon: Settings },
 	];
 
 	let currentPath: string;
 	let pulseSaved = false;
+	let showMobileMenu = false;
 
 	// Subscribe to the page store to get the current path
 	$: currentPath = $page.url.pathname;
@@ -36,8 +43,17 @@
 	function handleLogout() {
 		if (browser) {
 			clearAuth();
+			showMobileMenu = false;
 			goto('/');
 		}
+	}
+
+	function toggleMobileMenu() {
+		showMobileMenu = !showMobileMenu;
+	}
+
+	function closeMobileMenu() {
+		showMobileMenu = false;
 	}
 </script>
 
@@ -120,14 +136,15 @@
 		</div>
 	</header>
 </div>
+
 <!-- Mobile Navigation bar at bottom -->
-<div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-black/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 z-50">
-	<div class="flex items-center justify-around h-14">
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 z-50">
+	<div class="flex items-center justify-around h-16 px-2">
 		{#each navItems as item}
 			<a
 				href={item.url}
-				class={`flex flex-col items-center p-2 ${
-					currentPath === item.url ? 'text-red-500' : 'text-gray-700 dark:text-gray-300'
+				class={`flex flex-col items-center py-1 px-2 rounded-lg transition-colors ${
+					currentPath === item.url ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-gray-700 dark:text-gray-300'
 				} ${item.key === 'navigation.saved' && pulseSaved ? 'saved-pulse' : ''}`}
 			>
 				<div class="relative">
@@ -145,11 +162,104 @@
 						<svelte:component this={item.icon} class="w-5 h-5" />
 					{/if}
 				</div>
-				<span class="text-xs mt-1">{$i18nStore.t(item.key)}</span>
+				<span class="text-xs mt-1 font-medium">{$i18nStore.t(item.key)}</span>
 			</a>
 		{/each}
+		
+		<!-- Mobile Menu Button -->
+		<button
+			on:click={toggleMobileMenu}
+			class={`flex flex-col items-center py-1 px-2 rounded-lg transition-colors ${
+				showMobileMenu ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-gray-700 dark:text-gray-300'
+			}`}
+		>
+			<User class="w-5 h-5" />
+			<span class="text-xs mt-1 font-medium">Menu</span>
+		</button>
 	</div>
 </div>
+
+<!-- Mobile Menu Overlay -->
+{#if showMobileMenu}
+	<!-- Backdrop -->
+	<div 
+		class="md:hidden fixed inset-0 bg-black/50 z-40" 
+		on:click={closeMobileMenu}
+		on:keydown={closeMobileMenu}
+		role="button"
+		tabindex="0"
+	></div>
+	
+	<!-- Menu Panel -->
+	<div class="md:hidden fixed bottom-16 right-4 left-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+		<div class="p-4">
+			<!-- User Status -->
+			<div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+				{#if $isAuthenticated}
+					<div class="flex items-center gap-3">
+						<div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+							<User class="w-5 h-5 text-red-600" />
+						</div>
+						<div>
+							<p class="font-medium text-gray-900 dark:text-white">Signed In</p>
+							<p class="text-sm text-gray-500 dark:text-gray-400">Welcome back!</p>
+						</div>
+					</div>
+				{:else}
+					<div class="text-center">
+						<p class="text-gray-600 dark:text-gray-400 mb-3">Not signed in</p>
+						<a
+							href="/login"
+							on:click={closeMobileMenu}
+							class="block w-full px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-center"
+						>
+							Sign In
+						</a>
+					</div>
+				{/if}
+			</div>
+			
+			<!-- Menu Items -->
+			<div class="space-y-2">
+				{#each mobileMenuItems as item}
+					<a
+						href={item.url}
+						on:click={closeMobileMenu}
+						class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+					>
+						<svelte:component this={item.icon} class="w-5 h-5" />
+						<span>{$i18nStore.t(item.key)}</span>
+					</a>
+				{/each}
+				
+				<!-- Theme Toggle -->
+				<button
+					on:click={() => { toggleTheme(); closeMobileMenu(); }}
+					class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+				>
+					{#if $theme === 'dark'}
+						<Sun class="w-5 h-5" />
+						<span>Light Mode</span>
+					{:else}
+						<Moon class="w-5 h-5" />
+						<span>Dark Mode</span>
+					{/if}
+				</button>
+				
+				<!-- Logout Button -->
+				{#if $isAuthenticated}
+					<button
+						on:click={handleLogout}
+						class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full text-left"
+					>
+						<LogOut class="w-5 h-5" />
+						<span>Sign Out</span>
+					</button>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
 	@keyframes savedPulse {

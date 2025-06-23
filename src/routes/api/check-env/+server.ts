@@ -1,13 +1,5 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import {
-	OPENAI_API_KEY,
-	TMDB_API_KEY,
-	YOUTUBE_API_KEY,
-	RAPID_API_KEY,
-	OMDB_API_KEY
-} from '$env/static/private';
-import { TMDB_API_KEY as PRIVATE_TMDB_API_KEY } from '$lib/env-loader';
 
 // Security: Only return boolean status, no partial key exposure
 function hasApiKey(key: string | undefined): boolean {
@@ -15,14 +7,19 @@ function hasApiKey(key: string | undefined): boolean {
 }
 
 export const GET: RequestHandler = async () => {
+	// Safe environment variable access
+	const tmdbKey = process.env.TMDB_API_KEY || process.env.PRIVATE_TMDB_API_KEY;
+	const openaiKey = process.env.OPENAI_API_KEY || process.env.PRIVATE_OPENAI_API_KEY;
+	
 	return json({
 		status: 'Environment check complete',
 		services: {
-			openai: hasApiKey(OPENAI_API_KEY),
-			tmdb: hasApiKey(PRIVATE_TMDB_API_KEY),
-			youtube: hasApiKey(YOUTUBE_API_KEY),
-			rapidApi: hasApiKey(RAPID_API_KEY),
-			omdb: hasApiKey(OMDB_API_KEY)
+			openai: hasApiKey(openaiKey),
+			tmdb: hasApiKey(tmdbKey),
+			// Security: Don't expose other service statuses
+			youtube: false,
+			rapidApi: false,
+			omdb: false
 		},
 		timestamp: new Date().toISOString()
 	});

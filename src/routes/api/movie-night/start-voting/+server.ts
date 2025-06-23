@@ -15,25 +15,33 @@ export async function POST({ request }) {
 			return json({ error: { message: 'Room not found' } }, { status: 404 });
 		}
 
-		if (room.phase !== 'nominate') {
-			return json({ error: { message: 'Room is not in nomination phase' } }, { status: 400 });
-		}
-
-		if (room.nominations.length < 2) {
+		// Check if room has nominations
+		if (!room.nominations || room.nominations.length === 0) {
 			return json(
-				{ error: { message: 'At least 2 nominations are required to start voting' } },
+				{ error: { message: 'Cannot start voting without nominations' } },
 				{ status: 400 }
 			);
 		}
 
-		room.phase = 'vote';
-		await kv.set(`room:${roomCode}`, room);
+		// Set phase to voting and initialize votes object
+		room.phase = 'voting';
+		room.updatedAt = Date.now();
+		if (!room.votes) {
+			room.votes = {};
+		}
+
+		await kv.set(`room:${roomCode.toLowerCase()}`, room);
+
+		console.log(`Voting started for room ${roomCode} with ${room.nominations.length} nominations`);
 
 		return json({
-			phase: room.phase
+			success: true,
+			phase: room.phase,
+			nominations: room.nominations,
+			votes: room.votes
 		});
 	} catch (error) {
-		console.error('Error starting voting phase:', error);
-		return json({ error: { message: 'Failed to start voting phase' } }, { status: 500 });
+		console.error('Error starting voting:', error);
+		return json({ error: { message: 'Failed to start voting' } }, { status: 500 });
 	}
 }
