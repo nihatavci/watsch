@@ -58,21 +58,21 @@
 {#if visible && !loading}
   <div 
     in:fade={{ duration: 200 }}
-    class="py-2 px-3 rounded-md bg-red-500/10 border border-red-500/20 text-xs flex items-center justify-between gap-2 mb-4"
+    class="py-3 px-4 bg-destructive/10 border-2 border-destructive/30 text-xs flex items-center justify-between gap-3 mb-4 shadow-[4px_4px_0px_0px_hsl(var(--border))]"
   >
-    <div class="flex items-center gap-2">
-      <Info class="w-4 h-4 text-red-500" />
-      <span class="text-red-500">
+    <div class="flex items-center gap-3">
+      <Info class="w-4 h-4 text-destructive" />
+      <span class="text-destructive font-medium">
         {#if searchLimit.searchesRemaining > 0}
-          <span class="font-medium">{searchLimit.searchesRemaining} {searchLimit.searchesRemaining === 1 ? 'search' : 'searches'}</span> remaining today
+          <span class="font-bold">{searchLimit.searchesRemaining} {searchLimit.searchesRemaining === 1 ? 'search' : 'searches'}</span> remaining today
         {:else}
-          <span class="font-medium">Search limit reached</span> for today
+          <span class="font-bold">Search limit reached</span> for today
         {/if}
       </span>
     </div>
     <a
       href="/login"
-      class="flex items-center gap-1 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-500 rounded-md px-2 py-1 transition-colors"
+      class="flex items-center gap-2 text-xs bg-destructive text-destructive-foreground px-3 py-2 transition-all duration-100 border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px] font-medium"
     >
       <Unlock class="w-3 h-3" />
       <span>Sign in</span>

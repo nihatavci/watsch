@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Home, Star, Bookmark, Moon, Sun, Film, Settings, User, LogOut } from 'lucide-svelte';
-	import { theme, toggleTheme } from '$lib/stores/theme';
+	import { theme, toggleColorMode } from '$lib/stores/theme';
 	import { isAuthenticated, clearAuth, authStore } from '$lib/stores/auth';
 	import { browser } from '$app/environment';
 	import { savedIconPulse } from '../../../stores/ui';
@@ -58,17 +58,17 @@
 </script>
 
 <div class="hidden md:block">
-	<header class="z-50 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80 fixed inset-x-0 top-0">
-		<div class="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+	<header class="z-50 bg-card border-b-2 border-border shadow-[0px_4px_0px_0px_hsl(var(--border))] fixed inset-x-0 top-0">
+		<div class="flex h-12 items-center justify-between px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
 			<!-- Logo -->
 			<a href="/" class="flex items-center gap-2 group">
-				<svg class="h-8 w-8" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<svg class="h-6 w-6" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
 					<rect x="8" y="8" width="24" height="24" rx="4" fill="#EF4444" class="group-hover:fill-red-600 transition-colors"/>
 					<path d="M20 14L24 20L20 26L16 20L20 14Z" fill="white"/>
 				</svg>
-				<span class="text-xl font-bold">
-					<span class="text-gray-900 dark:text-white">Wat</span>
-					<span class="text-red-500">sch</span>
+				<span class="text-lg font-bold">
+					<span class="text-foreground">Wat</span>
+					<span class="text-destructive">sch</span>
 				</span>
 			</a>
 			<!-- Desktop Navigation -->
@@ -76,10 +76,10 @@
 				{#each navItems as item}
 					<a
 						href={item.url}
-						class={`px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${
+						class={`px-2 py-1.5 text-sm font-medium flex items-center gap-1 transition-all duration-100 border-2 border-transparent ${
 							currentPath === item.url
-								? 'text-red-500'
-								: 'text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+								? 'text-destructive border-border bg-card shadow-[2px_2px_0px_0px_hsl(var(--border))]'
+								: 'text-foreground hover:border-border hover:bg-accent hover:text-accent-foreground hover:shadow-[2px_2px_0px_0px_hsl(var(--border))]'
 						} ${item.key === 'navigation.saved' && pulseSaved ? 'saved-pulse' : ''}`}
 					>
 						{#if item.key === 'navigation.saved' && pulseSaved}
@@ -95,18 +95,19 @@
 						{:else}
 							<svelte:component this={item.icon} class="w-4 h-4" />
 						{/if}
-						<span class="text-xs mt-1">{$i18nStore.t(item.key)}</span>
+						<span class="text-xs">{$i18nStore.t(item.key)}</span>
 					</a>
 				{/each}
 			</nav>
 			<!-- Theme toggle, Login/Logout, LanguageSwitcher -->
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-1.5">
+				<!-- Color Mode Toggle -->
 				<button
-					on:click={toggleTheme}
-					class="p-2 rounded-full transition-all bg-gray-200 hover:bg-gray-300 dark:bg-black dark:hover:bg-gray-950 text-gray-700 dark:text-white/70 dark:hover:text-white"
-					aria-label="Toggle theme"
+					on:click={toggleColorMode}
+					class="p-1.5 transition-all duration-100 bg-secondary text-secondary-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px]"
+					aria-label="Toggle color mode"
 				>
-					{#if $theme === 'dark'}
+					{#if $theme.colorMode === 'dark'}
 						<Sun class="w-4 h-4" />
 					{:else}
 						<Moon class="w-4 h-4" />
@@ -116,20 +117,20 @@
 				{#if $isAuthenticated}
 					<button
 						on:click={handleLogout}
-						class="px-3 py-1 rounded-full text-sm font-medium transition-colors bg-gray-200 hover:bg-gray-300 dark:bg-black dark:hover:bg-gray-950 text-gray-700 dark:text-white/70 dark:hover:text-white"
+						class="px-2 py-1 text-sm font-medium transition-all duration-100 bg-secondary text-secondary-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px]"
 					>
 						{$i18nStore.t('login.logout', 'Logout')}
 					</button>
 				{:else}
 					<a
 						href="/login"
-						class="rounded-full bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 sm:inline-block"
+						class="px-3 py-1 text-sm font-medium transition-all duration-100 bg-primary text-primary-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px]"
 					>
 						{$i18nStore.t('login.sign_in', 'Sign In')}
 					</a>
 				{/if}
 				<!-- Language Switcher elegantly spaced -->
-				<div class="ml-2">
+				<div class="ml-1">
 					<LanguageSwitcher />
 				</div>
 			</div>
@@ -138,43 +139,51 @@
 </div>
 
 <!-- Mobile Navigation bar at bottom -->
-<div class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-black/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 z-50">
+<div class="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t-2 border-border shadow-[0px_-4px_0px_0px_hsl(var(--border))] z-50">
 	<div class="flex items-center justify-around h-16 px-2">
 		{#each navItems as item}
 			<a
 				href={item.url}
-				class={`flex flex-col items-center py-1 px-2 rounded-lg transition-colors ${
-					currentPath === item.url ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-gray-700 dark:text-gray-300'
+				class={`flex items-center justify-center h-12 w-12 transition-all duration-100 border-2 border-transparent ${
+					currentPath === item.url ? 'text-destructive border-border bg-accent/20 shadow-[2px_2px_0px_0px_hsl(var(--border))]' : 'text-foreground hover:border-border hover:bg-accent hover:text-accent-foreground hover:shadow-[2px_2px_0px_0px_hsl(var(--border))]'
 				} ${item.key === 'navigation.saved' && pulseSaved ? 'saved-pulse' : ''}`}
 			>
 				<div class="relative">
 					{#if item.key === 'navigation.saved' && pulseSaved}
 						<div class="relative">
-							<svelte:component this={item.icon} class="w-5 h-5" />
+							<svelte:component this={item.icon} class="w-6 h-6" />
 							<span class="absolute -top-1 -right-1 flex h-3 w-3">
 								<span
-									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"
+									class="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"
 								/>
-								<span class="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+								<span class="relative inline-flex rounded-full h-3 w-3 bg-destructive" />
 							</span>
 						</div>
 					{:else}
-						<svelte:component this={item.icon} class="w-5 h-5" />
+						<svelte:component this={item.icon} class="w-6 h-6" />
 					{/if}
 				</div>
-				<span class="text-xs mt-1 font-medium">{$i18nStore.t(item.key)}</span>
 			</a>
 		{/each}
 		
-		<!-- Mobile Menu Button -->
+		<!-- Mobile Menu Button with proper icon -->
 		<button
 			on:click={toggleMobileMenu}
-			class={`flex flex-col items-center py-1 px-2 rounded-lg transition-colors ${
-				showMobileMenu ? 'text-red-500 bg-red-50 dark:bg-red-900/20' : 'text-gray-700 dark:text-gray-300'
+			class={`flex items-center justify-center h-12 w-12 transition-all duration-100 border-2 border-transparent ${
+				showMobileMenu ? 'text-destructive border-border bg-accent/20 shadow-[2px_2px_0px_0px_hsl(var(--border))]' : 'text-foreground hover:border-border hover:bg-accent hover:text-accent-foreground hover:shadow-[2px_2px_0px_0px_hsl(var(--border))]'
 			}`}
 		>
-			<User class="w-5 h-5" />
-			<span class="text-xs mt-1 font-medium">Menu</span>
+			{#if showMobileMenu}
+				<!-- X icon when menu is open -->
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+				</svg>
+			{:else}
+				<!-- Hamburger menu icon when closed -->
+				<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+				</svg>
+			{/if}
 		</button>
 	</div>
 </div>
@@ -191,27 +200,27 @@
 	></div>
 	
 	<!-- Menu Panel -->
-	<div class="md:hidden fixed bottom-16 right-4 left-4 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
-		<div class="p-4">
+	<div class="md:hidden fixed bottom-16 right-4 left-4 bg-card text-foreground border-2 border-border shadow-[8px_8px_0px_0px_hsl(var(--border))] z-50 overflow-hidden max-h-[70vh] overflow-y-auto">
+		<div class="p-6">
 			<!-- User Status -->
-			<div class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+			<div class="mb-6 pb-6 border-b-2 border-border">
 				{#if $isAuthenticated}
-					<div class="flex items-center gap-3">
-						<div class="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-							<User class="w-5 h-5 text-red-600" />
+					<div class="flex items-center gap-4">
+						<div class="w-12 h-12 bg-accent text-accent-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] flex items-center justify-center">
+							<User class="w-6 h-6" />
 						</div>
 						<div>
-							<p class="font-medium text-gray-900 dark:text-white">Signed In</p>
-							<p class="text-sm text-gray-500 dark:text-gray-400">Welcome back!</p>
+							<p class="font-bold text-foreground">Signed In</p>
+							<p class="text-sm text-muted-foreground">Welcome back!</p>
 						</div>
 					</div>
 				{:else}
 					<div class="text-center">
-						<p class="text-gray-600 dark:text-gray-400 mb-3">Not signed in</p>
+						<p class="text-muted-foreground mb-4">Not signed in</p>
 						<a
 							href="/login"
 							on:click={closeMobileMenu}
-							class="block w-full px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-center"
+							class="btn-destructive btn-md w-full"
 						>
 							Sign In
 						</a>
@@ -219,25 +228,13 @@
 				{/if}
 			</div>
 			
-			<!-- Menu Items -->
-			<div class="space-y-2">
-				{#each mobileMenuItems as item}
-					<a
-						href={item.url}
-						on:click={closeMobileMenu}
-						class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-					>
-						<svelte:component this={item.icon} class="w-5 h-5" />
-						<span>{$i18nStore.t(item.key)}</span>
-					</a>
-				{/each}
-				
-				<!-- Theme Toggle -->
+			<!-- Color Mode Toggle Section -->
+			<div class="mb-6 pb-6 border-b-2 border-border">
 				<button
-					on:click={() => { toggleTheme(); closeMobileMenu(); }}
-					class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left"
+					on:click={() => { toggleColorMode(); closeMobileMenu(); }}
+					class="btn-ghost btn-md w-full justify-start gap-3"
 				>
-					{#if $theme === 'dark'}
+					{#if $theme.colorMode === 'dark'}
 						<Sun class="w-5 h-5" />
 						<span>Light Mode</span>
 					{:else}
@@ -245,12 +242,26 @@
 						<span>Dark Mode</span>
 					{/if}
 				</button>
+			</div>
+			
+			<!-- Menu Items -->
+			<div class="space-y-3">
+				{#each mobileMenuItems as item}
+					<a
+						href={item.url}
+						on:click={closeMobileMenu}
+						class="btn-ghost btn-md w-full justify-start gap-3"
+					>
+						<svelte:component this={item.icon} class="w-5 h-5" />
+						<span>{$i18nStore.t(item.key)}</span>
+					</a>
+				{/each}
 				
 				<!-- Logout Button -->
 				{#if $isAuthenticated}
 					<button
 						on:click={handleLogout}
-						class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors w-full text-left"
+						class="btn-ghost btn-md w-full justify-start gap-3 text-destructive hover:bg-destructive hover:text-destructive-foreground"
 					>
 						<LogOut class="w-5 h-5" />
 						<span>Sign Out</span>

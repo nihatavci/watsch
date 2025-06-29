@@ -84,7 +84,8 @@ const userId = getUserIdFromToken(authHeader);
 const isAuthenticated = !!userId;
 
 console.log(`[API Route] Request from ${isAuthenticated ? 'authenticated user' : 'unauthenticated user'}`);
-console.log(`[API Route] TMDB_API_KEY loaded: ${PRIVATE_TMDB_API_KEY ? PRIVATE_TMDB_API_KEY.substring(0,6) + '...' : 'NOT LOADED'}`);
+// Security: Never log API keys - only log configuration status
+console.log(`[API Route] TMDB API configured: ${PRIVATE_TMDB_API_KEY ? 'YES' : 'NO'}`);
 
 // Simple rate limiting for unauthenticated users
 // TODO: Implement proper rate limiting with the new API system
@@ -171,7 +172,7 @@ export function getEnvVarSafe(key: keyof typeof env): string | null {
   return value;
 }
 
-// Log environment status without throwing errors
+// Security: Log environment status without exposing keys
 if (!PRIVATE_TMDB_API_KEY) {
   console.warn('TMDB API key is not configured - application will use mock data in development');
 } else {

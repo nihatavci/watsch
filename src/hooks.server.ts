@@ -54,6 +54,38 @@ function checkRateLimit(ip: string, endpoint: string): boolean {
   return true;
 }
 
+// Security: Enhanced rate limiting with persistence warning
+function checkRateLimitEnhanced(ip: string, endpoint: string): boolean {
+  // TODO: Replace with Redis or database-backed rate limiting for production
+  // Current implementation: In-memory only (resets on server restart)
+  
+  const key = `${ip}:${endpoint}`;
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute window
+  
+  // Stricter limits for sensitive endpoints
+  let maxRequests = 30;
+  if (endpoint.includes('/search')) maxRequests = 10;
+  if (endpoint.includes('/recommendation') || endpoint.includes('/getRecommendation')) maxRequests = 20;
+  if (endpoint.includes('/movie-night')) maxRequests = 15;
+  if (endpoint.includes('/auth')) maxRequests = 5;
+  
+  const current = rateLimitMap.get(key);
+  
+  if (!current || now > current.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  
+  if (current.count >= maxRequests) {
+    console.warn(`[Security] Rate limit exceeded for ${ip} on ${endpoint}`);
+    return false;
+  }
+  
+  current.count++;
+  return true;
+}
+
 // Initialize on server startup
 if (!dev || process.env.NODE_ENV !== 'test') {
   initializeApi().catch(console.warn);
@@ -78,10 +110,11 @@ const handleSecurity = async ({ event, resolve }) => {
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Content Security Policy
+  // Content Security Policy - Enhanced security
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Unsafe eval needed for some TMDB/API functionality
+    // Security: Removed 'unsafe-eval' - use alternatives for dynamic functionality
+    "script-src 'self' 'unsafe-inline'", // Keep minimal unsafe-inline for Svelte
     "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
     "font-src 'self' fonts.gstatic.com",
     "img-src 'self' data: blob: image.tmdb.org *.tmdb.org",
@@ -90,7 +123,10 @@ const handleSecurity = async ({ event, resolve }) => {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'"
+    "form-action 'self'",
+    // Security: Additional CSP directives
+    "upgrade-insecure-requests",
+    "block-all-mixed-content"
   ].join('; ');
   
   response.headers.set('Content-Security-Policy', csp);
@@ -109,15 +145,23 @@ const handleSecurity = async ({ event, resolve }) => {
 };
 
 const handleApi = async ({ event, resolve }) => {
-  // Security: Rate limiting for API routes
+  // Security: Enhanced rate limiting for API routes
   if (event.url.pathname.startsWith('/api/')) {
     const clientIP = event.getClientAddress();
     const endpoint = event.url.pathname;
     
-    if (!checkRateLimit(clientIP, endpoint)) {
-      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+    if (!checkRateLimitEnhanced(clientIP, endpoint)) {
+      console.warn(`[Security] Rate limit violation: ${clientIP} -> ${endpoint}`);
+      return new Response(JSON.stringify({ 
+        error: 'Rate limit exceeded',
+        details: 'Too many requests. Please wait before trying again.',
+        retryAfter: 60
+      }), {
         status: 429,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Retry-After': '60'
+        }
       });
     }
   }

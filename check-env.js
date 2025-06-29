@@ -10,8 +10,11 @@ const __dirname = dirname(__filename);
 // Load environment variables
 config();
 
-console.log('TMDB_API_KEY:', process.env.TMDB_API_KEY ? 'EXISTS (first 5 chars: ' + process.env.TMDB_API_KEY.substring(0, 5) + '...)' : 'NOT FOUND');
-console.log('PRIVATE_TMDB_API_KEY:', process.env.PRIVATE_TMDB_API_KEY ? 'EXISTS (first 5 chars: ' + process.env.PRIVATE_TMDB_API_KEY.substring(0, 5) + '...)' : 'NOT FOUND');
+console.log('Environment check results:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+// Security: Never log API keys or partial keys
+console.log('TMDB_API_KEY:', process.env.TMDB_API_KEY ? 'CONFIGURED' : 'NOT FOUND');
+console.log('PRIVATE_TMDB_API_KEY:', process.env.PRIVATE_TMDB_API_KEY ? 'CONFIGURED' : 'NOT FOUND');
 
 if (!process.env.TMDB_API_KEY && !process.env.PRIVATE_TMDB_API_KEY) {
   console.error('\n❌ ERROR: Neither TMDB_API_KEY nor PRIVATE_TMDB_API_KEY found in environment variables!');
@@ -32,14 +35,11 @@ try {
   console.error('Error reading .env file:', error.message);
 }
 
-console.log('\nAll TMDB and API_KEY environment variables:');
+console.log('\nTMDB-related environment variables (secure check):');
 Object.keys(process.env)
-  .filter(key => key.includes('TMDB') || key.includes('API_KEY'))
-  .forEach(key => {
-    const value = process.env[key];
-    if (value && value.length > 10) {
-      console.log(`${key}: ${value.substring(0, 5)}...`);
-    } else {
-      console.log(`${key}: ${value}`);
-    }
-  }); 
+	.filter(key => key.includes('TMDB') || key.includes('API_KEY'))
+	.forEach(key => {
+		const value = process.env[key];
+		// Security: Never log actual key values
+		console.log(`${key}: ${value ? 'SET' : 'NOT SET'}`);
+	}); 

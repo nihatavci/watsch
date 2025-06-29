@@ -20,7 +20,8 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				base: '5px' // Neobrutalism standard radius
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -62,7 +63,34 @@ export default {
 					3: 'hsl(var(--chart-3))',
 					4: 'hsl(var(--chart-4))',
 					5: 'hsl(var(--chart-5))'
-				}
+				},
+				// Neobrutalism specific colors
+				main: '#88aaee',
+				mainAccent: '#4d80e6',
+				overlay: 'rgba(0,0,0,0.8)',
+				// light mode
+				bg: '#dfe5f2',
+				text: '#000',
+				// dark mode
+				darkBg: '#272933',
+				darkText: '#eeefe9',
+				darkBorder: '#000',
+				secondaryBlack: '#212121'
+			},
+			// Neobrutalism-specific utilities
+			boxShadow: {
+				light: '4px 4px 0px 0px #000',
+				dark: '4px 4px 0px 0px #000',
+			},
+			translate: {
+				boxShadowX: '4px',
+				boxShadowY: '4px',
+				reverseBoxShadowX: '-4px',
+				reverseBoxShadowY: '-4px',
+			},
+			fontWeight: {
+				base: '500',
+				heading: '700',
 			}
 		}
 	},

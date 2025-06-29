@@ -551,11 +551,11 @@
 	{#await promise}
 		<LoadingCard />
 	{:then data}
-		{#if data?.Title && data?.Poster}
+		{#if data?.Title}
 			<Card class="border-0 overflow-hidden transform transition-transform hover:scale-[1.01] duration-500">
 				<CardContent class="p-0">
 					<div
-						class="relative flex flex-col sm:flex-row min-h-[200px]  dark:bg-gradient-to-br dark:from-black/90 dark:to-gray-900/90 dark:backdrop-blur-sm dark:border dark:border-gray-800/80 dark:shadow-xl rounded-2xl overflow-hidden"
+						class="relative flex flex-col sm:flex-row min-h-[200px] bg-card text-foreground border-2 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))] rounded-[5px] overflow-hidden"
 					>
 						<!-- Image container with subtle hover effect -->
 						<div
@@ -569,13 +569,22 @@
 									loading="lazy"
 									on:error={(e: Event) => { 
 										const target = e.currentTarget as HTMLImageElement;
-										target.onerror = null; 
-										target.src = '/placeholder-movie.png'; 
+										// If the original TMDB URL fails, try without the base URL
+										if (target.src.includes('https://image.tmdb.org')) {
+											console.log('TMDB image failed, trying fallback');
+											target.src = '/placeholder-movie.png'; 
+										}
 									}}
 								/>
 							{:else}
-								<div class="absolute inset-0 bg-black flex items-center justify-center">
-									<span class="text-gray-500">No image available</span>
+								<div class="absolute inset-0 bg-muted flex items-center justify-center">
+									<div class="text-center">
+										<svg class="w-16 h-16 mx-auto text-muted-foreground mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4V2a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2h4a1 1 0 0 1 0 2v0a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v0a1 1 0 0 1 1-1h3ZM2 7v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7H2Z"/>
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.5 11.5 1.5 1.5 4-4"/>
+										</svg>
+										<span class="text-sm text-muted-foreground font-medium">No Image</span>
+									</div>
 								</div>
 							{/if}
 							
@@ -612,33 +621,33 @@
 							<div class="flex items-start justify-between gap-3 mb-4">
 								<div class="flex-1 min-w-0">
 									<h2
-										class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2 line-clamp-2"
+										class="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2 line-clamp-2"
 									>
 										{data.LocalizedData.Title}
 										{#if data.Year || data.ReleaseDate}
-											<span class="text-red-500 dark:text-red-400 text-lg sm:text-xl ml-2">
+											<span class="text-destructive text-lg sm:text-xl ml-2">
 												({data.Year ||
 													(data.ReleaseDate ? new Date(data.ReleaseDate).getFullYear() : '')})
 											</span>
 										{/if}
 									</h2>
 									<div
-										class="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
+										class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
 									>
 										{#if data.Runtime}<span
-												class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E50914] text-white font-medium"
+												class="flex items-center gap-1.5 px-2.5 py-1 bg-destructive text-destructive-foreground font-medium border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]"
 												><Clock class="w-3 h-3" /> {data.Runtime}</span
 											>{/if}
 										{#if data.Language}<span
-												class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E50914] text-white font-medium"
+												class="flex items-center gap-1.5 px-2.5 py-1 bg-destructive text-destructive-foreground font-medium border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]"
 												><span
-													class="w-3 h-3 flex items-center justify-center text-xs bg-black/50 rounded-full"
+													class="w-3 h-3 flex items-center justify-center text-xs bg-black/20 rounded-sm"
 													>🌐</span
 												>
 												{data.Language}</span
 											>{/if}
 										{#if data.Rated}
-											<Badge variant="default" class="rounded-full px-2.5 py-0.5 font-medium">
+											<Badge variant="default" class="px-2.5 py-0.5 font-medium">
 												{data.Rated}
 											</Badge>
 										{/if}
@@ -651,7 +660,7 @@
 									<!-- Most important info: Rating + Director -->
 									<div class="flex flex-wrap items-center gap-3 text-sm">
 										{#if data.vote_average}
-											<span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium">
+											<span class="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground font-medium border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]">
 												<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
 													<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
 												</svg>
@@ -662,7 +671,7 @@
 										{#if data.credits?.crew}
 											{@const director = data.credits.crew.find(person => person.job === 'Director')}
 											{#if director}
-												<span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+												<span class="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-foreground font-medium border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))]">
 													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
 													</svg>
@@ -676,7 +685,7 @@
 												href="https://www.imdb.com/title/{data.imdb_id}" 
 												target="_blank" 
 												rel="noopener noreferrer"
-												class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+												class="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground font-medium border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-100"
 											>
 												<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -689,8 +698,8 @@
 									<!-- Main cast - only show if available -->
 									{#if data.Actors}
 										<div class="flex flex-wrap gap-2 text-sm">
-											<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Cast:</span>
-											<span class="text-gray-600 dark:text-gray-400">
+											<span class="text-sm font-medium text-foreground">Cast:</span>
+											<span class="text-muted-foreground">
 												{data.Actors.split(', ').slice(0, 3).join(', ')}
 											</span>
 										</div>
@@ -700,13 +709,13 @@
 							<!-- Description with show more toggle -->
 							{#if data.LocalizedData.Plot || data.Plot}
 								<div class="relative mb-5">
-									<p class="text-sm sm:text-base {showFullDescription ? '' : 'line-clamp-3'}">
+									<p class="text-sm sm:text-base text-foreground {showFullDescription ? '' : 'line-clamp-3'}">
 									{data.LocalizedData.Plot || data.Plot || 'No description available'}
 								</p>
 									{#if (data.LocalizedData.Plot || data.Plot || '').length > 150}
 								<button
 									on:click={() => (showFullDescription = !showFullDescription)}
-											class="mt-1 text-xs sm:text-sm text-red-500 dark:text-red-400 hover:underline focus:outline-none"
+											class="mt-1 text-xs sm:text-sm text-destructive hover:underline focus:outline-none"
 								>
 											{showFullDescription ? 'Show less' : 'Show more'}
 								</button>
@@ -716,8 +725,8 @@
 
 							<!-- Cast with improved styling -->
 							{#if data.LocalizedData.Actors}
-								<div class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-									<span class="font-medium text-gray-700 dark:text-gray-300"
+								<div class="text-sm text-muted-foreground mb-4">
+									<span class="font-medium text-foreground"
 										>{$i18nStore.t('recommendations.cast')}:</span
 									>
 									{data.LocalizedData.Actors}
@@ -729,7 +738,7 @@
 								{#each selectedPlatforms as platform}
 									<Badge
 										variant="secondary"
-										class="bg-gray-100 dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-950 text-gray-700 dark:text-white"
+										class="bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
 									>
 										{platform}
 									</Badge>
@@ -744,20 +753,20 @@
 							<!-- AI Insights with improved styling -->
 							{#if data.Insights?.length > 0}
 								<div class="mb-5">
-									<h3
-										class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2"
-									>
-										<Sparkles class="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
-										{$i18nStore.t('recommendations.ai_insights')}:
-									</h3>
+																	<h3
+									class="text-sm font-medium text-foreground mb-3 flex items-center gap-2"
+								>
+									<Sparkles class="w-3.5 h-3.5 text-destructive" />
+									{$i18nStore.t('recommendations.ai_insights')}:
+								</h3>
 									<div class="flex flex-wrap gap-2">
 										{#each data.Insights as insight, i}
 											<div
-												class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-500/20 rounded-full text-xs text-red-600 dark:text-red-300 shadow-sm transition-all duration-300 hover:scale-105"
+												class="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] text-xs transition-all duration-100 hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px]"
 												in:fade={{ delay: 100 * i, duration: 300 }}
 											>
 												<svg
-													class="w-3.5 h-3.5 text-red-500 dark:text-red-400"
+													class="w-3.5 h-3.5 text-destructive"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -779,19 +788,19 @@
 							<!-- Streaming Links with improved styling -->
 							{#if data.streamingLinks && data.streamingLinks.length > 0}
 								<div class="mb-5">
-									<h3
-										class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2"
-									>
-										<Star class="w-3.5 h-3.5 text-yellow-500 dark:text-yellow-400" />
-										{$i18nStore.t('recommendations.streaming')}:
-									</h3>
+																	<h3
+									class="text-sm font-medium text-foreground mb-3 flex items-center gap-2"
+								>
+									<Star class="w-3.5 h-3.5 text-primary" />
+									{$i18nStore.t('recommendations.streaming')}:
+								</h3>
 									<div class="flex flex-wrap gap-2">
 										{#each data.streamingLinks as link, i}
 											<a
 												href={link.url}
 												target="_blank"
 												rel="noopener noreferrer"
-												class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-full text-xs text-gray-700 dark:text-gray-300 transition-all duration-300 hover:scale-105 hover:shadow-md"
+												class="flex items-center gap-1.5 px-3 py-1.5 bg-secondary text-secondary-foreground border-2 border-border shadow-[2px_2px_0px_0px_hsl(var(--border))] text-xs transition-all duration-100 hover:shadow-[4px_4px_0px_0px_hsl(var(--border))] hover:translate-x-[-2px] hover:translate-y-[-2px]"
 												in:fade={{ delay: 50 * i, duration: 300 }}
 											>
 												<span>{link.platform}</span>
@@ -807,8 +816,8 @@
 								<Button
 									variant={isAdded ? 'ghost' : 'default'}
 									class={isAdded
-										? 'flex-1 h-12 bg-gray-100 dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-950 text-gray-700 dark:text-white rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm'
-										: 'flex-1 h-12 bg-red-600 hover:bg-red-700 text-white rounded-xl border border-transparent dark:border-gray-800 hover:shadow-md transition-all duration-300 hover:translate-y-[-2px]'}
+										? 'flex-1 h-12 bg-secondary text-secondary-foreground'
+										: 'flex-1 h-12 bg-destructive text-destructive-foreground'}
 									on:click={() =>
 										isAdded ? (showRemoveButton ? handleRemove(data) : null) : handleSave(data)}
 								>
@@ -837,7 +846,7 @@
 								<div class="relative flex items-center">
 									<Button
 										variant="ghost"
-										class="h-12 w-12 bg-gray-100 dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-950 text-gray-700 dark:text-white rounded-xl border border-gray-200 dark:border-gray-800 transition-all duration-300 flex items-center justify-center hover:scale-105"
+										class="h-12 w-12 bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground"
 										on:click={toggleShareMenu}
 									>
 										<Share2 class="w-5 h-5" />
@@ -848,13 +857,13 @@
 										<!-- svelte-ignore a11y-interactive-supports-focus -->
 										<div
 											role="menu"
-											class="absolute bottom-full right-0 mb-2 w-60 bg-white dark:bg-black rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden"
+											class="absolute bottom-full right-0 mb-2 w-60 bg-card text-foreground border-2 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))] overflow-hidden"
 											in:slide={{ duration: 200, axis: 'y' }}
 											on:mouseleave={() => (showShareMenu = false)}
 										>
 											<!-- Primary download button -->
 											<button
-												class="w-full px-4 py-4 flex items-center justify-center gap-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors duration-200"
+												class="w-full px-4 py-4 flex items-center justify-center gap-3 bg-destructive text-destructive-foreground hover:bg-destructive/90 text-sm font-semibold transition-colors duration-100"
 												on:click={() => downloadMovieCard(data)}
 												disabled={isDownloading}
 											>
@@ -871,17 +880,17 @@
 											</button>
 
 											<!-- Divider -->
-											<div class="w-full h-px bg-gray-200 dark:bg-gray-800"></div>
+											<div class="w-full h-px bg-border"></div>
 											
 											<!-- Share section title -->
-											<div class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">
+											<div class="px-4 py-2 text-xs text-muted-foreground font-medium uppercase tracking-wider">
 												{$i18nStore.t('share.share_via')}
 											</div>
 											
 											<!-- Share options grid -->
 											<div class="grid grid-cols-2 p-2 gap-2">
 											<button
-													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 hover:bg-accent hover:text-accent-foreground text-foreground text-sm transition-colors duration-100"
 												on:click={() => shareOnWhatsApp(data)}
 											>
 													<svg class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="currentColor">
@@ -893,7 +902,7 @@
 											</button>
 
 											<button
-													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 hover:bg-accent hover:text-accent-foreground text-foreground text-sm transition-colors duration-100"
 												on:click={shareOnInstagram}
 											>
 													<Instagram class="w-4 h-4 text-purple-500" />
@@ -901,7 +910,7 @@
 											</button>
 
 											<button
-													class="px-3 py-2.5 flex items-center gap-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-950 text-gray-700 dark:text-gray-300 text-sm transition-colors duration-200"
+													class="px-3 py-2.5 flex items-center gap-2 hover:bg-accent hover:text-accent-foreground text-foreground text-sm transition-colors duration-100"
 												on:click={copyLink}
 												disabled={isCopying}
 											>
@@ -922,14 +931,14 @@
 			</Card>
 		{:else}
 			<div
-				class="p-6 text-center text-gray-500 dark:text-gray-400 bg-white dark:bg-black rounded-2xl"
+				class="p-6 text-center text-muted-foreground bg-card border-2 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]"
 			>
 				{$i18nStore.t('recommendations.no_details')}
 			</div>
 		{/if}
 	{:catch error}
 		<div
-			class="p-6 text-center text-red-600 dark:text-red-400 bg-white dark:bg-black rounded-2xl"
+			class="p-6 text-center text-destructive bg-card border-2 border-border shadow-[4px_4px_0px_0px_hsl(var(--border))]"
 		>
 			<div class="flex flex-col items-center gap-3">
 				<p>{$i18nStore.t('recommendations.error.details')}</p>

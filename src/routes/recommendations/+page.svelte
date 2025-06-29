@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Film, Tv, Sparkles, Brain, Zap, Search, Star, Clock, ThumbsUp, X } from 'lucide-svelte';
-	import Form from '$lib/Form.svelte';
 	import RecommendationCard from '$lib/RecommendationCard.svelte';
 	import { library } from '../../stores/library';
 	import { fade, slide, fly } from 'svelte/transition';
@@ -10,21 +9,7 @@
 	import SearchLimitIndicator from '$lib/components/ui/SearchLimitIndicator.svelte';
 	import SearchLimitModal from '$lib/components/ui/SearchLimitModal.svelte';
 	import { authStore } from '$lib/stores/auth';
-	import { recommendationsStore } from '../../stores/recommendations';
-
-	interface Recommendation {
-		title: string;
-		description: string;
-		type: 'movie' | 'tv';
-		id: number;
-		year: number | null;
-		rating: number;
-		poster_path: string | null;
-		backdrop_path: string | null;
-		popularity: number;
-		genre_ids: number[];
-		original_language: string;
-	}
+	import { recommendationsStore, type Recommendation } from '../../stores/recommendations';
 
 	let cinemaType: 'movie' | 'tv' | null = null;
 	let selectedGenres: string[] = [];
@@ -309,132 +294,127 @@
 	/>
 </svelte:head>
 
-<div class="relative min-h-screen pt-16 pb-24 overflow-hidden">
-	<!-- Content -->
-	<div class="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-		{#if mounted}
-			<div class="space-y-3 sm:space-y-4" in:fly={{ y: -20, duration: 800, easing: backOut }}>
-				<div class="flex items-center gap-2 text-red-500">
-					<Sparkles class="w-4 h-4 sm:w-5 sm:h-5" />
-					<span class="text-xs sm:text-sm font-medium uppercase tracking-wider">
-						{$i18nStore.t('home.ai_powered', 'AI-POWERED RECOMMENDATIONS')}
-					</span>
+<div class="min-h-screen bg-background">
+	<!-- Search Limit Indicator -->
+	<SearchLimitIndicator />
+
+	<!-- Main Container -->
+	<div class="pt-4 pb-4">
+		<div class="max-w-4xl mx-auto">
+			<!-- Header -->
+			<div class="mb-4">
+				<div class="flex items-center gap-2 text-destructive mb-2">
+					<Sparkles class="w-4 h-4" />
+					<span class="text-xs font-medium uppercase tracking-wider">AI Powered</span>
 				</div>
-				<h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
-					{@html $i18nStore.t('home.headline')}
+				<h1 class="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+					{$i18nStore.t('recommendations.title', 'Get Recommendations')}
 				</h1>
-				<p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 py-3 sm:py-5 max-w-2xl">
-					{$i18nStore.t('home.description', 'Our AI understands your taste and finds the perfect movies and shows tailored just for you.')}
+				<p class="text-sm text-muted-foreground">
+					{$i18nStore.t('recommendations.subtitle', 'Discover your next favorite movie or TV show')}
 				</p>
 			</div>
-		{/if}
 
-		<div class="relative mt-6 sm:mt-8">
-			<!-- Search Limit Indicator -->
-			<SearchLimitIndicator />
-			
-			{#if recommendations.length > 0}
-				<div class="flex gap-2 mb-4 sm:mb-6">
-					<button
-						on:click={toggleForm}
-						class="px-4 sm:px-5 py-2.5 rounded-lg bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-950 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base"
-					>
-						<span>{isFormCollapsed ? $i18nStore.t('recommendations.show_filters', 'Show Filters') : $i18nStore.t('recommendations.hide_filters', 'Hide Filters')}</span>
-					</button>
-					<button
-						on:click={resetSearch}
-						class="px-4 sm:px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium text-sm sm:text-base transition-all duration-300 flex items-center gap-2"
-					>
-						<span>{$i18nStore.t('recommendations.find_another', 'Find Another')}</span>
-					</button>
-				</div>
-			{/if}
+			<!-- Recommendation Form -->
+			<div class="mb-6" class:mb-4={recommendations.length > 0}>
+				<!-- Form Controls (show when recommendations exist) -->
+				{#if recommendations.length > 0}
+					<div class="flex flex-col sm:flex-row gap-2 mb-3">
+						<button
+							on:click={() => isFormCollapsed = !isFormCollapsed}
+							class="btn-secondary btn-sm gap-2 flex-1"
+						>
+							<Search class="w-4 h-4" />
+							<span>{isFormCollapsed ? 'Show Filters' : 'Hide Filters'}</span>
+						</button>
+						<button
+							on:click={() => {
+								recommendations = [];
+								error = null;
+								isFormCollapsed = false;
+							}}
+							class="btn-destructive btn-sm gap-2 flex-1"
+						>
+							<Zap class="w-4 h-4" />
+							<span>New Search</span>
+						</button>
+					</div>
+				{/if}
 
-			{#if !isFormCollapsed || recommendations.length === 0}
-				<div transition:slide={{ duration: 400 }} class="mb-8">
-					<div
-						class="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-2xl p-5 sm:p-6 shadow-xl"
-					>
-						<form class="space-y-5 sm:space-y-7" on:submit|preventDefault={handleSubmit}>
-							<!-- Cinema Type -->
+				<div
+					class="card-base p-4 transition-all duration-300"
+					class:shadow-[2px_2px_0px_0px_hsl(var(--border))]={isFormCollapsed}
+					class:shadow-[4px_4px_0px_0px_hsl(var(--border))]={!isFormCollapsed}
+				>
+					{#if !isFormCollapsed}
+						<form on:submit|preventDefault={handleSubmit} class="space-y-4">
+							<!-- Media Type Selection -->
 							<div class="space-y-2">
-								<label
-									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300"
-								>
+								<label class="block text-sm font-medium text-foreground flex items-center gap-2">
+									<Film class="w-4 h-4" />
 									{$i18nStore.t('form.what_looking_for', 'What are you looking for?')}
 								</label>
-								<div class="grid grid-cols-2 gap-3 sm:gap-4">
+								<div class="grid grid-cols-2 gap-3">
 									<button
 										type="button"
-										class="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 shadow-sm {cinemaType ===
-										'movie'
-											? 'border-red-500 bg-red-500/10 scale-[1.02]'
-											: 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black'}"
+										class="btn-base p-3 transition-all duration-100 {cinemaType === 'movie'
+											? 'border-destructive bg-destructive/10 text-destructive scale-[1.02]'
+											: 'border-border text-foreground bg-card'}"
 										on:click={() => (cinemaType = 'movie')}
 									>
-										<div
-											class="flex items-center justify-center w-10 h-10 rounded-full {cinemaType ===
-											'movie'
-												? 'bg-red-500/20 text-red-500'
-												: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}"
-										>
-											<Film class="w-5 h-5" />
+										<div class="flex items-center gap-2">
+											<div
+												class="p-1.5 border border-current {cinemaType === 'movie'
+													? 'bg-destructive text-destructive-foreground'
+													: 'bg-secondary text-secondary-foreground'}"
+											>
+												<Film class="w-4 h-4" />
+											</div>
+											<span class="text-sm font-medium">{$i18nStore.t('form.movie', 'Movie')}</span>
 										</div>
-										<span
-											class="text-base sm:text-lg font-medium {cinemaType === 'movie'
-												? 'text-red-500'
-												: 'text-gray-700 dark:text-gray-300'}">{$i18nStore.t('form.movie', 'Movie')}</span
-										>
 									</button>
 									<button
 										type="button"
-										class="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl border-2 transition-all duration-300 shadow-sm {cinemaType ===
-										'tv'
-											? 'border-red-500 bg-red-500/10 scale-[1.02]'
-											: 'border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black'}"
+										class="btn-base p-3 transition-all duration-100 {cinemaType === 'tv'
+											? 'border-destructive bg-destructive/10 text-destructive scale-[1.02]'
+											: 'border-border text-foreground bg-card'}"
 										on:click={() => (cinemaType = 'tv')}
 									>
-										<div
-											class="flex items-center justify-center w-10 h-10 rounded-full {cinemaType ===
-											'tv'
-												? 'bg-red-500/20 text-red-500'
-												: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}"
-										>
-											<Tv class="w-5 h-5" />
+										<div class="flex items-center gap-2">
+											<div
+												class="p-1.5 border border-current {cinemaType === 'tv'
+													? 'bg-destructive text-destructive-foreground'
+													: 'bg-secondary text-secondary-foreground'}"
+											>
+												<Tv class="w-4 h-4" />
+											</div>
+											<span class="text-sm font-medium">{$i18nStore.t('form.tv_show', 'TV Show')}</span>
 										</div>
-										<span
-											class="text-base sm:text-lg font-medium {cinemaType === 'tv'
-												? 'text-red-500'
-												: 'text-gray-700 dark:text-gray-300'}">{$i18nStore.t('form.tv_show', 'TV Show')}</span
-										>
 									</button>
 								</div>
 							</div>
 
 							<!-- Genres -->
 							<div class="space-y-2">
-								<label
-									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
-								>
+								<label class="block text-sm font-medium text-foreground flex items-center gap-2">
 									<ThumbsUp class="w-4 h-4" />
-									{$i18nStore.t('form.choose_genres', 'Choose genres (optional)')}
+									{$i18nStore.t('form.choose_genres', 'Genres (optional)')}
 								</label>
-								<div class="flex flex-wrap gap-2 sm:gap-3">
+								<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
 									{#each genres as genre, i}
 										{#if mounted}
 											<button
 												type="button"
 												in:fly={{
-													y: 20,
-													delay: getRandomDelay(),
-													duration: 400,
-													easing: elasticOut
+													y: 10,
+													delay: i * 20,
+													duration: 200
 												}}
-												class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 text-sm transition-all duration-300 shadow-sm {selectedGenres.includes(
+												class="btn-base text-xs py-2 px-2 transition-all duration-100 {selectedGenres.includes(
 													genre
 												)
-													? 'border-red-500 bg-red-500/10 text-red-500 scale-[1.05]'
-													: 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black hover:scale-[1.03]'}"
+													? 'border-destructive bg-destructive/10 text-destructive scale-[1.02]'
+													: 'border-border text-foreground bg-card'}"
 												on:click={() => {
 													if (selectedGenres.includes(genre)) {
 														selectedGenres = selectedGenres.filter((g) => g !== genre);
@@ -452,28 +432,25 @@
 
 							<!-- Platforms -->
 							<div class="space-y-2">
-								<label
-									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
-								>
+								<label class="block text-sm font-medium text-foreground flex items-center gap-2">
 									<Star class="w-4 h-4" />
-									{$i18nStore.t('form.available_on', 'Available on (optional)')}
+									{$i18nStore.t('form.available_on', 'Platforms (optional)')}
 								</label>
-								<div class="flex flex-wrap gap-2 sm:gap-3">
+								<div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
 									{#each platforms as platform, i}
 										{#if mounted}
 											<button
 												type="button"
 												in:fly={{
-													y: 20,
-													delay: getRandomDelay(),
-													duration: 400,
-													easing: elasticOut
+													y: 10,
+													delay: i * 20,
+													duration: 200
 												}}
-												class="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border-2 text-sm transition-all duration-300 shadow-sm {selectedPlatforms.includes(
+												class="btn-base text-xs py-2 px-2 transition-all duration-100 {selectedPlatforms.includes(
 													platform
 												)
-													? 'border-red-500 bg-red-500/10 text-red-500 scale-[1.05]'
-													: 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600 bg-white dark:bg-black hover:scale-[1.03]'}"
+													? 'border-destructive bg-destructive/10 text-destructive scale-[1.02]'
+													: 'border-border text-foreground bg-card'}"
 												on:click={() => {
 													if (selectedPlatforms.includes(platform)) {
 														selectedPlatforms = selectedPlatforms.filter((p) => p !== platform);
@@ -489,109 +466,64 @@
 								</div>
 							</div>
 
-							<!-- Rating Filter -->
-							<div class="space-y-4">
-								<label
-									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
-								>
+							<!-- Compact Rating Filter -->
+							<div class="space-y-3">
+								<label class="block text-sm font-medium text-foreground flex items-center gap-2">
 									<Star class="w-4 h-4 text-yellow-500" />
-									{$i18nStore.t('form.minimum_rating', 'Minimum Rating (optional)')}
+									{$i18nStore.t('form.minimum_rating', 'Min Rating (optional)')}
 								</label>
 								
-								<!-- Clean Rating Slider -->
-								<div class="space-y-4">
+								<div class="flex items-center gap-3">
 									<!-- Current value display -->
 									{#if minRating > 0}
-										<div class="flex items-center justify-center">
-											<div class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-full">
-												<div class="flex items-center">
-													{#each Array(5) as _, i}
-														<svg 
-															class="w-4 h-4 {i < Math.ceil(minRating/2) ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600'}" 
-															fill="currentColor" 
-															viewBox="0 0 20 20"
-														>
-															<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-														</svg>
-													{/each}
-												</div>
-												<span class="text-sm font-medium text-yellow-700 dark:text-yellow-300">
-													{minRating}/10
-												</span>
+										<div class="flex items-center gap-2 px-3 py-1.5 bg-card border border-border text-sm">
+											<div class="flex items-center gap-0.5">
+												{#each Array(5) as _, i}
+													<Star 
+														class="w-3 h-3 {i < Math.ceil(minRating/2) ? 'text-yellow-500 fill-yellow-500' : 'text-muted-foreground'}" 
+													/>
+												{/each}
 											</div>
+											<span class="font-medium text-foreground">{minRating}/10</span>
 										</div>
 									{/if}
 									
-									<!-- Slider container -->
-									<div class="relative px-1">
-										<input
-											type="range"
-											min="0"
-											max="10"
-											step="0.5"
-											bind:value={minRating}
-											class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer rating-slider"
-										/>
-										
-										<!-- Rating markers -->
-										<div class="flex justify-between mt-2 px-1">
-											{#each [0, 2, 4, 6, 8, 10] as rating}
-												<button
-													type="button"
-													on:click={() => minRating = rating}
-													class="flex flex-col items-center group"
-												>
-													<div class="w-1 h-3 {minRating >= rating ? 'bg-yellow-500' : 'bg-gray-300 dark:bg-gray-600'} rounded-full transition-colors"></div>
-													<span class="text-xs text-gray-500 dark:text-gray-400 mt-1 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
-														{rating}
-													</span>
-												</button>
-											{/each}
-										</div>
-									</div>
-									
-									<!-- Reset button -->
-									{#if minRating > 0}
-										<div class="flex justify-center">
+									<!-- Quick buttons -->
+									<div class="flex gap-1">
+										{#each [0, 6, 7, 8, 9] as rating}
 											<button
 												type="button"
-												on:click={() => minRating = 0}
-												class="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline transition-colors"
+												on:click={() => minRating = rating}
+												class="px-2 py-1 text-xs font-medium bg-card border border-border hover:shadow-[2px_2px_0px_0px_hsl(var(--border))] hover:translate-x-[-1px] hover:translate-y-[-1px] transition-all duration-100 {minRating === rating ? 'bg-primary text-primary-foreground' : 'text-foreground'}"
 											>
-												Clear rating filter
+												{rating === 0 ? 'Any' : rating}
 											</button>
-										</div>
-									{/if}
+										{/each}
+									</div>
 								</div>
 							</div>
 
 							<!-- Preferences -->
 							<div class="space-y-2">
-								<label
-									class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2"
-								>
-									<Brain class="w-4 h-4 text-red-500" />
+								<label class="block text-sm font-medium text-foreground flex items-center gap-2">
+									<Brain class="w-4 h-4 text-destructive" />
 									<span class="flex items-center gap-1.5">
-										{$i18nStore.t('form.ai_preferences', 'AI-Enhanced Preferences')}
-										<span
-											class="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-										>
+										{$i18nStore.t('form.ai_preferences', 'AI Preferences')}
+										<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-bold bg-destructive/10 text-destructive border border-destructive/30">
 											SMART
 										</span>
 									</span>
 								</label>
-								<div class="relative">
+								<div class="space-y-2">
 									<input
 										type="text"
 										bind:value={preferences}
-										placeholder={$i18nStore.t('form.preferences_placeholder', "e.g., 'with strong female lead', 'from 1990s', '8+ rating'")}
-										class="w-full px-4 sm:px-5 py-3 sm:py-4 rounded-xl border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-black text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-500/50 focus:ring-2 focus:ring-red-500/20 transition-colors text-sm"
+										placeholder={$i18nStore.t('form.preferences_placeholder', "e.g., 'strong female lead', '1990s', '8+ rating'")}
+										class="input-base w-full px-3 py-2 text-sm"
 									/>
-									<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-start gap-2">
-										<Sparkles class="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" />
-										<span>
-											{$i18nStore.t('recommendations.ai_hint', 'Our AI will analyze your preferences to enhance your recommendations. Try phrases like "with Tom Hanks", "feel-good comedies", or "mind-bending plots".')}
-										</span>
+									<div class="text-xs text-muted-foreground flex items-start gap-1.5">
+										<Sparkles class="w-3 h-3 text-destructive flex-shrink-0 mt-0.5" />
+										<span>Try: "with Tom Hanks", "feel-good comedies", or "mind-bending plots"</span>
 									</div>
 								</div>
 							</div>
@@ -599,7 +531,7 @@
 							<!-- Submit -->
 							<button
 								type="submit"
-								class="w-full py-3 sm:py-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-medium text-base transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+								class="btn-destructive btn-md w-full gap-2 font-bold"
 								disabled={!cinemaType || loading}
 							>
 								{#if loading}
@@ -613,40 +545,40 @@
 								{/if}
 							</button>
 						</form>
-					</div>
+					{/if}
+				</div>
+			</div>
+
+			{#if recommendations.length === 0}
+				<div in:fade={{ duration: 300 }}>
+					{#if error}
+						<div
+							class="mt-4 p-5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-base flex items-start gap-3"
+						>
+							<div class="flex-shrink-0 p-2 bg-red-500/20 rounded-full">
+								<X class="w-5 h-5" />
+							</div>
+							<div>
+								<p class="font-medium">Error</p>
+								<p>{error}</p>
+							</div>
+						</div>
+					{/if}
+				</div>
+			{:else}
+				<div class="mt-8 space-y-5 sm:space-y-6" in:fade={{ duration: 400, delay: 200 }}>
+					{#each recommendations as recommendation, i}
+						<div in:fade={{ duration: 400, delay: 300 + i * 100 }}>
+							<RecommendationCard
+								{recommendation}
+								{selectedPlatforms}
+								on:dismiss={() => dismissRecommendation(i)}
+							/>
+						</div>
+					{/each}
 				</div>
 			{/if}
 		</div>
-
-		{#if recommendations.length === 0}
-			<div in:fade={{ duration: 300 }}>
-				{#if error}
-					<div
-						class="mt-4 p-5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-base flex items-start gap-3"
-					>
-						<div class="flex-shrink-0 p-2 bg-red-500/20 rounded-full">
-							<X class="w-5 h-5" />
-						</div>
-						<div>
-							<p class="font-medium">Error</p>
-							<p>{error}</p>
-						</div>
-					</div>
-				{/if}
-			</div>
-		{:else}
-			<div class="mt-8 space-y-5 sm:space-y-6" in:fade={{ duration: 400, delay: 200 }}>
-				{#each recommendations as recommendation, i}
-					<div in:fade={{ duration: 400, delay: 300 + i * 100 }}>
-						<RecommendationCard
-							{recommendation}
-							{selectedPlatforms}
-							on:dismiss={() => dismissRecommendation(i)}
-						/>
-					</div>
-				{/each}
-			</div>
-		{/if}
 	</div>
 </div>
 
@@ -659,69 +591,61 @@
 		@apply transition-colors duration-300;
 	}
 
-	/* Clean rating slider styling */
+	/* Neobrutalism rating slider styling */
 	.rating-slider::-webkit-slider-thumb {
 		appearance: none;
-		height: 20px;
-		width: 20px;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+		height: 24px;
+		width: 24px;
+		border-radius: 5px;
+		background: hsl(var(--primary));
 		cursor: pointer;
-		box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
-		border: 2px solid white;
-		transition: all 0.2s ease;
+		border: 2px solid hsl(var(--border));
+		box-shadow: 4px 4px 0px 0px hsl(var(--border));
+		transition: all 0.1s ease;
 	}
 
 	.rating-slider::-moz-range-thumb {
-		height: 20px;
-		width: 20px;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+		height: 24px;
+		width: 24px;
+		border-radius: 5px;
+		background: hsl(var(--primary));
 		cursor: pointer;
-		border: 2px solid white;
-		box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
-		transition: all 0.2s ease;
+		border: 2px solid hsl(var(--border));
+		box-shadow: 4px 4px 0px 0px hsl(var(--border));
+		transition: all 0.1s ease;
 	}
 
 	.rating-slider:hover::-webkit-slider-thumb {
-		transform: scale(1.1);
-		box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px hsl(var(--border));
 	}
 
 	.rating-slider:hover::-moz-range-thumb {
-		transform: scale(1.1);
-		box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+		transform: translate(-2px, -2px);
+		box-shadow: 6px 6px 0px 0px hsl(var(--border));
+	}
+
+	.rating-slider:active::-webkit-slider-thumb {
+		transform: translate(2px, 2px);
+		box-shadow: 2px 2px 0px 0px hsl(var(--border));
+	}
+
+	.rating-slider:active::-moz-range-thumb {
+		transform: translate(2px, 2px);
+		box-shadow: 2px 2px 0px 0px hsl(var(--border));
 	}
 
 	.rating-slider::-webkit-slider-track {
-		height: 8px;
-		border-radius: 4px;
-		background: #e5e7eb;
-		transition: background 0.2s ease;
+		height: 16px;
+		border-radius: 5px;
+		background: hsl(var(--muted));
+		border: none;
 	}
 
 	.rating-slider::-moz-range-track {
-		height: 8px;
-		border-radius: 4px;
-		background: #e5e7eb;
+		height: 16px;
+		border-radius: 5px;
+		background: hsl(var(--muted));
 		border: none;
-		transition: background 0.2s ease;
-	}
-
-	/* Dark mode */
-	:global(.dark) .rating-slider::-webkit-slider-thumb {
-		border-color: #111827;
-	}
-
-	:global(.dark) .rating-slider::-moz-range-thumb {
-		border-color: #111827;
-	}
-
-	:global(.dark) .rating-slider::-webkit-slider-track {
-		background: #374151;
-	}
-
-	:global(.dark) .rating-slider::-moz-range-track {
-		background: #374151;
 	}
 </style>

@@ -12,10 +12,14 @@
 	let isAuthenticated = false;
 
 	onMount(() => {
-		// Initialize theme class on document
+		// Initialize theme classes on document
 		const unsubscribeTheme = theme.subscribe((value) => {
 			if (typeof document !== 'undefined') {
-				document.documentElement.classList.toggle('dark', value === 'dark');
+				// Apply color mode
+				document.documentElement.classList.toggle('dark', value.colorMode === 'dark');
+				
+				// Always apply neobrutalism theme
+				document.documentElement.classList.add('neobrutalism-theme');
 			}
 		});
 
@@ -41,12 +45,12 @@
 </div>
 
 <div
-	class="relative min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-300"
+	class="relative min-h-screen bg-transparent text-gray-900 dark:text-white transition-colors duration-100"
 >
 	<Navbar />
 	<ToastContainer />
-	<div class="min-h-screen overflow-y-auto pt-14 pb-20 md:pb-16">
-		<main class="relative z-10">
+	<div class="min-h-screen overflow-y-auto pt-12 pb-20 md:pb-4">
+		<main class="relative z-10 px-4 sm:px-6 lg:px-8">
 			<slot />
 		</main>
 	</div>
@@ -54,24 +58,24 @@
 
 <style>
 	:global(html) {
-		transition: background-color 300ms ease-in-out;
+		transition: background-color 100ms ease;
 	}
 
 	:global(body) {
-		transition: background-color 300ms ease-in-out, color 300ms ease-in-out;
+		transition: background-color 100ms ease, color 100ms ease;
 	}
 
 	:global(*) {
 		transition-property: background-color, border-color, color, fill, stroke;
-		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-		transition-duration: 300ms;
+		transition-timing-function: ease;
+		transition-duration: 0.1s;
 	}
 
 	/* Apply consistent transitions when theme is changing */
 	:global(.theme-transitioning *) {
 		transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow,
 			transform !important;
-		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
-		transition-duration: 300ms !important;
+		transition-timing-function: ease !important;
+		transition-duration: 0.1s !important;
 	}
 </style>

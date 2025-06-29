@@ -31,7 +31,7 @@ if (!hasAuth0Config) {
 }
 
 // Security: Do not log API keys, even partially
-console.log('[Auth Debug] TMDB API key status:', TMDB_API_KEY ? 'Present' : 'Missing');
+console.log('[Auth Debug] TMDB API configured:', TMDB_API_KEY ? 'YES' : 'NO');
 
 // Security: Input validation function
 function validateAuthInput(email: string, password: string, action: string): { valid: boolean; error?: string } {
@@ -69,9 +69,15 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json({ error: validation.error }, { status: 400 });
 	}
 
-	// Development mode mock authentication - DISABLED when Auth0 is configured
+	// Development mode mock authentication - SECURITY: Additional checks
 	// Only use mock auth if explicitly enabled via USE_MOCK_AUTH environment variable
 	const useMockAuth = (env as any).USE_MOCK_AUTH === 'true' || (env as any).PRIVATE_USE_MOCK_AUTH === 'true';
+	
+	// Security: Prevent mock auth in production environments
+	if (useMockAuth && !isDev) {
+		console.error('[Security] Mock authentication attempted in production - BLOCKED');
+		return json({ error: 'Authentication service configuration error' }, { status: 503 });
+	}
 	
 	// In development, allow mock auth when Auth0 is not configured
 	if (!hasAuth0Config && isDev) {
@@ -80,7 +86,8 @@ export const POST: RequestHandler = async ({ request }) => {
 		if (action === 'register') {
 			return json({ 
 				message: 'Mock registration successful!',
-				mockMode: true
+				mockMode: true,
+				warning: 'Development mode only'
 			});
 		}
 		
@@ -97,7 +104,8 @@ export const POST: RequestHandler = async ({ request }) => {
 				name: 'Mock User',
 				picture: null
 			},
-			mockMode: true
+			mockMode: true,
+			warning: 'Development mode only'
 		});
 	}
 

@@ -32,7 +32,7 @@
 	onMount(() => {
 		if (!containerRef) return;
 
-		// Sanitize and extract only text content from the slot
+		// Security: Sanitize and extract only text content from the slot
 		const raw = containerRef.innerHTML;
 		const sanitized = sanitizeHTML(raw);
 		// Create a temporary element to extract only text (strip any tags)
@@ -58,6 +58,7 @@
 				.join('');
 		}
 
+		// Security: Safe to use innerHTML here since content is fully sanitized and escaped
 		containerRef.innerHTML = html;
 		elements = Array.from(containerRef.querySelectorAll('span'));
 
